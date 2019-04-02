@@ -106,32 +106,32 @@ void cmd_list(int socket){
 
 }
 
-void select_command(int sock,char *buffer){
+void select_command(int sock,string buffer){
 
-	if(strcmp("!help",buffer) == 0){
+
+	if(buffer.compare("!help") == 0){
 		cmd_help();
-	} else if(strcmp("!list",buffer) == 0){
+	} else if(buffer.compare("!list") == 0){
 		cmd_list(sock);
-	} else if(strcmp("!quit",buffer) == 0){
+	} else if(buffer.compare("!quit") == 0){
 		cmd_quit(sock);
-	} else if(strcmp("!connect",buffer) == 0){
-	//	cmd_connect(sock);
 	} else {
 		printf("Comando non riconosciuto\n");
 		pulisci_buff();
 	}
 
-	free(buffer);
 
 }
 
 void read_input(int sock){
 
-	char *buffer = 0;
+	string buffer;
 	fflush(stdout);
-	scanf("%ms",&buffer);
+	cin>>buffer;
+	//scanf("%ms",&buffer);
 
 	select_command(sock,buffer);
+	//free(buffer);
 
 }
 

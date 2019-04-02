@@ -1,4 +1,4 @@
-CFLAGS= -Wall -std=c++14
+CFLAGS= -Wall -std=c++14 -g
 LIBFLG = -lcrypto
 LIBDIP = library.o library/library.h
 
