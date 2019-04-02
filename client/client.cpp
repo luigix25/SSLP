@@ -69,12 +69,19 @@ void cmd_disconnect(int sock){
 
 }
 
+void cmd_list(int sock){
+	/*printf("Disconnessione avvenuta con successo: TI SEI ARRESO\n");
+
+	if(!sendInt(sock,DISCONNECT_COMMAND))		return;*/
+
+}
+
 void select_command(int sock,char *buffer){
 
 	if(strcmp("!help",buffer) == 0){
 		cmd_help();
-	} else if(strcmp("!who",buffer) == 0){
-	//	cmd_who(sock);
+	} else if(strcmp("!list",buffer) == 0){
+		cmd_list(sock);
 	} else if(strcmp("!quit",buffer) == 0){
 		cmd_quit(sock);
 	} else if(strcmp("!connect",buffer) == 0){
@@ -117,23 +124,6 @@ void protocol_error(int sock_tcp){
 	exit(-1);
 
 }
-
-void select_command_udp(int sock,int cmd,int socket_tcp){
-
-	/*switch(cmd){
-		case SHOT_DATA:
-			handle_data_shot(socket_tcp);
-			break;
-		case RESPONSE_SHOT:
-			handle_response_shot();
-			break;
-		case YOU_WON:
-			handle_win();
-			break;
-	}*/
-
-}
-
 
 void select_command_server(int socket,int cmd){
 
@@ -257,8 +247,6 @@ int main(int argc,char **argv){
 
 		}
 		
-		//read_input(socket_server);
-
 	}
 
 	
