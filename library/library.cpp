@@ -1,7 +1,5 @@
 #include "library.h"
-
-const char *commands_list[4] = {"!help","!who","!connect","!quit"};
-const char *commands_list_game[4] = {"!help","!disconnect","!shot","!show"};
+const char *commands_list[5] = {"!help","!list","!get","!upload","!quit"};
 
 int sendInt(int sd,int value){
 	int status;
@@ -18,7 +16,7 @@ int sendInt(int sd,int value){
 
 }
 
-int sendData(int sd,char *buffer,int len){
+int sendData(int sd,const char *buffer,int len){
 	int ret;
 
 	if(!sendInt(sd,len))
@@ -60,6 +58,7 @@ int recvInt(int sd,int* val){
 	ret = recvfrom(sd,&tmp,sizeof(uint32_t),0,NULL,0);
 	if(ret < sizeof(uint32_t)){
 		perror("[Errore] recv");
+		return 0;
 	}
 
 	*val = ntohl(tmp);

@@ -1,16 +1,15 @@
 #include "../library/library.h"
+#include <iostream>
+using namespace std;
 
 fd_set master;
 int socket_tcp;
 struct sockaddr_in opponent;
 
-void handle_connection_request(int);
-void handle_connection_accepted(int);
-void handle_receive_data(int);
+/*void handle_receive_data(int);
 void cmd_show();
-void wait_for_opponent(short);
 void protocol_error(int);
-
+*/
 
 void pulisci_buff(){
 	char c;
@@ -35,16 +34,16 @@ struct sockaddr_in setup_sockaddr(char *ip,int port){
 
 void cmd_help(){
 
-	char *desc[4] = {"--> mostra l'elenco dei comandi disponibili",
+	const char *desc[5] = {"--> mostra l'elenco dei comandi disponibili",
 			"--> mostra l'elenco dei client connessi al server",
 			"username --> avvia una partita con l'utente username",
-			"--> disconnette il client dal server\n"};
+			"--> disconnette il client dal server","effe\n"};
 
 	int i;
 	printf("\n");	
 	printf("Sono disponibili i seguenti comandi:\n");
-	for(i=0;i<4;i++){
-		printf("%s\n",desc[i]);
+	for(i=0;i<5;i++){
+		printf("%s %s\n",commands_list[i],desc[i]);
 	}
 
 }
@@ -52,33 +51,38 @@ void cmd_help(){
 
 void cmd_quit(int sock){
 
-	printf("\nClient disconnesso correttamente\n");
+	cout<<"Closing Connection"<<endl;
+	close(sock);
+	exit(0);
+
+
+	/*printf("\nClient disconnesso correttamente\n");
 	if(!sendInt(sock,QUIT_COMMAND))		return;
 	close(sock);
-	exit(1);
+	exit(1);*/
 }
 
 void cmd_disconnect(int sock){
-	printf("Disconnessione avvenuta con successo: TI SEI ARRESO\n");
+	/*printf("Disconnessione avvenuta con successo: TI SEI ARRESO\n");
 
-	if(!sendInt(sock,DISCONNECT_COMMAND))		return;
+	if(!sendInt(sock,DISCONNECT_COMMAND))		return;*/
 
 }
 
 void select_command(int sock,char *buffer){
-/*
+
 	if(strcmp("!help",buffer) == 0){
 		cmd_help();
 	} else if(strcmp("!who",buffer) == 0){
-		cmd_who(sock);
+	//	cmd_who(sock);
 	} else if(strcmp("!quit",buffer) == 0){
 		cmd_quit(sock);
 	} else if(strcmp("!connect",buffer) == 0){
-		cmd_connect(sock);
+	//	cmd_connect(sock);
 	} else {
 		printf("Comando non riconosciuto\n");
 		pulisci_buff();
-	}*/
+	}
 
 	free(buffer);
 
@@ -208,9 +212,8 @@ int main(int argc,char **argv){
 	}
 	
 	printf("\nConnessione al server %s (port %d) effettuata con successo\n",argv[1],portServer);
-
 	
-	//cmd_help();
+	cmd_help();
 
 	FD_ZERO(&master);	
 	FD_ZERO(&read_fds);
@@ -221,13 +224,13 @@ int main(int argc,char **argv){
 
 	fdmax = socket_tcp;
 
-	char *abc = "Uno due tre stella";
+	/*const char *abc = "Uno due tre stella";
 	int lun = strlen(abc)+1;
 
 	printf("Invio: %s\n",abc);
-	sendData(socket_tcp,abc,lun);
-
-	/*while(true){
+	//sendData(socket_tcp,abc,lun);
+*/
+	while(true){
 
 	
 		read_fds = master;
@@ -240,10 +243,13 @@ int main(int argc,char **argv){
 		for(i = 0; i <= fdmax; i++){
 			if(FD_ISSET(i,&read_fds)){
 				if(i == 0){			//stdin
-					read_input(socket_tcp);					
+					read_input(socket_tcp);				//keyboard			
 					//continue;
 				} else if(i == socket_tcp) {			//server tcp
-					if(!recvInt(i,&cmd))			return -1;
+					if(!recvInt(i,&cmd)){
+						printf("Connessione Persa\n");
+						return -1;
+					}			
 					select_command_server(i,cmd);	
 				} 
 
@@ -253,7 +259,7 @@ int main(int argc,char **argv){
 		
 		//read_input(socket_server);
 
-	}	*/
+	}
 
 	
 	return 0;

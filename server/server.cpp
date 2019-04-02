@@ -139,13 +139,13 @@ int main(int argc,char **argv){
 					continue;
 
 				} else {				//qualcuno vuole scrivere
-					/*status = recvInt(i,&cmd);
-					printf("%d\n",cmd);
-					return -1;*/
-					int acca;
-					char *ricevuto = recvData(i,acca);
-					printf("%s\n",ricevuto);
-					return -1;
+					status = recvInt(i,&cmd);
+					if(!status){
+						printf("Client Disconnesso\n");
+						close(server_socket);
+						return -1;
+					}
+					//printf("%d\n",cmd);
 
 					
 				}
