@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+#Eseguibili dell'app 
+client_bin
+server_bin
