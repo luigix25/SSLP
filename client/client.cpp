@@ -1,5 +1,7 @@
 #include "../library/library.h"
 #include <iostream>
+#include <vector>
+
 using namespace std;
 
 fd_set master;
@@ -69,10 +71,38 @@ void cmd_disconnect(int sock){
 
 }
 
-void cmd_list(int sock){
-	/*printf("Disconnessione avvenuta con successo: TI SEI ARRESO\n");
+void cmd_list(int socket){
 
-	if(!sendInt(sock,DISCONNECT_COMMAND))		return;*/
+
+	/*printf("Disconnessione avvenuta con successo: TI SEI ARRESO\n");*/
+
+	if(!sendInt(socket,LIST_COMMAND))		return;
+	
+	int number_files;
+
+	if(!recvInt(socket,&number_files))		return;
+
+	vector<string> files_list(number_files);
+
+	for(int i=0;i<number_files;i++){
+		char *str;
+		int len;
+
+		str = recvData(socket,len);
+		if(str == NULL) return;
+		files_list[i] = str;
+		free(str);
+
+	}
+
+	cout<<"Files Available:"<<endl;
+	for(int i= 0;i<number_files;i++){
+		cout<<files_list[i]<<'\t';
+	}
+	cout<<endl;
+
+
+
 
 }
 

@@ -1,45 +1,68 @@
 #include "../library/library.h"
+#include "server.h"
+#include <iostream>
+#include <vector>
+
+using namespace std;
 
 fd_set master;
 
-void select_command(int cmd,int sock,struct sockaddr_in socket_full){
 
-	/*switch (cmd){
-		case LOGIN_COMMAND:
-			login_function(sock,socket_full);
-			break;
-		case WHO_COMMAND:
-			who_function(sock);
-			break;
-		case QUIT_COMMAND:
-			quit_function(sock);	
-			break;
-		case CONNECT_COMMAND:
-			connect_function(sock);
-			break;	
-		case CONNECT_ACPT:
-			connect_acpt(sock);
-			break;
-		case CONNECT_RFSD:
-			connect_rfsd(sock);
-			break;
-		case DISCONNECT_COMMAND:
-			disconnect_function(sock);
-			break;
-		case END_GAME:
-			end_game(sock);
-			break;
-		case NOTIFY_OPP_TIMEOUT:
-			handle_timeout(sock);
-			break;
-		case CONNECT_TIMEOUT_REQ:
-			handle_timeout_conn(sock);
-			break;
-		}
-*/
+vector<string> get_file_list(){
+
+	DIR* folder = opendir("server/database");
+	struct dirent* dp;
+	vector <string> result;
+
+	while( (dp = readdir(folder)) != NULL){						//WARNING SICUREZZA
+		char *filename = dp->d_name;
+		if(filename[0] == '.')
+			continue;
+		result.push_back(filename);
+	}
+
+	closedir(folder);
+	return result;
 
 }
 
+void cmd_list(int socket){
+	vector <string> files;
+	files = get_file_list();
+	int status,number;
+
+	number = (int)files.size();
+
+	if(!sendInt(socket,number))
+		return;
+
+	for(uint16_t i =0;i<number;i++){
+		const char *str = files[i].c_str();
+		int len = strlen(str)+1;
+
+		//cout<<"Invio: "<<str<<endl;
+
+		if(!sendData(socket,str,len))
+			return;
+	}
+
+
+}
+
+
+void select_command(int cmd,int socket){
+
+	switch (cmd){
+		case LIST_COMMAND:
+			cmd_list(socket);
+			break;
+		default:
+			//handle error
+			break;
+		}
+
+
+}
 
 int initialize_server(int port){
 	
@@ -78,6 +101,7 @@ int initialize_server(int port){
 }
 
 int main(int argc,char **argv){
+
 
 	if(argc != 2){
 		printf("[Errore] parametri errati\n");
@@ -145,6 +169,8 @@ int main(int argc,char **argv){
 						close(server_socket);
 						return -1;
 					}
+					select_command(cmd,i);
+
 					//printf("%d\n",cmd);
 
 					

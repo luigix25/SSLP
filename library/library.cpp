@@ -8,8 +8,9 @@ int sendInt(int sd,int value){
 	tosend = htonl(value);
 	//status = send(sd, &tosend, sizeof(uint32_t), 0);
 	status = sendto(sd, &tosend, sizeof(uint32_t), 0,NULL,0);
-	if(status < sizeof(uint32_t))	{
-		perror("[Errore] send");
+	if(status < (int)sizeof(uint32_t))	{
+		perror("[Error] send");
+		return 0;
 	}
 
 	return (status==sizeof(uint32_t));
@@ -22,10 +23,10 @@ int sendData(int sd,const char *buffer,int len){
 	if(!sendInt(sd,len))
 		return false;
 	
-	//ret = send(sd,buffer,len,0);
 	ret = sendto(sd,buffer,len,0,NULL,0);
 	if(ret < len){
-		perror("[Errore] send");
+		perror("[Error] send");
+		return 0;
 	} 
 	
 	return (len == ret);
@@ -37,7 +38,7 @@ char* recvData(int sd, int &len){
 	int ret;
 
 	if(!recvInt(sd,&len)){
-		perror("[Errore] recv");
+		perror("[Error] recv");
 		return NULL;
 	}
 	char *buffer = (char *)malloc(len);
@@ -45,7 +46,7 @@ char* recvData(int sd, int &len){
 	//ret = recv(sd,buffer,len,MSG_WAITALL);
 	ret = recvfrom(sd,buffer,len,0,NULL,0);
 	if(ret < len){
-		perror("[Errore] recv");
+		perror("[Error] recv");
 		return NULL;	
 	}
 	return buffer;
@@ -56,13 +57,13 @@ int recvInt(int sd,int* val){
 	int ret,tmp;
 
 	ret = recvfrom(sd,&tmp,sizeof(uint32_t),0,NULL,0);
-	if(ret < sizeof(uint32_t)){
-		perror("[Errore] recv");
+	if(ret < (int)sizeof(uint32_t)){
+		perror("[Error] recv");
 		return 0;
 	}
 
 	*val = ntohl(tmp);
 
-	return (ret == sizeof(uint32_t));
+	return (ret == (int)sizeof(uint32_t));
 
 }

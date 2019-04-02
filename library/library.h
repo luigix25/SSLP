@@ -15,12 +15,12 @@
 
 extern const char *commands_list[5];
 
-//enum commands {HELP_COMMAND,WHO_COMMAND,CONNECT_COMMAND,CONNECT_ANSWER,QUIT_COMMAND,LOGIN_COMMAND,DISCONNECT_COMMAND};
+enum commands {HELP_COMMAND,LIST_COMMAND};
 //enum protocol_login {LOGIN_OK,LOGIN_FAIL};
 //enum protocol_connect {CONNECT_NOUSER,CONNECT_BUSY,CONNECT_REFUSED,CONNECT_OK,CONNECT_REQ,CONNECT_DATA,CONNECT_ACPT,CONNECT_RFSD};
 
 
-int sendInt(int,int);
+int sendInt(int,int);							//socket value
 int sendData(int,const char *,int);
 
 char* recvData(int,int&);
