@@ -31,6 +31,8 @@
 *.out
 *.app
 
+*.txt
+
 #Eseguibili dell'app 
 client_bin
 server_bin

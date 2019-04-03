@@ -1,4 +1,5 @@
-#include "../library/library.h"
+//#include "../library/library.h"
+#include "../library/FileManager.h"				//library è qui dentro
 #include <iostream>
 #include <vector>
 
@@ -122,7 +123,29 @@ void cmd_get(){
 
 	//handle get
 
+	char *recvd_data;
+	int len;
+	recvd_data = server_socket.recvData(len);
 
+	if(recvd_data == NULL) return;
+
+	cout<<"Ricevuti "<<len<<endl;
+	cout<<recvd_data<<endl;
+
+	string full_name = "client/database/";
+	full_name += filename;
+	cout<<"Scrivo: "<<full_name<<endl;
+	
+	chunk c;
+	memcpy(c.plaintext,recvd_data,len);
+
+	c.size = len;
+
+	FileManager fm(full_name);
+	fm.write(&c);
+
+
+	free(recvd_data);			
 
 }
 

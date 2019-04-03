@@ -1,7 +1,9 @@
-#include "../library/library.h"
+//#include "../library/library.h"
+#include "../library/FileManager.h"				//library è qui dentro
 #include "server.h"
 #include <iostream>
 #include <vector>
+
 
 using namespace std;
 
@@ -52,6 +54,8 @@ void cmd_list(){
 
 void cmd_get(){
 
+	//SECURE CODING
+
 	int len;
 
 	char *filename;
@@ -63,9 +67,26 @@ void cmd_get(){
 
 	cout<<"Client vuole leggere il file: "<<filename<<endl;
 
-	//SECURE CODING
+	string full_name = "server/database/";
+	full_name += filename;
 
-	free(filename);
+	FileManager fm(full_name);
+	free(filename); 							//non mi serve più
+
+	uint64_t size = fm.size_file();
+	cout<<"File size: "<<size<<endl;
+
+	chunk c;
+
+	//aggiungere while
+
+	fm.read(&c,0);
+	cout<<c.plaintext<<endl;
+	cout<<c.size<<endl;
+
+	if(!client_socket.sendData(c.plaintext,c.size)) return;
+
+
 
 
 }
@@ -174,7 +195,7 @@ int main(int argc,char **argv){
 
 	client_socket = NetSocket(new_sock);
 	cout<<"Connessione stabilita con il client"<<endl;
-	close(server_socket);
+	close(server_socket);											//no more clients allowed
 	
 	while(true){
 		read_fds = master;
