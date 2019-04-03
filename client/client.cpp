@@ -87,8 +87,8 @@ void cmd_list(){
 	vector<string> files_list(number_files);
 
 	for(int i=0;i<number_files;i++){
-		char *str;
 		int len;
+		char *str;
 
 		str = server_socket.recvData(len);
 		if(str == NULL) return;

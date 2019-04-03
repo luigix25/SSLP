@@ -54,7 +54,7 @@ void cmd_get(){
 
 	int len;
 
-	const char *filename;
+	char *filename;
 
 	filename = client_socket.recvData(len);
 	if(filename == NULL){
@@ -64,6 +64,8 @@ void cmd_get(){
 	cout<<"Client vuole leggere il file: "<<filename<<endl;
 
 	//SECURE CODING
+
+	free(filename);
 
 
 }
