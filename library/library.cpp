@@ -1,13 +1,30 @@
 #include "library.h"
 const char *commands_list[5] = {"!help","!list","!get","!upload","!quit"};
 
-int sendInt(int sd,int value){
+
+NetSocket::NetSocket(int socket){
+	this->socket = socket;
+}
+
+NetSocket::NetSocket(){
+	this->socket = -1;
+}
+
+void NetSocket::setSocket(int socket){
+	this->socket = socket;
+}
+
+void NetSocket::closeConnection(){
+	close(this->socket);
+}
+
+int NetSocket::sendInt(int value){
 	int status;
 	uint32_t tosend;
 
 	tosend = htonl(value);
 	//status = send(sd, &tosend, sizeof(uint32_t), 0);
-	status = sendto(sd, &tosend, sizeof(uint32_t), 0,NULL,0);
+	status = sendto(this->socket, &tosend, sizeof(uint32_t), 0,NULL,0);
 	if(status < (int)sizeof(uint32_t))	{
 		perror("[Error] send");
 		return 0;
@@ -17,13 +34,13 @@ int sendInt(int sd,int value){
 
 }
 
-int sendData(int sd,const char *buffer,int len){
+int NetSocket::sendData(const char *buffer,int len){
 	int ret;
 
-	if(!sendInt(sd,len))
+	if(!sendInt(len))
 		return false;
 	
-	ret = sendto(sd,buffer,len,0,NULL,0);
+	ret = sendto(this->socket,buffer,len,0,NULL,0);
 	if(ret < len){
 		perror("[Error] send");
 		return 0;
@@ -34,17 +51,17 @@ int sendData(int sd,const char *buffer,int len){
 }
 
 
-char* recvData(int sd, int &len){
+char* NetSocket::recvData(int &len){
 	int ret;
 
-	if(!recvInt(sd,&len)){
+	if(!recvInt(len)){
 		perror("[Error] recv");
 		return NULL;
 	}
 	char *buffer = (char *)malloc(len);
 
 	//ret = recv(sd,buffer,len,MSG_WAITALL);
-	ret = recvfrom(sd,buffer,len,0,NULL,0);
+	ret = recvfrom(this->socket,buffer,len,0,NULL,0);
 	if(ret < len){
 		perror("[Error] recv");
 		return NULL;	
@@ -52,17 +69,17 @@ char* recvData(int sd, int &len){
 	return buffer;
 }
 
-int recvInt(int sd,int* val){
+int NetSocket::recvInt(int &val){
 
 	int ret,tmp;
 
-	ret = recvfrom(sd,&tmp,sizeof(uint32_t),0,NULL,0);
+	ret = recvfrom(this->socket,&tmp,sizeof(uint32_t),0,NULL,0);
 	if(ret < (int)sizeof(uint32_t)){
 		perror("[Error] recv");
 		return 0;
 	}
 
-	*val = ntohl(tmp);
+	val = ntohl(tmp);
 
 	return (ret == (int)sizeof(uint32_t));
 

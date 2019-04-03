@@ -6,6 +6,7 @@
 using namespace std;
 
 fd_set master;
+NetSocket client_socket;
 
 
 vector<string> get_file_list(){
@@ -26,14 +27,14 @@ vector<string> get_file_list(){
 
 }
 
-void cmd_list(int socket){
+void cmd_list(){
 	vector <string> files;
 	files = get_file_list();
 	int status,number;
 
 	number = (int)files.size();
 
-	if(!sendInt(socket,number))
+	if(!client_socket.sendInt(number))
 		return;
 
 	for(uint16_t i =0;i<number;i++){
@@ -42,7 +43,7 @@ void cmd_list(int socket){
 
 		//cout<<"Invio: "<<str<<endl;
 
-		if(!sendData(socket,str,len))
+		if(!client_socket.sendData(str,len))
 			return;
 	}
 
@@ -50,11 +51,11 @@ void cmd_list(int socket){
 }
 
 
-void select_command(int cmd,int socket){
+void select_command(int cmd){
 
 	switch (cmd){
 		case LIST_COMMAND:
-			cmd_list(socket);
+			cmd_list();
 			break;
 		default:
 			//handle error
@@ -133,9 +134,25 @@ int main(int argc,char **argv){
 	
 	FD_ZERO(&master);	
 	FD_ZERO(&read_fds);
-	FD_SET(server_socket,&master);
+	//FD_SET(server_socket,&master);
 
-	fdmax = server_socket;
+	memset(&clientAddress,0,sizeof(clientAddress));
+	addrlen = sizeof(clientAddress);
+	new_sock = accept(server_socket,(struct sockaddr*)&clientAddress,&addrlen);
+	if(new_sock < 0){
+		perror("[Errore] accept\n");
+		return -1;
+	}
+
+	FD_SET(new_sock,&master);
+	//fdmax = server_socket;
+
+	//if(new_sock > fdmax) 
+	fdmax = new_sock;
+
+	client_socket = NetSocket(new_sock);
+	printf("Connessione stabilita con il client\n");
+	close(server_socket);
 	
 	while(true){
 		read_fds = master;
@@ -146,35 +163,24 @@ int main(int argc,char **argv){
 
 		for(i = 0; i <= fdmax; i++){
 			if(FD_ISSET(i,&read_fds)){			
-				if(i==server_socket){			//qualcuno si vuole connettere
+				/*if(i==server_socket){			//qualcuno si vuole connettere
+					cout<<"NO"<<endl;
+										
+					//continue;
 
-					memset(&clientAddress,0,sizeof(clientAddress));
-					addrlen = sizeof(clientAddress);
-					new_sock = accept(server_socket,(struct sockaddr*)&clientAddress,&addrlen);
-					if(new_sock < 0){
-						perror("[Errore] accept\n");
-						continue;
-					}					
-					FD_SET(new_sock,&master);
-					if(new_sock > fdmax) 
-						fdmax = new_sock;
-					
-					printf("Connessione stabilita con il client\n");
-					continue;
-
-				} else {				//qualcuno vuole scrivere
-					status = recvInt(i,&cmd);
+				} else {	*/			//qualcuno vuole scrivere
+					status = client_socket.recvInt(cmd);
 					if(!status){
 						printf("Client Disconnesso\n");
-						close(server_socket);
+						client_socket.closeConnection();
 						return -1;
 					}
-					select_command(cmd,i);
+					select_command(cmd);
 
 					//printf("%d\n",cmd);
 
 					
-				}
+				//}
 			}
 
 		}	

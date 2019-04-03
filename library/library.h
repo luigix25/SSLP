@@ -20,11 +20,29 @@ enum commands {HELP_COMMAND,LIST_COMMAND};
 //enum protocol_connect {CONNECT_NOUSER,CONNECT_BUSY,CONNECT_REFUSED,CONNECT_OK,CONNECT_REQ,CONNECT_DATA,CONNECT_ACPT,CONNECT_RFSD};
 
 
-int sendInt(int,int);							//socket value
-int sendData(int,const char *,int);
+class NetSocket{
 
-char* recvData(int,int&);
-int recvInt(int,int*);
+	int socket;
+
+	public:
+		NetSocket();
+		NetSocket(int);
+
+		void setSocket(int);
+
+		int sendInt(int);							//socket value
+		int sendData(const char *,int);
+
+		char* recvData(int&);
+		int recvInt(int&);
+
+		void closeConnection();
+
+
+};
+
+
+
 
 
 
