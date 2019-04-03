@@ -44,10 +44,10 @@ void cmd_help(){
 			"--> disconnette il client dal server","effe\n"};
 
 	int i;
-	printf("\n");	
-	printf("Sono disponibili i seguenti comandi:\n");
+	cout<<endl;
+	cout<<"Sono disponibili i seguenti comandi:"<<endl;
 	for(i=0;i<5;i++){
-		printf("%s %s\n",commands_list[i],desc[i]);
+		cout<<commands_list[i]<<" "<<desc[i]<<endl;
 	}
 
 }
@@ -138,7 +138,7 @@ void select_command(string buffer){
 	} else if(buffer.compare("!get") == 0){
 		cmd_get();
 	} else {
-		printf("Comando non riconosciuto\n");
+		cout<<"Comando non riconosciuto"<<endl;
 		pulisci_buff();
 	}
 
@@ -171,7 +171,6 @@ void wait_for_opponent(short cmd){			//disabilita tastiera
 
 void protocol_error(int sock_tcp){
 
-	printf("Errore del gioco. Termino\n");
 	close(sock_tcp);
 	exit(-1);
 
@@ -222,7 +221,7 @@ void select_command_server(int socket,int cmd){
 int main(int argc,char **argv){
 
 	if(argc < 3){
-		printf("[Errore] ip e porta necessari\n");
+		cout<<"[Errore] ip e porta necessari"<<endl;
 		exit(-1);
 	}
 
@@ -253,7 +252,7 @@ int main(int argc,char **argv){
 		return -1;
 	}
 	
-	printf("\nConnessione al server %s (port %d) effettuata con successo\n",argv[1],portServer);
+	cout<<endl<<"Connessione al server "<<argv[1]<<" (port "<<portServer<<" effettuata con successo"<<endl;
 	
 	server_socket = NetSocket(socket_tcp);
 
@@ -291,7 +290,7 @@ int main(int argc,char **argv){
 					//continue;
 				} else if(i == socket_tcp) {			//server tcp
 					if(!server_socket.recvInt(cmd)){
-						printf("Connessione Persa\n");
+						cout<<"Connessione Persa"<<endl;
 						return -1;
 					}			
 					select_command_server(i,cmd);	

@@ -92,7 +92,7 @@ int initialize_server(int port){
 
 	listener = socket(AF_INET, SOCK_STREAM, 0);
 	if(listener < 0){
-		printf("[Errore] socket\n");
+		cout<<"[Errore] socket"<<endl;
 		exit(-1);
 	}
 
@@ -125,7 +125,7 @@ int main(int argc,char **argv){
 
 
 	if(argc != 2){
-		printf("[Errore] parametri errati\n");
+		cout<<"[Errore] parametri errati"<<endl;
 		exit(-1);
 	}
 
@@ -149,7 +149,7 @@ int main(int argc,char **argv){
 
 	server_socket = initialize_server(port);
 
-	printf("[LOG] Attendo connessioni sulla porta %d\n",port);
+	cout<<"[LOG] Attendo connessioni sulla porta "<<port<<endl;
 
 	
 	FD_ZERO(&master);	
@@ -171,7 +171,7 @@ int main(int argc,char **argv){
 	fdmax = new_sock;
 
 	client_socket = NetSocket(new_sock);
-	printf("Connessione stabilita con il client\n");
+	cout<<"Connessione stabilita con il client"<<endl;
 	close(server_socket);
 	
 	while(true){
@@ -191,7 +191,7 @@ int main(int argc,char **argv){
 				} else {	*/			//qualcuno vuole scrivere
 					status = client_socket.recvInt(cmd);
 					if(!status){
-						printf("Client Disconnesso\n");
+						cout<<"Client Disconnesso"<<endl;
 						client_socket.closeConnection();
 						return -1;
 					}
