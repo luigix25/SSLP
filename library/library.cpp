@@ -18,7 +18,7 @@ void NetSocket::closeConnection(){
 	close(this->socket);
 }
 
-int NetSocket::sendInt(int value){
+bool NetSocket::sendInt(int value){
 	int status;
 	uint32_t tosend;
 
@@ -34,7 +34,7 @@ int NetSocket::sendInt(int value){
 
 }
 
-int NetSocket::sendData(const char *buffer,int len){
+bool NetSocket::sendData(const char *buffer,int len){
 	int ret;
 
 	if(!sendInt(len))
@@ -69,7 +69,7 @@ char* NetSocket::recvData(int &len){
 	return buffer;
 }
 
-int NetSocket::recvInt(int &val){
+bool NetSocket::recvInt(int &val){
 
 	int ret,tmp;
 

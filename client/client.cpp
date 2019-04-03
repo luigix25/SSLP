@@ -108,6 +108,24 @@ void cmd_list(){
 
 }
 
+void cmd_get(){
+
+	string filename;
+	cin >> filename;
+	//WARING SECURECODING
+
+	if(!server_socket.sendInt(GET_COMMAND)) return;
+
+	int length = filename.length()+1;
+
+	if(!server_socket.sendData(filename.c_str(),length)) return;
+
+	//handle get
+
+
+
+}
+
 void select_command(string buffer){
 
 
@@ -117,6 +135,8 @@ void select_command(string buffer){
 		cmd_list();
 	} else if(buffer.compare("!quit") == 0){
 		cmd_quit();
+	} else if(buffer.compare("!get") == 0){
+		cmd_get();
 	} else {
 		printf("Comando non riconosciuto\n");
 		pulisci_buff();

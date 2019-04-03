@@ -30,7 +30,7 @@ vector<string> get_file_list(){
 void cmd_list(){
 	vector <string> files;
 	files = get_file_list();
-	int status,number;
+	int number;
 
 	number = (int)files.size();
 
@@ -50,12 +50,32 @@ void cmd_list(){
 
 }
 
+void cmd_get(){
+
+	int len;
+
+	const char *filename;
+
+	filename = client_socket.recvData(len);
+	if(filename == NULL){
+		return;
+	}
+
+	cout<<"Client vuole leggere il file: "<<filename<<endl;
+
+	//SECURE CODING
+
+
+}
 
 void select_command(int cmd){
 
 	switch (cmd){
 		case LIST_COMMAND:
 			cmd_list();
+			break;
+		case GET_COMMAND:
+			cmd_get();
 			break;
 		default:
 			//handle error
@@ -187,8 +207,6 @@ int main(int argc,char **argv){
 
 	}
 	
-	close(server_socket);
-
 	return 0;
 
 }
