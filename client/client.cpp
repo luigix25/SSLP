@@ -8,6 +8,8 @@ fd_set master;
 int socket_tcp;
 struct sockaddr_in opponent;
 
+NetSocket server_socket;
+
 /*void handle_receive_data(int);
 void cmd_show();
 void protocol_error(int);
@@ -51,10 +53,10 @@ void cmd_help(){
 }
 
 
-void cmd_quit(int sock){
+void cmd_quit(){
 
 	cout<<"Closing Connection"<<endl;
-	close(sock);
+	server_socket.closeConnection();
 	exit(0);
 
 
@@ -71,16 +73,16 @@ void cmd_disconnect(int sock){
 
 }
 
-void cmd_list(int socket){
+void cmd_list(){
 
 
 	/*printf("Disconnessione avvenuta con successo: TI SEI ARRESO\n");*/
 
-	if(!sendInt(socket,LIST_COMMAND))		return;
+	if(!server_socket.sendInt(LIST_COMMAND))		return;
 	
 	int number_files;
 
-	if(!recvInt(socket,&number_files))		return;
+	if(!server_socket.recvInt(number_files))		return;
 
 	vector<string> files_list(number_files);
 
@@ -88,7 +90,7 @@ void cmd_list(int socket){
 		char *str;
 		int len;
 
-		str = recvData(socket,len);
+		str = server_socket.recvData(len);
 		if(str == NULL) return;
 		files_list[i] = str;
 		free(str);
@@ -106,15 +108,15 @@ void cmd_list(int socket){
 
 }
 
-void select_command(int sock,string buffer){
+void select_command(string buffer){
 
 
 	if(buffer.compare("!help") == 0){
 		cmd_help();
 	} else if(buffer.compare("!list") == 0){
-		cmd_list(sock);
+		cmd_list();
 	} else if(buffer.compare("!quit") == 0){
-		cmd_quit(sock);
+		cmd_quit();
 	} else {
 		printf("Comando non riconosciuto\n");
 		pulisci_buff();
@@ -123,14 +125,14 @@ void select_command(int sock,string buffer){
 
 }
 
-void read_input(int sock){
+void read_input(){
 
 	string buffer;
 	fflush(stdout);
 	cin>>buffer;
 	//scanf("%ms",&buffer);
 
-	select_command(sock,buffer);
+	select_command(buffer);
 	//free(buffer);
 
 }
@@ -233,6 +235,8 @@ int main(int argc,char **argv){
 	
 	printf("\nConnessione al server %s (port %d) effettuata con successo\n",argv[1],portServer);
 	
+	server_socket = NetSocket(socket_tcp);
+
 	cmd_help();
 
 	FD_ZERO(&master);	
@@ -263,10 +267,10 @@ int main(int argc,char **argv){
 		for(i = 0; i <= fdmax; i++){
 			if(FD_ISSET(i,&read_fds)){
 				if(i == 0){			//stdin
-					read_input(socket_tcp);				//keyboard			
+					read_input();				//keyboard			
 					//continue;
 				} else if(i == socket_tcp) {			//server tcp
-					if(!recvInt(i,&cmd)){
+					if(!server_socket.recvInt(cmd)){
 						printf("Connessione Persa\n");
 						return -1;
 					}			
