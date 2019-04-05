@@ -18,7 +18,7 @@ extern const char *commands_list[5];
 
 #define MAX_CHUNK_SIZE 256
 
-enum file_status{NO_ERRORS,OUT_OF_BOUND,FILE_NOT_EXISTS,FILE_ERROR_OPEN,FILE_ERROR_SIZE};
+enum file_status{NO_ERRORS,OUT_OF_BOUND,FILE_ERROR,END_OF_FILE};
 enum commands {HELP_COMMAND,LIST_COMMAND,GET_COMMAND};
 
 struct chunk{
