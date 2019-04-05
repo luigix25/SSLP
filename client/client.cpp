@@ -1,9 +1,14 @@
 #include "../library/library.h"
+<<<<<<< HEAD
 #include "../library/ReadFileManager.h"				//library è qui dentro
 #include "../library/WriteFileManager.h"				//library è qui dentro
 
 #include <iostream>
 #include <vector>
+=======
+#include "../library/FileManager.h"				//library è qui dentro
+
+>>>>>>> encryptChunk
 
 using namespace std;
 

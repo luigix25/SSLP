@@ -1,7 +1,8 @@
 CFLAGS= -Wall -std=c++14 -g
 LIBFLG = -lcrypto
 LIBDIP = library/library.h library/ReadFileManager.h library/WriteFileManager.h library/FileManager.h
-LIBFLS = library.o filemanager.o writefilemanager.o readfilemanager.o
+LIBFLS = library.o filemanager.o writefilemanager.o readfilemanager.o enc_dec.o
+
 
 all: client server
 
@@ -22,12 +23,16 @@ readfilemanager.o: library/library.h library/ReadFileManager.h library/ReadFileM
 
 writefilemanager.o: library/library.h library/WriteFileManager.h library/WriteFileManager.cpp library/FileManager.h
 	g++ $(CFLAGS) library/WriteFileManager.cpp -c -o writefilemanager.o 
+	
+enc_dec.o: library/library.h library/enc_dec.cpp 
+	g++ $(CFLAGS) library/enc_dec.cpp -c -o enc_dec.o
 
 client: client.o $(LIBFLS)
 	g++ $(CFLAGS) -o client_bin client.o $(LIBFLS) $(LIBFLG) 
 
 server: server.o $(LIBFLS)
 	g++ $(CFLAGS) -o server_bin server.o $(LIBFLS) $(LIBFLG) 
+
 
 clean:
 	rm -f *.o server_bin client_bin

@@ -84,3 +84,21 @@ bool NetSocket::recvInt(int &val){
 	return (ret == (int)sizeof(uint32_t));
 
 }
+
+
+char* serialization(char* plaintext, char* hmac, int size){
+
+	char* serialized = ( char *)malloc(sizeof(int) + size + HASH_SIZE);
+	*(int* )serialized = size;
+	memcpy(&serialized[4],plaintext,size);
+	memcpy(&serialized[4 + size],hmac,HASH_SIZE);
+	return (char* )serialized;
+}
+
+void unserialization(char* serialized, int serialized_len, chunk &c, char* hmac){
+
+	c.size = *(int* )serialized;
+	memcpy(c.plaintext,&serialized[4],c.size);
+	memcpy(hmac,&serialized[4 + c.size],HASH_SIZE);
+	free(serialized);
+}
