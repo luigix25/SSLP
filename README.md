@@ -21,3 +21,13 @@ Clean
 ```shell
 make clean
 ```
+### Usage ###
+Server
+```shell
+./server_bin port
+```
+Client
+```shell
+./client_bin ip port
+```
+(If local use 127.0.0.1)
