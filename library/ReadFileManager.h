@@ -1,7 +1,8 @@
-#ifndef FILEMANAGER
-	#define FILEMANAGER
-	#include "FileManager.h"
-#endif
+#ifndef READFILEMANAGER
+#define READFILEMANAGER
+
+
+#include "FileManager.h"
 #include <fstream>
 using namespace std;
 class ReadFileManager : public FileManager {
@@ -14,3 +15,5 @@ class ReadFileManager : public FileManager {
 		ReadFileManager(const char *name);
 		file_status read(chunk *c); //Read chunk by chunk sequentially after invocation
 };
+
+#endif

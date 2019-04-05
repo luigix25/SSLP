@@ -34,7 +34,7 @@ bool NetSocket::sendInt(int value){
 
 }
 
-bool NetSocket::sendData(const char *buffer,int len){
+bool NetSocket::sendData(const char *buffer,int32_t len){
 	int ret;
 
 	if(!sendInt(len))
@@ -51,7 +51,7 @@ bool NetSocket::sendData(const char *buffer,int len){
 }
 
 
-char* NetSocket::recvData(int &len){
+char* NetSocket::recvData(int32_t &len){
 	int ret;
 
 	if(!recvInt(len)){

@@ -1,5 +1,5 @@
-//#include "../library/library.h"
-#include "../library/FileManager.h"				//library è qui dentro
+#include "../library/library.h"
+#include "../library/ReadFileManager.h"				//library è qui dentro
 #include "server.h"
 #include <iostream>
 #include <vector>
@@ -70,22 +70,35 @@ void cmd_get(){
 	string full_name = "server/database/";
 	full_name += filename;
 
-	FileManager fm(full_name);
+	ReadFileManager fm(full_name);
 	free(filename); 							//non mi serve più
 
-	uint64_t size = fm.size_file();
-	cout<<"File size: "<<size<<endl;
+	uint32_t size = (uint32_t)fm.size_file();			//fix
+	cout<<"File size: "<<size<<endl;	
+
+	if(!client_socket.sendInt(size)) return;
+
 
 	chunk c;
-
+	file_status status;
 	//aggiungere while
+	while(true){
+	
+		status = fm.read(&c);
+		//cout<<c.plaintext<<endl;
+		//cout<<c.size<<endl;
+		if(status == FILE_ERROR){
+			cout<<"FILE RROR"<<endl;
+			return;
+		} else if(status == END_OF_FILE){
+			cout<<"EOF"<<endl;
+			break;
+		}
 
-	fm.read(&c,0);
-	cout<<c.plaintext<<endl;
-	cout<<c.size<<endl;
+		cout<<"Send: "<<c.size<<endl;
+		if(!client_socket.sendData(c.plaintext,c.size)) return;
 
-	if(!client_socket.sendData(c.plaintext,c.size)) return;
-
+	}
 
 
 

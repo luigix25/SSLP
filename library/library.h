@@ -1,4 +1,7 @@
 //Libreria Send e Receive senza dimensione
+#ifndef LIBRARY
+	#define LIBRARY
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -16,7 +19,7 @@
 
 extern const char *commands_list[5];
 
-#define MAX_CHUNK_SIZE 256
+#define MAX_CHUNK_SIZE 256000
 
 enum file_status{NO_ERRORS,OUT_OF_BOUND,FILE_ERROR,END_OF_FILE};
 enum commands {HELP_COMMAND,LIST_COMMAND,GET_COMMAND};
@@ -42,9 +45,9 @@ class NetSocket{
 		void setSocket(int);
 
 		bool sendInt(int);							//socket value
-		bool sendData(const char *,int);
+		bool sendData(const char *,int32_t);
 
-		char* recvData(int&);
+		char* recvData(int32_t&);
 		bool recvInt(int&);
 
 		void closeConnection();
@@ -52,6 +55,7 @@ class NetSocket{
 
 };
 
+#endif
 
 
 

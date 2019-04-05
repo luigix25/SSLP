@@ -1,5 +1,7 @@
-//#include "../library/library.h"
-#include "../library/FileManager.h"				//library è qui dentro
+#include "../library/library.h"
+#include "../library/ReadFileManager.h"				//library è qui dentro
+#include "../library/WriteFileManager.h"				//library è qui dentro
+
 #include <iostream>
 #include <vector>
 
@@ -88,7 +90,7 @@ void cmd_list(){
 	vector<string> files_list(number_files);
 
 	for(int i=0;i<number_files;i++){
-		int len;
+		int32_t len;
 		char *str;
 
 		str = server_socket.recvData(len);
@@ -117,35 +119,53 @@ void cmd_get(){
 
 	if(!server_socket.sendInt(GET_COMMAND)) return;
 
-	int length = filename.length()+1;
+	int32_t length = filename.length()+1;
 
 	if(!server_socket.sendData(filename.c_str(),length)) return;
 
 	//handle get
-
-	char *recvd_data;
-	int len;
-	recvd_data = server_socket.recvData(len);
-
-	if(recvd_data == NULL) return;
-
-	cout<<"Ricevuti "<<len<<endl;
-	cout<<recvd_data<<endl;
-
 	string full_name = "client/database/";
 	full_name += filename;
 	cout<<"Scrivo: "<<full_name<<endl;
-	
-	chunk c;
-	memcpy(c.plaintext,recvd_data,len);
 
-	c.size = len;
+	int32_t file_size;
+	if(!server_socket.recvInt(file_size)) return;
 
-	FileManager fm(full_name);
-	fm.write(&c);
+	char *recvd_data;
+	int len;
+	file_status status;
+
+	cout<<"File Size: "<<file_size;
+	WriteFileManager fm(full_name,file_size);
+
+	while(true){
+
+		recvd_data = server_socket.recvData(len);
+
+		if(recvd_data == NULL) return;
+
+		cout<<"Ricevuti "<<len<<endl;
+		file_size-= len;
+		cout<<"Rimanenti "<<file_size<<endl;
+		//cout<<recvd_data<<endl;	
+		
+		chunk c;
+		c.size = len;
+
+		memcpy(c.plaintext,recvd_data,len);
+		free(recvd_data);
 
 
-	free(recvd_data);			
+		status = fm.write(&c);
+		if(status == END_OF_FILE){
+			cout<<"FINITO"<<endl;
+			break;
+		} else if(status == FILE_ERROR){
+			return;
+		}
+
+
+	}			
 
 }
 

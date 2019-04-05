@@ -1,7 +1,8 @@
-#ifndef FILEMANAGER
-	#define FILEMANAGER
-	#include "FileManager.h"
-#endif   
+#ifndef WRITEFILEMANAGER
+#define WRITEFILEMANAGER
+
+#include "FileManager.h"
+
 #include <fstream>
 using namespace std;
 class WriteFileManager : public FileManager {
@@ -13,3 +14,5 @@ class WriteFileManager : public FileManager {
 		WriteFileManager(const char *name, uint64_t size);
 		file_status write(chunk *c); //Write in append chunk
 };
+
+#endif

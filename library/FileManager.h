@@ -1,8 +1,9 @@
-#ifndef LIBRARY
-	#define LIBRARY
-	#include "library.h"
-#endif
+#ifndef FILEMANAGER
+	#define FILEMANAGER
+
 #include <fstream>
+#include "library.h"
+
 using namespace std;
 class FileManager {
 	protected:
@@ -20,3 +21,5 @@ class FileManager {
 		void close_stream(); //Close the file stream
 		void reset(); //The class restart from first chunk
 };
+
+#endif
