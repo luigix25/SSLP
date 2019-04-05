@@ -6,10 +6,10 @@ LIBFLS = library.o filemanager.o writefilemanager.o readfilemanager.o enc_dec.o
 
 all: client server
 
-client.o: client/client.h client/client.cpp 
+client.o: library/library.h client/client.h client/client.cpp 
 	g++ $(CFLAGS) client/client.cpp -c -o client.o 
 
-server.o: server/server.h server/server.cpp
+server.o: library/library.h server/server.h server/server.cpp
 	g++ $(CFLAGS) server/server.cpp -c -o server.o 
 
 library.o: library/library.h library/library.cpp
@@ -23,7 +23,7 @@ readfilemanager.o: library/library.h library/ReadFileManager.h library/ReadFileM
 
 writefilemanager.o: library/library.h library/WriteFileManager.h library/WriteFileManager.cpp library/FileManager.h
 	g++ $(CFLAGS) library/WriteFileManager.cpp -c -o writefilemanager.o 
-	
+
 enc_dec.o: library/library.h library/enc_dec.cpp 
 	g++ $(CFLAGS) library/enc_dec.cpp -c -o enc_dec.o
 

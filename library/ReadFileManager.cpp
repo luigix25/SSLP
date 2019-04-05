@@ -32,9 +32,7 @@ bool ReadFileManager::openStream(){
 
 // Read at sector index in file and copy it into buffer
 file_status ReadFileManager::read(chunk *c){ 	
-	if(remaining_size <= 0){
-		return END_OF_FILE;
-	}
+
 	if(!openStream()){
 		return FILE_ERROR;
 	}	
@@ -47,8 +45,15 @@ file_status ReadFileManager::read(chunk *c){
 	}
 	c->size = size;
 	fs.seekg(chunk_address); // Set position on disk in input stream
+	c->plaintext = (char*)malloc(size);
+
 	fs.read(c->plaintext, size);
 	remaining_size -= c->size;
+
 	closeStream();
+	
+	if(remaining_size <= 0){
+		return END_OF_FILE;
+	}
 	return NO_ERRORS;
 }	

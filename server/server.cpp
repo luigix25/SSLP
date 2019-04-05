@@ -52,6 +52,14 @@ void cmd_list(){
 
 }
 
+void print_hex(unsigned char* buff, unsigned int size)
+{
+    printf("Printing %d bytes\n", size);
+    for(unsigned int i=0; i<size; i++)
+        printf("%02hx", *((unsigned char*)(buff + i)));
+    printf("\n");
+}
+
 void cmd_get(){
 
 	//SECURE CODING
@@ -80,10 +88,17 @@ void cmd_get(){
 
 	chunk c;
 	file_status status;
-	//aggiungere while
+	bool last = false;
+
+	//creo contesto;
+	EVP_CIPHER_CTX* ctx = encrypt_INIT((unsigned char*)KEY_AES,(unsigned char*)IV);
+	int ciphertext_len = 0;
+
+
 	while(true){
 	
 		status = fm.read(&c);
+
 		//cout<<c.plaintext<<endl;
 		//cout<<c.size<<endl;
 		if(status == FILE_ERROR){
@@ -91,17 +106,54 @@ void cmd_get(){
 			return;
 		} else if(status == END_OF_FILE){
 			cout<<"EOF"<<endl;
-			break;
+			last = true;
 		}
 
-		cout<<"Send: "<<c.size<<endl;
-		if(!client_socket.sendData(c.plaintext,c.size)) return;
+		BIO_dump_fp (stdout, (const char *)c.plaintext, c.size);
+
+
+		char *key = (char*)malloc(50);
+		strcpy(key,(const char*)"panuozzopanuozzpanuozzopanuozz");
+
+
+		char *ciphertext = (char*)malloc(c.size+16);
+		char *pt_dec = (char*)malloc(c.size+16);
+
+		int ciphertext_len = encrypt((unsigned char*)c.plaintext, c.size,(unsigned char*)KEY_AES, NULL, (unsigned char*)ciphertext);
+		BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
+
+		print_hex((unsigned char*)ciphertext,ciphertext_len);
+
+		cout<<ciphertext_len<<" "<<KEY_AES<<endl; 
+
+		int pt = decrypt((unsigned char*)ciphertext, ciphertext_len,(unsigned char*)KEY_AES, (unsigned char*)IV, (unsigned char*)pt_dec);
+		BIO_dump_fp (stdout, (const char *)c.plaintext, c.size);
+
+
+
+/*
+
+		encrypt_UPDATE(ctx,(unsigned char*)ciphertext,ciphertext_len,(unsigned char*)c.plaintext,c.size);
+
+		if(last){
+			encrypt_FINAL(ctx,(unsigned char*)ciphertext+ciphertext_len, ciphertext_len);
+		}*/
+
+
+		if(!client_socket.sendData(ciphertext,ciphertext_len)) return;
+		free(c.plaintext);
+		free(ciphertext);
+
+		if(last)
+			break;
 
 	}
 
 
 
 }
+
+
 
 void select_command(int cmd){
 
@@ -226,7 +278,7 @@ int main(int argc,char **argv){
 	cout<<"Connessione stabilita con il client"<<endl;
 	close(server_socket);											//no more clients allowed
 
-	test_hash();
+	//test_hash();
 	
 	while(true){
 		read_fds = master;

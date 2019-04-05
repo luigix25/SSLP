@@ -7,8 +7,7 @@ void handleErrors(void)
   abort();
 }*/
 
-int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
-  unsigned char *iv, unsigned char *ciphertext)
+int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key, unsigned char *iv, unsigned char *ciphertext)
 {
   EVP_CIPHER_CTX *ctx;
 
@@ -35,8 +34,51 @@ int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
   return ciphertext_len;
 }
 
-int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
-  unsigned char *iv, unsigned char *plaintext)
+EVP_CIPHER_CTX* encrypt_INIT(unsigned char *key,unsigned char *iv){
+  EVP_CIPHER_CTX *ctx;
+  ctx = EVP_CIPHER_CTX_new();
+  EVP_EncryptInit(ctx, EVP_aes_128_ecb(), key, iv);
+  return ctx;
+
+}
+
+void encrypt_UPDATE(EVP_CIPHER_CTX* ctx, unsigned char *ciphertext, int &ciphertext_len, unsigned char *plaintext, int plaintext_len){
+    EVP_EncryptUpdate(ctx, ciphertext, &ciphertext_len, plaintext, plaintext_len);
+   // ciphertext_len = len;
+}
+
+void encrypt_FINAL(EVP_CIPHER_CTX *ctx, unsigned char *ciphertext, int &ciphertext_len){
+  int len;
+  EVP_EncryptFinal(ctx, ciphertext + ciphertext_len, &len);
+  ciphertext_len += len;
+
+  // MUST ALWAYS BE CALLED!!!!!!!!!!
+  EVP_CIPHER_CTX_free(ctx);
+}
+
+EVP_CIPHER_CTX* decrypt_INIT(unsigned char *key,unsigned char *iv){
+  EVP_CIPHER_CTX *ctx;
+  ctx = EVP_CIPHER_CTX_new();
+  EVP_DecryptInit(ctx, EVP_aes_128_ecb(), key, iv);
+  return ctx;
+
+}
+
+void decrypt_UPDATE(EVP_CIPHER_CTX* ctx, unsigned char *ciphertext, int ciphertext_len, unsigned char *plaintext, int &plaintext_len){
+  if(1 != EVP_DecryptUpdate(ctx, plaintext, &plaintext_len, ciphertext, ciphertext_len))
+    cout << "ERRORE EVP_DecryptUpdate" << endl;   // ciphertext_len = len;
+}
+
+void decrypt_FINAL(EVP_CIPHER_CTX *ctx, unsigned char *plaintext, int &plaintext_len){
+  int len;
+  EVP_DecryptFinal(ctx, plaintext + plaintext_len, &len);
+  plaintext_len += len;
+
+  // MUST ALWAYS BE CALLED!!!!!!!!!!
+  EVP_CIPHER_CTX_free(ctx);
+}
+
+int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,  unsigned char *iv, unsigned char *plaintext)
 {
   EVP_CIPHER_CTX *ctx;
 
@@ -51,14 +93,18 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
   EVP_DecryptInit(ctx, EVP_aes_128_ecb(), key, iv);
 
   // Decrypt Update: one call is enough because our mesage is very short.
-  if(1 != EVP_DecryptUpdate(ctx, plaintext, &len, ciphertext, ciphertext_len))
+  if(1 != EVP_DecryptUpdate(ctx, plaintext, &len, ciphertext, ciphertext_len)){
     cout << "ERRORE EVP_DecryptUpdate" << endl;
+    ERR_print_errors_fp(stderr);
+  }
     //handleErrors();
   plaintext_len = len;
 
   // Decryption Finalize
-  if(1 != EVP_DecryptFinal(ctx, plaintext + len, &len)) //handleErrors();
-    cout << "ERRORE EVP_DecryptFinal" << endl;
+  if(1 != EVP_DecryptFinal(ctx, plaintext + len, &len)){
+    cout << "DECRIPT ERRORE EVP_DecryptFinal" << endl;
+    ERR_print_errors_fp(stderr);
+  } //handleErrors();
   plaintext_len += len;
 
   // Clean the context!
