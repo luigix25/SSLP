@@ -1,14 +1,10 @@
 #include "../library/library.h"
-<<<<<<< HEAD
 #include "../library/ReadFileManager.h"				//library è qui dentro
 #include "../library/WriteFileManager.h"				//library è qui dentro
 
 #include <iostream>
 #include <vector>
-=======
-#include "../library/FileManager.h"				//library è qui dentro
 
->>>>>>> encryptChunk
 
 using namespace std;
 
@@ -156,9 +152,10 @@ void cmd_get(){
 		
 		chunk c;
 		c.size = len;
+		c.plaintext = recvd_data;
 
-		memcpy(c.plaintext,recvd_data,len);
-		free(recvd_data);
+		//memcpy(c.plaintext,recvd_data,len);
+		//free(recvd_data);
 
 
 		status = fm.write(&c);
@@ -169,6 +166,7 @@ void cmd_get(){
 			return;
 		}
 
+		free(c.plaintext);
 
 	}			
 

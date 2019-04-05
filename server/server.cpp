@@ -78,7 +78,6 @@ void cmd_get(){
 
 	if(!client_socket.sendInt(size)) return;
 
-
 	chunk c;
 	file_status status;
 	//aggiungere while
@@ -88,7 +87,7 @@ void cmd_get(){
 		//cout<<c.plaintext<<endl;
 		//cout<<c.size<<endl;
 		if(status == FILE_ERROR){
-			cout<<"FILE RROR"<<endl;
+			cout<<"FILE ERROR"<<endl;
 			return;
 		} else if(status == END_OF_FILE){
 			cout<<"EOF"<<endl;
@@ -167,6 +166,9 @@ void test_hash(){
 
 	BIO_dump_fp(stdout,encryptedtest.ciphertext,encryptedtest.size);
 	decryptChunk(encryptedtest, test);
+
+	free(test.plaintext);
+	free(encryptedtest.ciphertext);
 
 }
 

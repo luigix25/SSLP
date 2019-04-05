@@ -148,21 +148,24 @@ void encryptChunk(chunk &c, encryptedChunk &ec){
   cout << "eseguo computeHMAC" << endl;*/
 
   char* hmac = (char*)computeHMAC(c.plaintext);
-  //cout << "eseguo BIO DUMP" <<endl;
   //BIO_dump_fp (stdout, (const char *)hmac, 32);
 
   char* serialized = serialization((char*)c.plaintext,hmac,c.size);
   int serialized_len = sizeof(int) + c.size + HASH_SIZE;
+
   char* ciphertext = (char* )malloc(serialized_len + 16); 
   int cipher_len = encrypt((unsigned char*) serialized,serialized_len,(unsigned char *)KEY_AES,NULL,(unsigned char*)ciphertext);
   cout << cipher_len <<endl;
   //BIO_dump_fp (stdout, (const char *)ciphertext, cipher_len);
 
   ec.ciphertext = (char* ) malloc(cipher_len);
+  ec.size = cipher_len;
+
   memcpy(ec.ciphertext,ciphertext,cipher_len);
+
+  free(serialized);
   free(ciphertext);
   free(hmac);
-  ec.size = cipher_len;
 
 }
 
@@ -176,5 +179,7 @@ void decryptChunk(encryptedChunk &ec, chunk &c){
   if(!memcmp(myHMAC,hmac,HASH_SIZE))
     cout << "Le HASH corrispondono" << endl;
 
+  free(hmac);
+  free(myHMAC);
 
 }

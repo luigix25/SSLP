@@ -18,13 +18,11 @@
 #include <vector>
 #include <fstream>
 #include <dirent.h>
-#ifndef LIBRARY
-#define LIBRARY
+
 
 
 #define true 1
 #define false 0
-#define MAX_CHUNK_SIZE 256
 #define HASH_SIZE 32
 #define KEY_AES "panuozzo"
 #define KEY_HMAC "bomba"
