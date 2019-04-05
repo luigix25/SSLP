@@ -43,13 +43,17 @@ EVP_CIPHER_CTX* encrypt_INIT(unsigned char *key,unsigned char *iv){
 }
 
 void encrypt_UPDATE(EVP_CIPHER_CTX* ctx, unsigned char *ciphertext, int &ciphertext_len, unsigned char *plaintext, int plaintext_len){
-    EVP_EncryptUpdate(ctx, ciphertext, &ciphertext_len, plaintext, plaintext_len);
+    if(1 != EVP_EncryptUpdate(ctx, ciphertext, &ciphertext_len, plaintext, plaintext_len)){
+      ERR_print_errors_fp(stderr);
+    }
    // ciphertext_len = len;
 }
 
 void encrypt_FINAL(EVP_CIPHER_CTX *ctx, unsigned char *ciphertext, int &ciphertext_len){
   int len;
-  EVP_EncryptFinal(ctx, ciphertext + ciphertext_len, &len);
+   if(1 != EVP_EncryptFinal(ctx, ciphertext + ciphertext_len, &len)){
+    ERR_print_errors_fp(stderr);
+   }
   ciphertext_len += len;
 
   // MUST ALWAYS BE CALLED!!!!!!!!!!

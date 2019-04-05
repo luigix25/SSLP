@@ -99,8 +99,6 @@ void cmd_get(){
 	
 		status = fm.read(&c);
 
-		//cout<<c.plaintext<<endl;
-		//cout<<c.size<<endl;
 		if(status == FILE_ERROR){
 			cout<<"FILE ERROR"<<endl;
 			return;
@@ -109,17 +107,10 @@ void cmd_get(){
 			last = true;
 		}
 
-		BIO_dump_fp (stdout, (const char *)c.plaintext, c.size);
-
-
-		char *key = (char*)malloc(50);
-		strcpy(key,(const char*)"panuozzopanuozzpanuozzopanuozz");
-
 
 		char *ciphertext = (char*)malloc(c.size+16);
-		char *pt_dec = (char*)malloc(c.size+16);
 
-		int ciphertext_len = encrypt((unsigned char*)c.plaintext, c.size,(unsigned char*)KEY_AES, NULL, (unsigned char*)ciphertext);
+	/*	int ciphertext_len = encrypt((unsigned char*)c.plaintext, c.size,(unsigned char*)KEY_AES, NULL, (unsigned char*)ciphertext);
 		BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
 
 		print_hex((unsigned char*)ciphertext,ciphertext_len);
@@ -129,16 +120,17 @@ void cmd_get(){
 		int pt = decrypt((unsigned char*)ciphertext, ciphertext_len,(unsigned char*)KEY_AES, (unsigned char*)IV, (unsigned char*)pt_dec);
 		BIO_dump_fp (stdout, (const char *)c.plaintext, c.size);
 
+*/
+//		BIO_dump_fp (stdout, (const char *)c.plaintext, c.size);
 
-
-/*
 
 		encrypt_UPDATE(ctx,(unsigned char*)ciphertext,ciphertext_len,(unsigned char*)c.plaintext,c.size);
 
 		if(last){
-			encrypt_FINAL(ctx,(unsigned char*)ciphertext+ciphertext_len, ciphertext_len);
-		}*/
+			encrypt_FINAL(ctx,(unsigned char*)ciphertext, ciphertext_len);
+		}
 
+		BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
 
 		if(!client_socket.sendData(ciphertext,ciphertext_len)) return;
 		free(c.plaintext);

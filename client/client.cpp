@@ -147,8 +147,9 @@ void cmd_get(){
 	cout<<"File Size: "<<file_size;
 	WriteFileManager fm(full_name,file_size);
 	
-	//EVP_CIPHER_CTX* ctx = decrypt_INIT((unsigned char*)KEY_AES,(unsigned char*)IV);
-	//int plaintext_len = 0;
+	EVP_CIPHER_CTX* ctx = decrypt_INIT((unsigned char*)KEY_AES,(unsigned char*)IV);
+	int plaintext_len = 0;
+	//bool last = false;
 
 	while(true){
 
@@ -157,70 +158,45 @@ void cmd_get(){
 		if(recvd_data == NULL) return;
 
 		cout<<"Ricevuti "<<len<<endl;
-		print_hex((unsigned char*)recvd_data,len);
 
 		BIO_dump_fp (stdout, (const char *)recvd_data, len);
 
 		char *plaintext = (char*)malloc(len);
 
-		char *key = (char*)malloc(50);
-		strcpy(key,(const char*)"panuozzopanuozzpanuozzopanuozz");
+	//	int plaintext_len =  decrypt((unsigned char*)recvd_data, len, (unsigned char*)KEY_AES, (unsigned char*)IV, (unsigned char*)plaintext);
+	//	BIO_dump_fp (stdout, (const char *)plaintext, plaintext_len);
 
-		int plaintext_len =  decrypt((unsigned char*)recvd_data, len, (unsigned char*)KEY_AES, (unsigned char*)IV, (unsigned char*)plaintext);
-		BIO_dump_fp (stdout, (const char *)plaintext, plaintext_len);
-
-
-		/*int abc_enc_len =  encrypt((unsigned char*)abc, abc_len, (unsigned char*)KEY_AES, NULL, (unsigned char*)abc_enc);
-
-		BIO_dump_fp (stdout, (const char *)abc_enc, abc_enc_len);
-		cout<<"DECIFRO"<<endl;
-
-		char *plaintext = (char*)malloc(25+16);
-
-		int plaintext_len =  decrypt((unsigned char*)abc_enc, abc_enc_len, (unsigned char*)KEY_AES, NULL, (unsigned char*)abc);
-
-		BIO_dump_fp (stdout, (const char *)abc, plaintext_len);*/
-
-		//int pt = decrypt((unsigned char*)recvd_data, len,(unsigned char*)KEY_AES, (unsigned char*)IV, (unsigned char*)plaintext);
-
-
-		//BIO_dump_fp (stdout, (const char *)plaintext, plaintext_len);
-		break;
-
-
-		
-	/*	encryptedChunk c;
+		encryptedChunk c;
 		c.size = len;
 		c.ciphertext = recvd_data;
 
-
 		decrypt_UPDATE(ctx,(unsigned char*)c.ciphertext,c.size,(unsigned char*)plaintext,plaintext_len);
-
-		cout<<"Plaintext LEN : "<<plaintext_len<<endl;
-		cout<<"Plaintext : "<<plaintext<<endl;
 
 		file_size-= plaintext_len;
 
 		if(file_size < AES_BLOCK){			//ultimo chunk
-			decrypt_FINAL(ctx,(unsigned char*)plaintext+plaintext_len, plaintext_len);
+			decrypt_FINAL(ctx,(unsigned char*)plaintext, plaintext_len);
 			file_size-= plaintext_len;
-			cout<<plaintext_len<<endl;
-			break;
+		//	last = true;
 		}
-*/
+
+		chunk plaintext_chunk;
+		plaintext_chunk.size = plaintext_len;
+		plaintext_chunk.plaintext = plaintext;
+
+		status = fm.write(&plaintext_chunk);
 
 
 		//memcpy(c.plaintext,recvd_data,len);
-		//free(recvd_data);
+		free(recvd_data);
+		free(plaintext_chunk.plaintext);
 
-
-	/*	status = fm.write(&c);
 		if(status == END_OF_FILE){
 			cout<<"FINITO"<<endl;
 			break;
 		} else if(status == FILE_ERROR){
 			return;
-		}*/
+		}
 
 		//free(c.ciphertext);
 
