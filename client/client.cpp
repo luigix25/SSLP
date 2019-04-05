@@ -1,7 +1,6 @@
-//#include "../library/library.h"
+#include "../library/library.h"
 #include "../library/FileManager.h"				//library è qui dentro
-#include <iostream>
-#include <vector>
+
 
 using namespace std;
 

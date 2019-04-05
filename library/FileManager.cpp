@@ -1,6 +1,5 @@
-#include <iostream>
-#include <fstream>
 #include "FileManager.h"
+#include "library.h"
 
 FileManager::FileManager(string name){
 	this->file_name = name;

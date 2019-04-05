@@ -1,14 +1,14 @@
-//#include "../library/library.h"
-#include "../library/FileManager.h"				//library è qui dentro
+			//library è qui dentro
 #include "server.h"
-#include <iostream>
-#include <vector>
 
 
-using namespace std;
 
 fd_set master;
 NetSocket client_socket;
+
+chunk test;
+encryptedChunk encryptedtest;
+
 
 
 vector<string> get_file_list(){
@@ -144,6 +144,20 @@ int initialize_server(int port){
 
 }
 
+void test_hash(){
+
+	test.size = sizeof("cifra sto cazzo");
+	test.plaintext = (char *)malloc(test.size);
+	memcpy(test.plaintext,"cifra sto cazzo",test.size);
+	cout << "stampo plaintext " << test.plaintext << endl;
+	encryptChunk(test, encryptedtest);
+
+	BIO_dump_fp(stdout,encryptedtest.ciphertext,encryptedtest.size);
+	decryptChunk(encryptedtest, test);
+
+}
+
+
 int main(int argc,char **argv){
 
 
@@ -196,6 +210,8 @@ int main(int argc,char **argv){
 	client_socket = NetSocket(new_sock);
 	cout<<"Connessione stabilita con il client"<<endl;
 	close(server_socket);											//no more clients allowed
+
+	test_hash();
 	
 	while(true){
 		read_fds = master;

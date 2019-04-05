@@ -1,4 +1,7 @@
+#ifndef FILE_MANAGER
+#define FILE_MANAGER
 #include "library.h"
+
 using namespace std;
 class FileManager {
 	private:
@@ -11,3 +14,5 @@ class FileManager {
 		bool file_exists();
 		uint64_t size_file(); // -1 file not exits
 };
+
+#endif
