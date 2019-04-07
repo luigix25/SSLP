@@ -44,8 +44,8 @@ void cmd_help(){
 
 	const char *desc[5] = {"--> mostra l'elenco dei comandi disponibili",
 			"--> mostra l'elenco dei client connessi al server",
-			"username --> avvia una partita con l'utente username",
-			"--> disconnette il client dal server","effe\n"};
+			"nomefile --> avvia una partita con l'utente nomefile",
+			"--> disconnette il client dal server","padding\n"};
 
 	int i;
 	cout<<endl;
@@ -148,8 +148,13 @@ void cmd_get(){
 	WriteFileManager fm(full_name,file_size);
 	
 	EVP_CIPHER_CTX* ctx = decrypt_INIT((unsigned char*)KEY_AES,(unsigned char*)IV);
-	int plaintext_len = 0;
-	//bool last = false;
+	
+	HMAC_CTX* mdctx;
+	mdctx = HMAC_CTX_new();
+	size_t key_hmac_size = sizeof(KEY_HMAC);
+
+	HMAC_Init_ex(mdctx, KEY_HMAC, key_hmac_size, EVP_sha256(), NULL);
+ 	unsigned char* digest = (unsigned char*)malloc(HASH_SIZE); 
 
 	while(true){
 
@@ -162,48 +167,68 @@ void cmd_get(){
 			return;
 		} 
 
-		BIO_dump_fp (stdout, (const char *)recvd_data, len);
 
-		char *plaintext = (char*)malloc(len);
-
-	//	int plaintext_len =  decrypt((unsigned char*)recvd_data, len, (unsigned char*)KEY_AES, (unsigned char*)IV, (unsigned char*)plaintext);
-	//	BIO_dump_fp (stdout, (const char *)plaintext, plaintext_len);
+		char *plaintext = (char*)malloc(len + AES_BLOCK);
+		int plaintext_len = 0;
 
 		encryptedChunk ec;
 		ec.size = len;
 		ec.ciphertext = recvd_data;
-		cout << "stampo len: " << len << endl;
-		cout << "stampo size prima decrypt_UPDATE: " << *(int*)ec.ciphertext << endl;
+		cout << "stampo ec.size: " << ec.size << endl;
 
 		decrypt_UPDATE(ctx,(unsigned char*)ec.ciphertext,ec.size,(unsigned char*)plaintext,plaintext_len);
+		//BIO_dump_fp(stdout,(const char*)plaintext,plaintext_len);
 
-		cout << "stampo size dopo decrypt_UPDATE: " << *(int*)plaintext << endl;
-
-		file_size-= plaintext_len;
+		file_size-= (plaintext_len);
 
 		if(file_size < AES_BLOCK){			//ultimo chunk
+		
 			decrypt_FINAL(ctx,(unsigned char*)plaintext, plaintext_len);
-			file_size-= plaintext_len;
-		//	last = true;
+		
+
+			//file_size-= (plaintext_len-HASH_SIZE);bomba
 		}
 
-		char* recv_HMAC = (char *)malloc(HASH_SIZE);
+		if(!HMAC_Update(mdctx, (unsigned char*) plaintext,plaintext_len)){
+			cout<<"ERRORE MAC UPDATE"<<endl;
+		}
+
+
+		if(file_size < AES_BLOCK){			//ultimo chunk
+			int hash_size = EVP_MD_size(EVP_sha256());
+
+			if(1 != HMAC_Final(mdctx, digest, (unsigned int*) &hash_size))
+				cout<<"ERRORE MAC FINAL"<<endl;
+			HMAC_CTX_free(mdctx);
+		}
+
+		cout<<"PL LENG"<<plaintext_len<<endl;
+
+		//char* recv_HMAC = (char *)malloc(HASH_SIZE);
 
 		chunk plaintext_chunk;
-		unserialization(plaintext,len,plaintext_chunk,recv_HMAC);
+		plaintext_chunk.plaintext = plaintext;
+		plaintext_chunk.size = plaintext_len;
 
+		//unserialization(plaintext,plaintext_len,plaintext_chunk,recv_HMAC);				//dealloca plaintext
 
-		char* myHMAC = computeHMAC(plaintext_chunk.plaintext);
+		//char* myHMAC = computeHMAC(plaintext_chunk.plaintext);
 
-		if(memcmp(myHMAC,recv_HMAC,HASH_SIZE) == 0 )
+		/*if(memcmp(myHMAC,recv_HMAC,HASH_SIZE) == 0 )
 			cout << "HMAC CORRETTO" << endl;
-
+		else{
+			cout<<"HMAC DIVERSO"<<endl;
+		}*/
 		status = fm.write(&plaintext_chunk);
-
 
 		//memcpy(c.plaintext,recvd_data,len);
 		//free(recvd_data);
 		//free(plaintext_chunk.plaintext);
+
+		//free(recv_HMAC);
+		//free(myHMAC);
+		free(plaintext_chunk.plaintext);
+		free(ec.ciphertext);
 
 		if(status == END_OF_FILE){
 			cout<<"FINITO"<<endl;
@@ -212,10 +237,22 @@ void cmd_get(){
 			cout << "FILE_ERROR" << endl;
 			return;
 		}
+	}		
 
-		//free(c.ciphertext);
+	char *MAC_rcvd = server_socket.recvData(len);
+	BIO_dump_fp(stdout,(const char*)MAC_rcvd,32);
 
-	}			
+	BIO_dump_fp(stdout,(const char*)digest,32);
+
+	if(!memcmp(digest,MAC_rcvd,32)){
+		cout<<"MAC UGUALI"<<endl;
+	} else{
+		cout<<"MAC DIVERSI"<<endl;
+	}
+
+	free(digest);
+	free(MAC_rcvd);
+
 
 }
 

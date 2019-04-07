@@ -26,8 +26,8 @@
 #define HASH_SIZE 32
 #define AES_BLOCK 16
 #define KEY_AES "panuozzopanuozz"
-#define KEY_HMAC "bomba"
-#define IV NULL
+#define KEY_HMAC "bombabombabomba"
+#define IV "cornettonebomba"
 
 using namespace std;
 

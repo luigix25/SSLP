@@ -93,7 +93,14 @@ void cmd_get(){
 	//creo contesto;
 	EVP_CIPHER_CTX* ctx = encrypt_INIT((unsigned char*)KEY_AES,(unsigned char*)IV);
 	int ciphertext_len = 0;
+	int conta = 0;
 
+	HMAC_CTX* mdctx;
+	mdctx = HMAC_CTX_new();
+	size_t key_hmac_size = sizeof(KEY_HMAC);
+
+	HMAC_Init_ex(mdctx, KEY_HMAC, key_hmac_size, EVP_sha256(), NULL);
+ 	unsigned char* digest = (unsigned char*)malloc(HASH_SIZE); 
 
 	while(true){
 	
@@ -108,46 +115,47 @@ void cmd_get(){
 		}
 
 
-		cout << "stampo c.size: " << c.size << endl;
-		char *ciphertext = (char*)malloc(c.size + 16 + HASH_SIZE + sizeof(int));
-		char* HMAC = computeHMAC(c.plaintext);
-		char* msg_serialized = serialization(c.plaintext,HMAC,c.size);
-		free(HMAC);
+		char *ciphertext = (char*)malloc(c.size + 16 /*+ sizeof(int)*/);
+	//	char* HMAC = computeHMAC(c.plaintext);
+		//char* msg_serialized = serialization(c.plaintext,HMAC,c.size);
+	//	free(HMAC);
 
-	/*	int ciphertext_len = encrypt((unsigned char*)c.plaintext, c.size,(unsigned char*)KEY_AES, NULL, (unsigned char*)ciphertext);
-		BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
+		//BIO_dump_fp(stdout,msg_serialized,c.size+32);
+		//BIO_dump_fp(stdout,(const char*)c.plaintext,c.size);
 
-		print_hex((unsigned char*)ciphertext,ciphertext_len);
+		encrypt_UPDATE(ctx,(unsigned char*)ciphertext,ciphertext_len,(unsigned char*)c.plaintext,c.size /*+ sizeof(int)*/);
+  		HMAC_Update(mdctx, (unsigned char*) c.plaintext,c.size);
 
-		cout<<ciphertext_len<<" "<<KEY_AES<<endl; 
-
-		int pt = decrypt((unsigned char*)ciphertext, ciphertext_len,(unsigned char*)KEY_AES, (unsigned char*)IV, (unsigned char*)pt_dec);
-		BIO_dump_fp (stdout, (const char *)c.plaintext, c.size);
-
-*/
-//		BIO_dump_fp (stdout, (const char *)c.plaintext, c.size);
-
-
-		encrypt_UPDATE(ctx,(unsigned char*)ciphertext,ciphertext_len,(unsigned char*)msg_serialized,c.size + HASH_SIZE + sizeof(int));
 
 		if(last){
+			cout<<"LAST"<<endl;
+			int hash_size = EVP_MD_size(EVP_sha256());
 			encrypt_FINAL(ctx,(unsigned char*)ciphertext, ciphertext_len);
+			HMAC_Final(mdctx, digest, (unsigned int*) &hash_size);
+			HMAC_CTX_free(mdctx);
+
 		}
 
-		BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
+		cout<<"INVIO: "<<ciphertext_len<<endl;
 
 		if(!client_socket.sendData(ciphertext,ciphertext_len)) return;
+		
 		free(c.plaintext);
 		free(ciphertext);
-		free(msg_serialized);
+	//	free(msg_serialized);
 		c.size = 0;
 
-		if(last)
+	//	conta++;
+
+		if(last || conta == 2)
 			break;
 
 	}
 
+	if(!client_socket.sendData((const char*)digest,HASH_SIZE)) return;
+		BIO_dump_fp(stdout,(const char*)digest,32);
 
+	free(digest);
 
 }
 

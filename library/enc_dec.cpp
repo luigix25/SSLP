@@ -37,13 +37,14 @@ int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key, uns
 EVP_CIPHER_CTX* encrypt_INIT(unsigned char *key,unsigned char *iv){
   EVP_CIPHER_CTX *ctx;
   ctx = EVP_CIPHER_CTX_new();
-  EVP_EncryptInit(ctx, EVP_aes_128_ecb(), key, iv);
+  EVP_EncryptInit(ctx, EVP_aes_128_cbc(), key, iv);
   return ctx;
 
 }
 
 void encrypt_UPDATE(EVP_CIPHER_CTX* ctx, unsigned char *ciphertext, int &ciphertext_len, unsigned char *plaintext, int plaintext_len){
     if(1 != EVP_EncryptUpdate(ctx, ciphertext, &ciphertext_len, plaintext, plaintext_len)){
+      cout<<"ERRORE Encrypt UPDATE"<<endl;
       ERR_print_errors_fp(stderr);
     }
    // ciphertext_len = len;
@@ -63,7 +64,7 @@ void encrypt_FINAL(EVP_CIPHER_CTX *ctx, unsigned char *ciphertext, int &cipherte
 EVP_CIPHER_CTX* decrypt_INIT(unsigned char *key,unsigned char *iv){
   EVP_CIPHER_CTX *ctx;
   ctx = EVP_CIPHER_CTX_new();
-  EVP_DecryptInit(ctx, EVP_aes_128_ecb(), key, iv);
+  EVP_DecryptInit(ctx, EVP_aes_128_cbc(), key, iv);
   return ctx;
 
 }
@@ -171,8 +172,7 @@ printf("\nok2\n");
   HMAC_Update(mdctx, (unsigned char*) plaintext, sizeof(plaintext));
   //cout << "eseguo FINAL" <<endl;
  
-  HMAC_Final
-  (mdctx, digest, (unsigned int*) &hash_size);
+  HMAC_Final(mdctx, digest, (unsigned int*) &hash_size);
 
   //cout << "stampo hash_size: " << hash_size << endl;
 
