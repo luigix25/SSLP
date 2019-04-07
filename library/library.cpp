@@ -90,13 +90,25 @@ bool NetSocket::recvInt(int &val){
 char* serialization(char* plaintext, char* hmac, int size){
 
 	char* serialized = ( char *)malloc(sizeof(int) + size + HASH_SIZE);
+	cout << "stampo size: " << size << endl;
 	*(int* )serialized = size;
+	cout << "in serialization stampo cosa ci metto in serialized come size: " << ((int*)serialized)[0] << endl;
 	memcpy(&serialized[4],plaintext,size);
 	memcpy(&serialized[4 + size],hmac,HASH_SIZE);
 	return (char* )serialized;
 }
 
 void unserialization(char* serialized, int serialized_len, chunk &c, char* hmac){
+
+	cout << "stampo serialized" << endl;
+	cout << serialized << endl;
+	cout << "stampo c.size in unserialization: " << *(int* )serialized << endl;
+	cout << "stampo c.size in unserialization: " << *(uint32_t* )serialized << endl;
+	cout << "stampo c.size in unserialization: " << *(int32_t* )serialized << endl;
+		cout << "stampo c.size in unserialization: " << htonl(*(int* )serialized) << endl;
+		cout << "stampo c.size in unserialization: " << ntohl(*(int* )serialized) << endl;
+
+
 
 	c.size = *(int* )serialized;
 	cout << "stampo c.size in unserialization: " << c.size << endl;

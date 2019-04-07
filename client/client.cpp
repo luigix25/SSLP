@@ -172,8 +172,12 @@ void cmd_get(){
 		encryptedChunk ec;
 		ec.size = len;
 		ec.ciphertext = recvd_data;
+		cout << "stampo len: " << len << endl;
+		cout << "stampo size prima decrypt_UPDATE: " << *(int*)ec.ciphertext << endl;
 
 		decrypt_UPDATE(ctx,(unsigned char*)ec.ciphertext,ec.size,(unsigned char*)plaintext,plaintext_len);
+
+		cout << "stampo size dopo decrypt_UPDATE: " << *(int*)plaintext << endl;
 
 		file_size-= plaintext_len;
 
@@ -186,7 +190,7 @@ void cmd_get(){
 		char* recv_HMAC = (char *)malloc(HASH_SIZE);
 
 		chunk plaintext_chunk;
-		unserialization(ec.ciphertext,ec.size,plaintext_chunk,recv_HMAC);
+		unserialization(plaintext,len,plaintext_chunk,recv_HMAC);
 
 
 		char* myHMAC = computeHMAC(plaintext_chunk.plaintext);
