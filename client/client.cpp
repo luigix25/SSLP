@@ -155,8 +155,10 @@ void cmd_get(){
 
 		recvd_data = server_socket.recvData(len);
 
-		if(recvd_data == NULL) return;
-
+		if(recvd_data == NULL){
+			cout << "recvd_data NULL" <<endl;
+			return;
+		} 
 		cout<<"Ricevuti "<<len<<endl;
 
 		BIO_dump_fp (stdout, (const char *)recvd_data, len);
@@ -188,13 +190,14 @@ void cmd_get(){
 
 
 		//memcpy(c.plaintext,recvd_data,len);
-		free(recvd_data);
-		free(plaintext_chunk.plaintext);
+		//free(recvd_data);
+		//free(plaintext_chunk.plaintext);
 
 		if(status == END_OF_FILE){
 			cout<<"FINITO"<<endl;
 			break;
 		} else if(status == FILE_ERROR){
+			cout << "FILE_ERROR" << endl;
 			return;
 		}
 

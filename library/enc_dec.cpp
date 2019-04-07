@@ -75,7 +75,9 @@ void decrypt_UPDATE(EVP_CIPHER_CTX* ctx, unsigned char *ciphertext, int cipherte
 
 void decrypt_FINAL(EVP_CIPHER_CTX *ctx, unsigned char *plaintext, int &plaintext_len){
   int len;
-  EVP_DecryptFinal(ctx, plaintext + plaintext_len, &len);
+  if(1 != EVP_DecryptFinal(ctx, plaintext + plaintext_len, &len)){
+    cout << "ERRORE EVP_DecryptFinal" << endl;
+  }
   plaintext_len += len;
 
   // MUST ALWAYS BE CALLED!!!!!!!!!!
