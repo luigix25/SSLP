@@ -99,19 +99,10 @@ char* serialization(char* plaintext, char* hmac, int size){
 }
 
 void unserialization(char* serialized, int serialized_len, chunk &c, char* hmac){
-
-	cout << "stampo serialized" << endl;
-	cout << serialized << endl;
-	cout << "stampo c.size in unserialization: " << *(int* )serialized << endl;
-	cout << "stampo c.size in unserialization: " << *(uint32_t* )serialized << endl;
-	cout << "stampo c.size in unserialization: " << *(int32_t* )serialized << endl;
-		cout << "stampo c.size in unserialization: " << htonl(*(int* )serialized) << endl;
-		cout << "stampo c.size in unserialization: " << ntohl(*(int* )serialized) << endl;
-
-
-
 	c.size = *(int* )serialized;
 	cout << "stampo c.size in unserialization: " << c.size << endl;
+	cout << "stampo serialized size: " << serialized_len << endl;
+	c.plaintext= (char *)malloc(c.size);
 	memcpy(c.plaintext,&serialized[4],c.size);
 	cout << "prima memcpy in unserialization fatta " << endl;
 	memcpy(hmac,&serialized[4 + c.size],HASH_SIZE);
@@ -119,3 +110,4 @@ void unserialization(char* serialized, int serialized_len, chunk &c, char* hmac)
 
 	free(serialized);
 }
+
