@@ -108,7 +108,11 @@ void cmd_get(){
 		}
 
 
-		char *ciphertext = (char*)malloc(c.size+16);
+		cout << "stampo c.size: " << c.size << endl;
+		char *ciphertext = (char*)malloc(c.size + 16 + HASH_SIZE + sizeof(int));
+		char* HMAC = computeHMAC(c.plaintext);
+		char* msg_serialized = serialization(c.plaintext,HMAC,c.size);
+		free(HMAC);
 
 	/*	int ciphertext_len = encrypt((unsigned char*)c.plaintext, c.size,(unsigned char*)KEY_AES, NULL, (unsigned char*)ciphertext);
 		BIO_dump_fp (stdout, (const char *)ciphertext, ciphertext_len);
@@ -124,7 +128,7 @@ void cmd_get(){
 //		BIO_dump_fp (stdout, (const char *)c.plaintext, c.size);
 
 
-		encrypt_UPDATE(ctx,(unsigned char*)ciphertext,ciphertext_len,(unsigned char*)c.plaintext,c.size);
+		encrypt_UPDATE(ctx,(unsigned char*)ciphertext,ciphertext_len,(unsigned char*)msg_serialized,c.size + HASH_SIZE + sizeof(int));
 
 		if(last){
 			encrypt_FINAL(ctx,(unsigned char*)ciphertext, ciphertext_len);
@@ -135,6 +139,8 @@ void cmd_get(){
 		if(!client_socket.sendData(ciphertext,ciphertext_len)) return;
 		free(c.plaintext);
 		free(ciphertext);
+		free(msg_serialized);
+		c.size = 0;
 
 		if(last)
 			break;

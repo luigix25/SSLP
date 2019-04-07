@@ -141,7 +141,7 @@ void cmd_get(){
 	if(!server_socket.recvInt(file_size)) return;
 
 	char *recvd_data;
-	int len;
+	int len = 0;
 	file_status status;
 
 	cout<<"File Size: "<<file_size;
@@ -154,12 +154,13 @@ void cmd_get(){
 	while(true){
 
 		recvd_data = server_socket.recvData(len);
+		
+		cout<<"Ricevuti "<<len<<endl;
 
 		if(recvd_data == NULL){
 			cout << "recvd_data NULL" <<endl;
 			return;
 		} 
-		cout<<"Ricevuti "<<len<<endl;
 
 		BIO_dump_fp (stdout, (const char *)recvd_data, len);
 
@@ -168,11 +169,11 @@ void cmd_get(){
 	//	int plaintext_len =  decrypt((unsigned char*)recvd_data, len, (unsigned char*)KEY_AES, (unsigned char*)IV, (unsigned char*)plaintext);
 	//	BIO_dump_fp (stdout, (const char *)plaintext, plaintext_len);
 
-		encryptedChunk c;
-		c.size = len;
-		c.ciphertext = recvd_data;
+		encryptedChunk ec;
+		ec.size = len;
+		ec.ciphertext = recvd_data;
 
-		decrypt_UPDATE(ctx,(unsigned char*)c.ciphertext,c.size,(unsigned char*)plaintext,plaintext_len);
+		decrypt_UPDATE(ctx,(unsigned char*)ec.ciphertext,ec.size,(unsigned char*)plaintext,plaintext_len);
 
 		file_size-= plaintext_len;
 
@@ -182,9 +183,16 @@ void cmd_get(){
 		//	last = true;
 		}
 
+		char* recv_HMAC = (char *)malloc(HASH_SIZE);
+
 		chunk plaintext_chunk;
-		plaintext_chunk.size = plaintext_len;
-		plaintext_chunk.plaintext = plaintext;
+		unserialization(ec.ciphertext,ec.size,plaintext_chunk,recv_HMAC);
+
+
+		char* myHMAC = computeHMAC(plaintext_chunk.plaintext);
+
+		if(memcmp(myHMAC,recv_HMAC,HASH_SIZE) == 0 )
+			cout << "HMAC CORRETTO" << endl;
 
 		status = fm.write(&plaintext_chunk);
 

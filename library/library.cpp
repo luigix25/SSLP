@@ -37,8 +37,9 @@ bool NetSocket::sendInt(int value){
 bool NetSocket::sendData(const char *buffer,int32_t len){
 	int ret;
 
-	if(!sendInt(len))
-		return false;
+	if(!sendInt(len)){
+		cout << "sendInt di sendData fallita" << endl;
+		return false;}
 	
 	ret = sendto(this->socket,buffer,len,0,NULL,0);
 	if(ret < len){
@@ -98,7 +99,11 @@ char* serialization(char* plaintext, char* hmac, int size){
 void unserialization(char* serialized, int serialized_len, chunk &c, char* hmac){
 
 	c.size = *(int* )serialized;
+	cout << "stampo c.size in unserialization: " << c.size << endl;
 	memcpy(c.plaintext,&serialized[4],c.size);
+	cout << "prima memcpy in unserialization fatta " << endl;
 	memcpy(hmac,&serialized[4 + c.size],HASH_SIZE);
+	cout << "seconda memcpy in unserialization fatta " << endl;
+
 	free(serialized);
 }
