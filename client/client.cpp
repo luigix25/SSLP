@@ -245,9 +245,9 @@ void cmd_get(){
 	}		
 
 	char *MAC_rcvd = server_socket.recvData(len);
-	BIO_dump_fp(stdout,(const char*)MAC_rcvd,32);
+	//BIO_dump_fp(stdout,(const char*)MAC_rcvd,32);
 
-	BIO_dump_fp(stdout,(const char*)digest,32);
+	//BIO_dump_fp(stdout,(const char*)digest,32);
 
 	if(!memcmp(digest,MAC_rcvd,32)){
 		cout<<"MAC UGUALI"<<endl;
@@ -273,7 +273,9 @@ void select_command(string buffer){
 	} else if(buffer.compare("!get") == 0){
 		cmd_get();
 	} else {
+		cout<<">"<<buffer<<"<"<<endl;
 		cout<<"Comando non riconosciuto"<<endl;
+		exit(-1);
 		pulisci_buff();
 	}
 

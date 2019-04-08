@@ -142,7 +142,10 @@ void cmd_get(){
 
 		cout<<"INVIO: "<<ciphertext_len<<endl;
 
-		if(!client_socket.sendData(ciphertext,ciphertext_len)) return;
+		if(!client_socket.sendData(ciphertext,ciphertext_len)){
+			cout<<"ERRORE SEND"<<endl;
+			return;
+		} 
 		
 		free(c.plaintext);
 		free(ciphertext);
@@ -156,8 +159,11 @@ void cmd_get(){
 
 	}
 
-	if(!client_socket.sendData((const char*)digest,HASH_SIZE)) return;
-		BIO_dump_fp(stdout,(const char*)digest,32);
+	if(!client_socket.sendData((const char*)digest,HASH_SIZE)) {
+			cout<<"ERRORE SEND"<<endl;
+			return;
+	}
+	//BIO_dump_fp(stdout,(const char*)digest,32);
 
 	free(digest);
 

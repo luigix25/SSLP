@@ -27,7 +27,7 @@ bool NetSocket::sendInt(int value){
 	status = sendto(this->socket, &tosend, sizeof(uint32_t), 0,NULL,0);
 	if(status < (int)sizeof(uint32_t))	{
 		perror("[Error] send");
-		return 0;
+		return false;
 	}
 
 	return (status==sizeof(uint32_t));
@@ -39,15 +39,22 @@ bool NetSocket::sendData(const char *buffer,int32_t len){
 
 	if(!sendInt(len)){
 		cout << "sendInt di sendData fallita" << endl;
-		return false;}
+		return false;
+	}
 	
-	ret = sendto(this->socket,buffer,len,0,NULL,0);
-	if(ret < len){
-		perror("[Error] send");
-		return 0;
-	} 
+	int inviati = 0;
+
+	while(inviati < len){
+
+		ret = sendto(this->socket,buffer+inviati,len-inviati,0,NULL,0);
+		if(ret == -1){
+			perror("[Error] send");
+			return false;
+		} 
+		inviati += ret;
+	}
 	
-	return (len == ret);
+	return (inviati == len);
 
 }
 
@@ -61,12 +68,17 @@ char* NetSocket::recvData(int32_t &len){
 	}
 	char *buffer = (char *)malloc(len);
 
-	//ret = recv(sd,buffer,len,MSG_WAITALL);
-	ret = recvfrom(this->socket,buffer,len,0,NULL,0);
-	if(ret < len){
-		perror("[Error] recv");
-		return NULL;	
+	int ricevuti = 0;
+
+	while(ricevuti < len){ 										//posso leggere meno byte
+		ret = recvfrom(this->socket,buffer+ricevuti,len-ricevuti,0,NULL,0);
+		if(ret == -1){
+			perror("[Error] recv");
+			return NULL;	
+		}
+		ricevuti += ret;
 	}
+
 	return buffer;
 }
 

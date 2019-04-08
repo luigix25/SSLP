@@ -31,7 +31,7 @@
 
 using namespace std;
 
-#define MAX_CHUNK_SIZE 256*1024
+#define MAX_CHUNK_SIZE 256 *1024
 
 extern const char *commands_list[5];
 
