@@ -1,7 +1,7 @@
 CFLAGS= -Wall -std=c++14 -g
 LIBFLG = -lcrypto
-LIBDIP = library/library.h library/ReadFileManager.h library/WriteFileManager.h library/FileManager.h library/EncryptManager.h library/DecryptManager.h library/HMAC.h
-LIBFLS = library.o filemanager.o writefilemanager.o readfilemanager.o enc_dec.o encryptmanager.o decryptmanager.o hmac.o
+LIBDIP = library/library.h library/ReadFileManager.h library/WriteFileManager.h library/FileManager.h library/EncryptManager.h library/DecryptManager.h library/HMAC.h library/SendReceiveFile.h
+LIBFLS = library.o filemanager.o writefilemanager.o readfilemanager.o encryptmanager.o decryptmanager.o hmac.o sendreceivefile.o
 
 
 all: client server
@@ -33,8 +33,11 @@ decryptmanager.o: library/library.h library/DecryptManager.h library/DecryptMana
 hmac.o: library/library.h library/HMACManager.h library/HMACManager.cpp
 	g++ $(CFLAGS) library/HMACManager.cpp -c -o hmac.o 
 
-enc_dec.o: library/library.h library/enc_dec.cpp 
-	g++ $(CFLAGS) library/enc_dec.cpp -c -o enc_dec.o
+#enc_dec.o: library/library.h library/enc_dec.cpp 
+#	g++ $(CFLAGS) library/enc_dec.cpp -c -o enc_dec.o
+
+sendreceivefile.o: library/library.h library/SendReceiveFile.h library/SendReceiveFile.cpp
+	g++ $(CFLAGS) library/SendReceiveFile.cpp -c -o sendreceivefile.o
 
 client: client.o $(LIBFLS)
 	g++ $(CFLAGS) -o client_bin client.o $(LIBFLS) $(LIBFLG) 

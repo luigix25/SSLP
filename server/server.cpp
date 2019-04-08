@@ -1,8 +1,3 @@
-#include "../library/library.h"
-#include "../library/ReadFileManager.h"				//library è qui dentro
-#include "../library/EncryptManager.h"
-#include "../library/HMACManager.h"
-
 #include "server.h"
 
 
@@ -63,7 +58,7 @@ void print_hex(unsigned char* buff, unsigned int size)
 
 void cmd_get(){
 
-	//SECURE CODING
+/*	//SECURE CODING
 
 	int len;
 
@@ -100,11 +95,7 @@ void cmd_get(){
 
 	int conta = 0;
 
-	/*HMAC_CTX* mdctx;
-	mdctx = HMAC_CTX_new();
-	size_t key_hmac_size = sizeof(KEY_HMAC);
 
-	//HMAC_Init_ex(mdctx, KEY_HMAC, key_hmac_size, EVP_sha256(), NULL);*/
  	char* digest;
 
 	while(true){
@@ -173,7 +164,13 @@ void cmd_get(){
 	}
 
 	free(digest);
+*/
 
+	string path("server/database/");
+	if(!SendFile(path,client_socket))
+		cout << "sendFile fallita" << endl;
+	else
+		cout << "sendFile corretta" << endl;
 }
 
 
@@ -230,23 +227,6 @@ int initialize_server(int port){
 	return listener;
 
 }
-
-void test_hash(){
-
-	test.size = sizeof("cifra sto cazzo");
-	test.plaintext = (char *)malloc(test.size);
-	memcpy(test.plaintext,"cifra sto cazzo",test.size);
-	cout << "stampo plaintext " << test.plaintext << endl;
-	encryptChunk(test, encryptedtest);
-
-	BIO_dump_fp(stdout,encryptedtest.ciphertext,encryptedtest.size);
-	decryptChunk(encryptedtest, test);
-
-	free(test.plaintext);
-	free(encryptedtest.ciphertext);
-
-}
-
 
 int main(int argc,char **argv){
 

@@ -1,15 +1,4 @@
-#include "../library/library.h"
-#include "../library/ReadFileManager.h"				//library è qui dentro
-#include "../library/WriteFileManager.h"				//library è qui dentro
-#include "../library/EncryptManager.h"
-#include "../library/DecryptManager.h"
-#include "../library/HMACManager.h"
-
-#include <iostream>
-#include <vector>
-
-
-using namespace std;
+#include "client.h"
 
 fd_set master;
 int socket_tcp;
@@ -107,9 +96,15 @@ void cmd_get(){
 
 	string filename;
 	cin >> filename;
+	string path("client/database/");
+	if(!ReceiveFile(path,filename,server_socket))
+		cout << "ReceiveFile ERRATA" << endl;
+	else
+		cout << "ReceiveFile CORRETTA" << endl;
+	
 	//WARING SECURECODING
 
-	if(!server_socket.sendInt(GET_COMMAND)) return;
+	/*if(!server_socket.sendInt(GET_COMMAND)) return;
 
 	int32_t length = filename.length()+1;
 
@@ -208,7 +203,7 @@ void cmd_get(){
 
 	free(digest);
 	free(MAC_rcvd);
-
+*/
 }
 
 void select_command(string buffer){
