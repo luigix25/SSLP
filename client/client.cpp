@@ -275,7 +275,7 @@ void select_command(string buffer){
 	} else {
 		cout<<">"<<buffer<<"<"<<endl;
 		cout<<"Comando non riconosciuto"<<endl;
-		exit(-1);
+	//	exit(-1);
 		pulisci_buff();
 	}
 
