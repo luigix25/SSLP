@@ -12,8 +12,6 @@ NetSocket client_socket;
 chunk test;
 encryptedChunk encryptedtest;
 
-
-
 vector<string> get_file_list(){
 
 	DIR* folder = opendir("server/database");
@@ -122,7 +120,7 @@ void cmd_get(){
 		}
 
 
-		char *ciphertext = (char*)malloc(c.size + 16 /*+ sizeof(int)*/);
+		char *ciphertext = (char*)malloc(c.size + 16);
 
 		//BIO_dump_fp(stdout,msg_serialized,c.size+32);
 		//BIO_dump_fp(stdout,(const char*)c.plaintext,c.size);
@@ -140,8 +138,6 @@ void cmd_get(){
 
 
 		if(last){
-			cout<<"LAST"<<endl;
-			
 			if(!em.EncyptFinal(ec)){
 				//handle
 			}
@@ -171,13 +167,10 @@ void cmd_get(){
 
 	}
 
-	BIO_dump_fp(stdout,(const char*)digest,32);
-
 	if(!client_socket.sendData((const char*)digest,HASH_SIZE)) {
 			cout<<"ERRORE SEND"<<endl;
 			return;
 	}
-	//BIO_dump_fp(stdout,(const char*)digest,32);
 
 	free(digest);
 

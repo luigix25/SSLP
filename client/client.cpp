@@ -17,11 +17,6 @@ struct sockaddr_in opponent;
 
 NetSocket server_socket;
 
-/*void handle_receive_data(int);
-void cmd_show();
-void protocol_error(int);
-*/
-
 void pulisci_buff(){
 	char c;
 	while((c = getchar()) != '\n' && c != EOF)
@@ -66,24 +61,12 @@ void cmd_quit(){
 	server_socket.closeConnection();
 	exit(0);
 
-
-	/*printf("\nClient disconnesso correttamente\n");
-	if(!sendInt(sock,QUIT_COMMAND))		return;
-	close(sock);
-	exit(1);*/
 }
 
-void cmd_disconnect(int sock){
-	/*printf("Disconnessione avvenuta con successo: TI SEI ARRESO\n");
-
-	if(!sendInt(sock,DISCONNECT_COMMAND))		return;*/
-
-}
 
 void cmd_list(){
 
 
-	/*printf("Disconnessione avvenuta con successo: TI SEI ARRESO\n");*/
 
 	if(!server_socket.sendInt(LIST_COMMAND))		return;
 	
@@ -109,9 +92,6 @@ void cmd_list(){
 		cout<<files_list[i]<<'\t';
 	}
 	cout<<endl;
-
-
-
 
 }
 
@@ -185,8 +165,6 @@ void cmd_get(){
 			//handle error
 		}
 
-		//BIO_dump_fp(stdout,(const char*)plaintext,plaintext_len);
-
 		file_size-= (c.size);
 
 		if(file_size < AES_BLOCK){			//ultimo chunk
@@ -205,8 +183,6 @@ void cmd_get(){
 				//handle
 			}
 		}
-
-		cout<<"PL LENG"<<c.size<<endl;
 
 		status = fm.write(&c);
 
@@ -230,12 +206,8 @@ void cmd_get(){
 		cout<<"MAC DIVERSI"<<endl;
 	}
 
-	BIO_dump_fp(stdout,(const char*)MAC_rcvd,32);
-	BIO_dump_fp(stdout,(const char*)digest,32);
-
 	free(digest);
 	free(MAC_rcvd);
-
 
 }
 
@@ -265,24 +237,11 @@ void read_input(){
 	string buffer;
 	fflush(stdout);
 	cin>>buffer;
-	//scanf("%ms",&buffer);
 
 	select_command(buffer);
 	//free(buffer);
 
 }
-
-void wait_for_opponent(short cmd){			//disabilita tastiera
-
-/*	waiting = cmd;
-	if(cmd){
-		FD_CLR(0,&master);
-	} else {
-		FD_SET(0,&master);
-	}*/
-}
-
-
 
 void protocol_error(int sock_tcp){
 
@@ -293,43 +252,7 @@ void protocol_error(int sock_tcp){
 
 void select_command_server(int socket,int cmd){
 
-	/*switch(cmd){
-		case CONNECT_REQ:
-			handle_connection_request(socket);
-			break;
-		case CONNECT_ACPT:
-			handle_connection_accepted(socket);
-			break;
-		case CONNECT_REFUSED:
-			printf("L'utente ha rifiutato la tua partita\n");
-			return;
-			break;
-		case CONNECT_NOUSER:
-			printf("Utente non esistente\n");
-			break;
-		case CONNECT_BUSY:
-			printf("L'utente e' impegnato in un'altra partita\n");
-			break;
-		case CONNECT_DATA:
-			handle_receive_data(socket);
-			break;
-		case WON_RETIRED:
-			printf("Complimenti hai vinto! Il tuo avversario si e' ritirato\n");
-			wait_for_opponent(false);
-			in_game = false;
-			break;
-		case OPP_DISCONNECTED_TCP:
-			printf("Il tuo avversario non e' più connesso con il server di gioco, Hai vinto!\n");
-			in_game = false;
-			wait_for_opponent(false);
-			break;
-		case YOU_TIMEOUT:
-			printf("Timeout, hai perso!\n");
-			in_game = false;
-			wait_for_opponent(false);
-			break;
 
-	}*/
 
 }
 
@@ -382,12 +305,6 @@ int main(int argc,char **argv){
 
 	fdmax = socket_tcp;
 
-	/*const char *abc = "Uno due tre stella";
-	int lun = strlen(abc)+1;
-
-	printf("Invio: %s\n",abc);
-	//sendData(socket_tcp,abc,lun);
-*/
 	while(true){
 
 	
