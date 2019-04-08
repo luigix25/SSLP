@@ -3,14 +3,12 @@
 WriteFileManager::WriteFileManager(string &name, uint64_t size) : FileManager(name,size){
 	if(file_exists()){
 		remove(name.c_str());
-	}
-}
+	}}
 
 WriteFileManager::WriteFileManager(const char *name, uint64_t size) : FileManager((string&)name,size){
 	if(file_exists()){
 		remove(name);
 	}
-
 };
 
 bool WriteFileManager::openStream(){

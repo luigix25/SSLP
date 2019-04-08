@@ -19,9 +19,8 @@ uint64_t FileManager::size_file(){ // If true, the file size is correct
 }
 
 bool FileManager::file_exists(){ // true if exists
-	bool ret = openStream();
-	closeStream();
-	return ret;
+	fstream tmp(this->file_name);
+	return tmp.good();
 }
 
 //Reset the internal counter for restart the operation

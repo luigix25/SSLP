@@ -140,11 +140,16 @@ void cmd_get(){
 	int32_t file_size;
 	if(!server_socket.recvInt(file_size)) return;
 
+	if(file_size == 0){				//file non esistente
+		cout<<"File does not exist"<<endl;
+		return;
+	}
+
 	char *recvd_data;
 	int len = 0;
 	file_status status;
 
-	cout<<"File Size: "<<file_size;
+	cout<<"File Size: "<<file_size<<endl;
 	WriteFileManager fm(full_name,file_size);
 	
 	EVP_CIPHER_CTX* ctx = decrypt_INIT((unsigned char*)KEY_AES,(unsigned char*)IV);

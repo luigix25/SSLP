@@ -77,14 +77,18 @@ void cmd_get(){
 
 	string full_name = "server/database/";
 	full_name += filename;
+	free(filename); 							//non mi serve più
 
 	ReadFileManager fm(full_name);
-	free(filename); 							//non mi serve più
 
 	uint32_t size = (uint32_t)fm.size_file();			//fix
 	cout<<"File size: "<<size<<endl;	
 
 	if(!client_socket.sendInt(size)) return;
+
+	if(size == 0){				//file non esistente
+		return;
+	}
 
 	chunk c;
 	file_status status;
