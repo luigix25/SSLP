@@ -1,5 +1,8 @@
 #include "../library/library.h"
 #include "../library/ReadFileManager.h"				//library è qui dentro
+#include "../library/EncryptManager.h"
+#include "../library/HMACManager.h"
+
 #include "server.h"
 
 
@@ -94,17 +97,17 @@ void cmd_get(){
 	file_status status;
 	bool last = false;
 
-	//creo contesto;
-	EVP_CIPHER_CTX* ctx = encrypt_INIT((unsigned char*)KEY_AES,(unsigned char*)IV);
-	int ciphertext_len = 0;
+	EncryptManager em(KEY_AES,AES_IV);
+	HMACManager hmac(KEY_HMAC);
+
 	int conta = 0;
 
-	HMAC_CTX* mdctx;
+	/*HMAC_CTX* mdctx;
 	mdctx = HMAC_CTX_new();
 	size_t key_hmac_size = sizeof(KEY_HMAC);
 
-	HMAC_Init_ex(mdctx, KEY_HMAC, key_hmac_size, EVP_sha256(), NULL);
- 	unsigned char* digest = (unsigned char*)malloc(HASH_SIZE); 
+	//HMAC_Init_ex(mdctx, KEY_HMAC, key_hmac_size, EVP_sha256(), NULL);*/
+ 	char* digest;
 
 	while(true){
 	
@@ -120,36 +123,45 @@ void cmd_get(){
 
 
 		char *ciphertext = (char*)malloc(c.size + 16 /*+ sizeof(int)*/);
-	//	char* HMAC = computeHMAC(c.plaintext);
-		//char* msg_serialized = serialization(c.plaintext,HMAC,c.size);
-	//	free(HMAC);
 
 		//BIO_dump_fp(stdout,msg_serialized,c.size+32);
 		//BIO_dump_fp(stdout,(const char*)c.plaintext,c.size);
 
-		encrypt_UPDATE(ctx,(unsigned char*)ciphertext,ciphertext_len,(unsigned char*)c.plaintext,c.size /*+ sizeof(int)*/);
-  		HMAC_Update(mdctx, (unsigned char*) c.plaintext,c.size);
+		encryptedChunk ec;
+		ec.ciphertext = ciphertext;
+
+		if(!em.EncyptUpdate(ec,c)){
+			cout<<"HANDLE ERROR"<<endl;
+		}
+
+		if(!hmac.HMACUpdate(c)){
+			cout<<"ERROR"<<endl;
+		}		
 
 
 		if(last){
 			cout<<"LAST"<<endl;
-			int hash_size = EVP_MD_size(EVP_sha256());
-			encrypt_FINAL(ctx,(unsigned char*)ciphertext, ciphertext_len);
-			HMAC_Final(mdctx, digest, (unsigned int*) &hash_size);
-			HMAC_CTX_free(mdctx);
+			
+			if(!em.EncyptFinal(ec)){
+				//handle
+			}
+
+			digest = hmac.HMACFinal();
+			if(digest == NULL){
+				//handle
+			}
 
 		}
 
-		cout<<"INVIO: "<<ciphertext_len<<endl;
+		cout<<"INVIO: "<<ec.size<<endl;
 
-		if(!client_socket.sendData(ciphertext,ciphertext_len)){
+		if(!client_socket.sendData(ec.ciphertext,ec.size)){
 			cout<<"ERRORE SEND"<<endl;
 			return;
 		} 
 		
 		free(c.plaintext);
-		free(ciphertext);
-	//	free(msg_serialized);
+		free(ec.ciphertext);
 		c.size = 0;
 
 	//	conta++;
@@ -158,6 +170,8 @@ void cmd_get(){
 			break;
 
 	}
+
+	BIO_dump_fp(stdout,(const char*)digest,32);
 
 	if(!client_socket.sendData((const char*)digest,HASH_SIZE)) {
 			cout<<"ERRORE SEND"<<endl;

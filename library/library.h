@@ -27,7 +27,7 @@
 #define AES_BLOCK 16
 #define KEY_AES "panuozzopanuozz"
 #define KEY_HMAC "bombabombabomba"
-#define IV "cornettonebomba"
+#define AES_IV "cornettonebomba"
 
 using namespace std;
 
@@ -79,9 +79,6 @@ class NetSocket{
 void encryptChunk(chunk &, encryptedChunk &);
 void decryptChunk(encryptedChunk &, chunk &);
 
-EVP_CIPHER_CTX* encrypt_INIT(unsigned char *,unsigned char *);
-void encrypt_UPDATE(EVP_CIPHER_CTX*,unsigned char *,int &,unsigned char *, int);
-void encrypt_FINAL(EVP_CIPHER_CTX *, unsigned char *, int &);
 
 EVP_CIPHER_CTX* decrypt_INIT(unsigned char *,unsigned char *);
 void decrypt_UPDATE(EVP_CIPHER_CTX*, unsigned char *, int , unsigned char *, int &);

@@ -1,7 +1,7 @@
 CFLAGS= -Wall -std=c++14 -g
 LIBFLG = -lcrypto
-LIBDIP = library/library.h library/ReadFileManager.h library/WriteFileManager.h library/FileManager.h
-LIBFLS = library.o filemanager.o writefilemanager.o readfilemanager.o enc_dec.o
+LIBDIP = library/library.h library/ReadFileManager.h library/WriteFileManager.h library/FileManager.h library/EncryptManager.h library/DecryptManager.h library/HMAC.h
+LIBFLS = library.o filemanager.o writefilemanager.o readfilemanager.o enc_dec.o encryptmanager.o decryptmanager.o hmac.o
 
 
 all: client server
@@ -23,6 +23,15 @@ readfilemanager.o: library/library.h library/ReadFileManager.h library/ReadFileM
 
 writefilemanager.o: library/library.h library/WriteFileManager.h library/WriteFileManager.cpp library/FileManager.h
 	g++ $(CFLAGS) library/WriteFileManager.cpp -c -o writefilemanager.o 
+
+encryptmanager.o: library/library.h library/EncryptManager.h library/EncryptManager.cpp
+	g++ $(CFLAGS) library/EncryptManager.cpp -c -o encryptmanager.o 
+
+decryptmanager.o: library/library.h library/DecryptManager.h library/DecryptManager.cpp
+	g++ $(CFLAGS) library/DecryptManager.cpp -c -o decryptmanager.o 
+
+hmac.o: library/library.h library/HMACManager.h library/HMACManager.cpp
+	g++ $(CFLAGS) library/HMACManager.cpp -c -o hmac.o 
 
 enc_dec.o: library/library.h library/enc_dec.cpp 
 	g++ $(CFLAGS) library/enc_dec.cpp -c -o enc_dec.o
