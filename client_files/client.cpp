@@ -84,7 +84,7 @@ void cmd_list(){
 
 	cout<<"Files Available for uploading to Server:"<<endl;
 
-	vector<string> files_client = get_file_list("client/database/");
+	vector<string> files_client = get_file_list(CLIENT_PATH);
 
 	for(uint i= 0;i<files_client.size();i++){
 		cout<<files_client[i]<<'\t';
@@ -104,7 +104,7 @@ void print_hex(unsigned char* buff, unsigned int size)
 void cmd_upload(){
 	string filename;
 	cin >> filename;
-	string path("client/database/");
+	string path(CLIENT_PATH);
 	fstream tmp(path + filename);
 	if(!tmp.good()){
 		cout << "il file non esiste" << endl;
@@ -129,7 +129,7 @@ void cmd_get(){
 	if(!server_socket.sendInt(GET_COMMAND)) return;
 	string filename;
 	cin >> filename;
-	string path("client/database/");
+	string path(CLIENT_PATH);
 
 	int32_t length = filename.length()+1;
 

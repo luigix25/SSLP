@@ -29,6 +29,9 @@
 #define KEY_HMAC "bombabombabomba"
 #define AES_IV "cornettonebomba"
 
+#define CLIENT_PATH "client_files/database/"
+#define SERVER_PATH "server_files/database/"
+
 using namespace std;
 
 #define MAX_CHUNK_SIZE 256 *1024

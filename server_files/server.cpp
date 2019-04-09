@@ -9,7 +9,7 @@ encryptedChunk encryptedtest;
 
 void cmd_list(){
 	vector <string> files;
-	files = get_file_list("server/database/");
+	files = get_file_list(SERVER_PATH);
 	int number;
 
 	number = (int)files.size();
@@ -44,7 +44,8 @@ void cmd_get(){
 	int len;
 
 	filename = client_socket.recvData(len);
-	string path("server/database/");
+	string path(SERVER_PATH);
+	cout<<path<<endl;
 	if(!SendFile(path,client_socket,filename))
 		cout << "sendFile fallita" << endl;
 	else
@@ -58,7 +59,7 @@ void cmd_upload(){
 	int len;
 
 	filename = client_socket.recvData(len);
-	string path("server/database/");
+	string path(SERVER_PATH);
 	if(!ReceiveFile(path,filename,client_socket))
 		cout << "cmd_upload fallita" << endl;
 	else

@@ -6,11 +6,11 @@ LIBFLS = library.o filemanager.o writefilemanager.o readfilemanager.o encryptman
 
 all: client server
 
-client.o: library/library.h client/client.h client/client.cpp 
-	g++ $(CFLAGS) client/client.cpp -c -o client.o 
+client.o: library/library.h client_files/client.h client_files/client.cpp 
+	g++ $(CFLAGS) client_files/client.cpp -c -o client.o 
 
-server.o: library/library.h server/server.h server/server.cpp
-	g++ $(CFLAGS) server/server.cpp -c -o server.o 
+server.o: library/library.h server_files/server.h server_files/server.cpp
+	g++ $(CFLAGS) server_files/server.cpp -c -o server.o 
 
 library.o: library/library.h library/library.cpp
 	g++ $(CFLAGS) library/library.cpp -c -o library.o 
@@ -40,10 +40,10 @@ sendreceivefile.o: library/library.h library/SendReceiveFile.h library/SendRecei
 	g++ $(CFLAGS) library/SendReceiveFile.cpp -c -o sendreceivefile.o
 
 client: client.o $(LIBFLS)
-	g++ $(CFLAGS) -o client_bin client.o $(LIBFLS) $(LIBFLG) 
+	g++ $(CFLAGS) -o client client.o $(LIBFLS) $(LIBFLG) 
 
 server: server.o $(LIBFLS)
-	g++ $(CFLAGS) -o server_bin server.o $(LIBFLS) $(LIBFLG) 
+	g++ $(CFLAGS) -o server server.o $(LIBFLS) $(LIBFLG) 
 
 
 clean:
