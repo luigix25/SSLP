@@ -36,7 +36,7 @@ using namespace std;
 extern const char *commands_list[5];
 
 enum file_status{NO_ERRORS,OUT_OF_BOUND,FILE_ERROR,END_OF_FILE};
-enum commands {HELP_COMMAND,LIST_COMMAND,GET_COMMAND};
+enum commands {HELP_COMMAND,LIST_COMMAND,GET_COMMAND,UPLOAD_COMMAND};
 
 struct chunk{
 	int size;
@@ -76,21 +76,10 @@ class NetSocket{
 };
 
 
-void encryptChunk(chunk &, encryptedChunk &);
-void decryptChunk(encryptedChunk &, chunk &);
-
-
-EVP_CIPHER_CTX* decrypt_INIT(unsigned char *,unsigned char *);
-void decrypt_UPDATE(EVP_CIPHER_CTX*, unsigned char *, int , unsigned char *, int &);
-void decrypt_FINAL(EVP_CIPHER_CTX*, unsigned char *, int &);
-
-
-char* computeHMAC(char*);
-
 char* serialization(char*, char*, int);
 void unserialization(char* ,int, chunk &, char*);
 
-int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key, unsigned char *iv, unsigned char *ciphertext);
-int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,  unsigned char *iv, unsigned char *plaintext);
+
+vector<string> get_file_list(const char*);
 
 #endif

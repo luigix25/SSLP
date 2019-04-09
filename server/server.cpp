@@ -7,27 +7,9 @@ NetSocket client_socket;
 chunk test;
 encryptedChunk encryptedtest;
 
-vector<string> get_file_list(){
-
-	DIR* folder = opendir("server/database");
-	struct dirent* dp;
-	vector <string> result;
-
-	while( (dp = readdir(folder)) != NULL){						//WARNING SICUREZZA
-		char *filename = dp->d_name;
-		if(filename[0] == '.')
-			continue;
-		result.push_back(filename);
-	}
-
-	closedir(folder);
-	return result;
-
-}
-
 void cmd_list(){
 	vector <string> files;
-	files = get_file_list();
+	files = get_file_list("server/database/");
 	int number;
 
 	number = (int)files.size();
@@ -165,12 +147,31 @@ void cmd_get(){
 
 	free(digest);
 */
+	char *filename;
+	int len;
 
+	filename = client_socket.recvData(len);
 	string path("server/database/");
-	if(!SendFile(path,client_socket))
+	if(!SendFile(path,client_socket,filename))
 		cout << "sendFile fallita" << endl;
 	else
 		cout << "sendFile corretta" << endl;
+
+	free(filename);
+}
+
+void cmd_upload(){
+	char *filename;
+	int len;
+
+	filename = client_socket.recvData(len);
+	string path("server/database/");
+	if(!ReceiveFile(path,filename,client_socket))
+		cout << "cmd_upload fallita" << endl;
+	else
+		cout << "cmd_upload corretta" << endl;
+
+	free(filename);
 }
 
 
@@ -184,6 +185,8 @@ void select_command(int cmd){
 		case GET_COMMAND:
 			cmd_get();
 			break;
+		case UPLOAD_COMMAND:
+			cmd_upload();
 		default:
 			//handle error
 			break;

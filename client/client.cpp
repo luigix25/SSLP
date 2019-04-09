@@ -76,11 +76,20 @@ void cmd_list(){
 
 	}
 
-	cout<<"Files Available:"<<endl;
+	cout<<"Files Available for downloading fron Server:"<<endl;
 	for(int i= 0;i<number_files;i++){
 		cout<<files_list[i]<<'\t';
 	}
 	cout<<endl;
+
+	cout<<"Files Available for uploading to Server:"<<endl;
+
+	vector<string> files_client = get_file_list("client/database/");
+
+	for(uint i= 0;i<files_client.size();i++){
+		cout<<files_client[i]<<'\t';
+	}
+	cout << endl;
 
 }
 
@@ -92,12 +101,40 @@ void print_hex(unsigned char* buff, unsigned int size)
     printf("\n");
 }
 
-void cmd_get(){
-
+void cmd_upload(){
 	string filename;
 	cin >> filename;
 	string path("client/database/");
-	if(!ReceiveFile(path,filename,server_socket))
+	fstream tmp(path + filename);
+	if(!tmp.good()){
+		cout << "il file non esiste" << endl;
+		return;
+	}
+	else
+		cout << "il file esiste" << endl;
+	if(!server_socket.sendInt(UPLOAD_COMMAND)) return;
+
+	if(!server_socket.sendData((const char*)filename.c_str(),filename.length()+1)) return;
+
+	
+	if(!SendFile(path,server_socket,(char *)filename.c_str()))
+		cout << "sendFile fallita" << endl;
+	else
+		cout << "sendFile corretta" << endl;
+}
+
+
+void cmd_get(){
+
+	if(!server_socket.sendInt(GET_COMMAND)) return;
+	string filename;
+	cin >> filename;
+	string path("client/database/");
+
+	int32_t length = filename.length()+1;
+
+	if(!server_socket.sendData((const char*)filename.c_str(),length)) return;
+	if(!ReceiveFile(path,( char*)filename.c_str(),server_socket))
 		cout << "ReceiveFile ERRATA" << endl;
 	else
 		cout << "ReceiveFile CORRETTA" << endl;
@@ -217,6 +254,8 @@ void select_command(string buffer){
 		cmd_quit();
 	} else if(buffer.compare("!get") == 0){
 		cmd_get();
+	} else if (buffer.compare("!upload") == 0){
+		cmd_upload();
 	} else {
 		cout<<">"<<buffer<<"<"<<endl;
 		cout<<"Comando non riconosciuto"<<endl;

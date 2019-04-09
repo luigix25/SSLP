@@ -1,11 +1,8 @@
 #include "SendReceiveFile.h"
 
-bool SendFile(string& path,NetSocket& receiverSocket){
-	int len;
+bool SendFile(string& path,NetSocket& receiverSocket,char* filename){
 
-	char *filename;
 
-	filename = receiverSocket.recvData(len);
 	if(filename == NULL){
 		return false;
 	}
@@ -13,7 +10,7 @@ bool SendFile(string& path,NetSocket& receiverSocket){
 	//cout<<"Client vuole leggere il file: "<<filename<<endl;
 
 	path+= filename;
-	free(filename); 							//non mi serve più
+	//free(filename); 							//non mi serve più
 
 	ReadFileManager fm(path);
 
@@ -111,12 +108,10 @@ bool SendFile(string& path,NetSocket& receiverSocket){
 	return true;
 }
 
-bool ReceiveFile(string & path, string & filename, NetSocket & senderSocket){
-if(!senderSocket.sendInt(GET_COMMAND)) return false;
+bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 
-	int32_t length = filename.length()+1;
 
-	if(!senderSocket.sendData(filename.c_str(),length)) return false;
+
 
 	//handle get
 	path += filename;

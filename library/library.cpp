@@ -158,3 +158,21 @@ void unserialization(char* serialized, int serialized_len, chunk &c, char* hmac)
 
 	free(serialized);
 }
+
+vector<string> get_file_list(const char* path){
+
+	DIR* folder = opendir(path);
+	struct dirent* dp;
+	vector <string> result;
+
+	while( (dp = readdir(folder)) != NULL){						//WARNING SICUREZZA
+		char *filename = dp->d_name;
+		if(filename[0] == '.')
+			continue;
+		result.push_back(filename);
+	}
+
+	closedir(folder);
+	return result;
+
+}

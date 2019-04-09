@@ -5,3 +5,4 @@
 #include "../library/DecryptManager.h"
 #include "../library/HMACManager.h"
 #include "../library/SendReceiveFile.h"
+#include "../library/FileManager.h"

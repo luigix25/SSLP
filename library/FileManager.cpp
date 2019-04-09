@@ -1,7 +1,7 @@
 #include <iostream>
 #include "FileManager.h"
 
-FileManager::FileManager(string &name, uint64_t size){
+FileManager::FileManager(string &name, uint64_t size = 0){
 	this->file_name = name;
 	this->file_size = size;
 	this->remaining_size = this->file_size;

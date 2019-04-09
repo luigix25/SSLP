@@ -8,7 +8,7 @@
 #include "DecryptManager.h"
 
 
-bool SendFile(string & ,NetSocket & );
-bool ReceiveFile(string & ,string &, NetSocket &);
+bool SendFile(string & ,NetSocket &,char* );
+bool ReceiveFile(string & ,char *, NetSocket &);
 
 #endif
