@@ -24,10 +24,10 @@ make clean
 ### Usage ###
 Server
 ```shell
-./server_bin port
+./server port
 ```
 Client
 ```shell
-./client_bin ip port
+./client ip port
 ```
 (If local use 127.0.0.1)
