@@ -6,14 +6,9 @@ bool SendFile(string& path,NetSocket& receiverSocket,char* filename){
 	if(filename == NULL){
 		return false;
 	}
-
-	//cout<<"Client vuole leggere il file: "<<filename<<endl;
-
+	
 	path+= filename;
-	//free(filename); 							//non mi serve più
-
 	ReadFileManager fm(path);
-
 	uint32_t size = (uint32_t)fm.size_file();			//fix
 	cout<<"File size: "<<size<<endl;	
 
@@ -28,15 +23,8 @@ bool SendFile(string& path,NetSocket& receiverSocket,char* filename){
 	bool last = false;
 
 	EncryptManager em(KEY_AES,AES_IV);
-	HMACManager hmac(KEY_HMAC);
 
 	int conta = 0;
-
-	/*HMAC_CTX* mdctx;
-	mdctx = HMAC_CTX_new();
-	size_t key_hmac_size = sizeof(KEY_HMAC);
-
-	//HMAC_Init_ex(mdctx, KEY_HMAC, key_hmac_size, EVP_sha256(), NULL);*/
  	char* digest;
 
 	while(true){
@@ -51,45 +39,45 @@ bool SendFile(string& path,NetSocket& receiverSocket,char* filename){
 			last = true;
 		}
 
-
 		char *ciphertext = (char*)malloc(c.size + 16);
-
-		//BIO_dump_fp(stdout,msg_serialized,c.size+32);
-		//BIO_dump_fp(stdout,(const char*)c.plaintext,c.size);
 
 		encryptedChunk ec;
 		ec.ciphertext = ciphertext;
 
 		if(!em.EncyptUpdate(ec,c)){
 			cout<<"HANDLE ERROR"<<endl;
-		}
-
-		if(!hmac.HMACUpdate(c)){
-			cout<<"ERROR"<<endl;
-		}		
-
+		}	
 
 		if(last){
 			if(!em.EncyptFinal(ec)){
 				//handle
 			}
-
-			digest = hmac.HMACFinal();
-			if(digest == NULL){
-				//handle
-			}
-
 		}
 
-		cout<<"INVIO: "<<ec.size<<endl;
+		HMACManager hmac(KEY_HMAC);
 
-		if(!receiverSocket.sendData(ec.ciphertext,ec.size)){
+		if(!hmac.HMACUpdate(ec)){
+			cout<<"ERROR"<<endl;
+		}	
+
+		digest = hmac.HMACFinal();
+			if(digest == NULL){
+				cout << "digest NULL" << endl;
+		}
+
+		char* msg_serialized = serialization(ec.ciphertext, digest, ec.size);
+
+		cout<<"INVIO: "<<ec.size + HASH_SIZE<<endl;
+
+		if(!receiverSocket.sendData(msg_serialized,ec.size + HASH_SIZE)){
 			cout<<"ERRORE SEND"<<endl;
 			return false;
 		} 
 		
 		free(c.plaintext);
 		free(ec.ciphertext);
+		free(msg_serialized);
+		free(digest);
 		c.size = 0;
 
 	//	conta++;
@@ -99,19 +87,10 @@ bool SendFile(string& path,NetSocket& receiverSocket,char* filename){
 
 	}
 
-	if(!receiverSocket.sendData((const char*)digest,HASH_SIZE)) {
-			cout<<"ERRORE SEND"<<endl;
-			return false;
-	}
-
-	free(digest);
 	return true;
 }
 
 bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
-
-
-
 
 	//handle get
 	path += filename;
@@ -132,8 +111,6 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 	cout<<"File Size: "<<file_size<<endl;
 	WriteFileManager fm(path,file_size);
 	DecryptManager dm(KEY_AES,AES_IV);
-	HMACManager hmac(KEY_HMAC);
-
 
 	while(true){
 
@@ -146,17 +123,35 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 			return false;
 		} 
 
+		encryptedChunk ec;
 
-		char *plaintext = (char*)malloc(len + AES_BLOCK);
+
+		char* recvd_hmac = (char*)malloc(HASH_SIZE);
+		unserialization(recvd_data,len,ec,recvd_hmac);
+
+
+
+		HMACManager hmac(KEY_HMAC);
+
+		if(!hmac.HMACUpdate(ec)){
+			cout<<"ERROR"<<endl;
+		}	
+
+		digest = hmac.HMACFinal();
+			if(digest == NULL){
+				cout << "digest NULL" << endl;
+		}
+
+		if(memcmp(digest,recvd_hmac,HASH_SIZE)){
+			cout << "HASH DIVERSI" << endl;
+			//invio stop comunicazione
+			return;
+		}
+
+		char *plaintext = (char*)malloc(ec.size + AES_BLOCK);
 
 		chunk c;
 		c.plaintext = plaintext;
-
-		encryptedChunk ec;
-		ec.size = len;
-		ec.ciphertext = recvd_data;
-
-		cout << "stampo ec.size: " << ec.size << endl;
 
 		if(!dm.DecyptUpdate(c,ec)){
 			//handle error
@@ -165,20 +160,8 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 		file_size-= (c.size);
 
 		if(file_size < AES_BLOCK){			//ultimo chunk
-		
+
 			dm.DecyptFinal(c);
-		}
-
-		if(!hmac.HMACUpdate(c)){
-			//handle
-		}
-
-
-		if(file_size < AES_BLOCK){			//ultimo chunk
-			digest = hmac.HMACFinal();
-			if(digest == NULL){
-				//handle
-			}
 		}
 
 		status = fm.write(&c);
@@ -195,16 +178,7 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 		}
 	}		
 
-	char *MAC_rcvd = senderSocket.recvData(len);
-	
-	if(!memcmp(digest,MAC_rcvd,32)){
-		cout<<"MAC UGUALI"<<endl;
-	} else{
-		cout<<"MAC DIVERSI"<<endl;
-	}
-
 	free(digest);
-	free(MAC_rcvd);
 	return true;
 
 }

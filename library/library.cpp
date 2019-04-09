@@ -141,19 +141,18 @@ char* serialization(char* plaintext, char* hmac, int size){
 	free(serialized);
 }*/
 
-void unserialization(char* serialized, int serialized_len, chunk &c, char* hmac){
+void unserialization(char* serialized, int serialized_len, encryptedChunk &ec, char* hmac){
 	//BIO_dump_fp (stdout, (const char *)serialized, serialized_len);
 
-	c.size =  serialized_len-32;// *(int* )serialized;
+	ec.size =  serialized_len-32;// *(int* )serialized;
 	cout << "stampo serialized size: " << serialized_len << endl;
-	cout << "stampo c.size in unserialization: " << c.size << endl;
+	cout << "stampo c.size in unserialization: " << ec.size << endl;
 
-	c.plaintext= (char *)malloc(c.size);
-	memcpy(c.plaintext,&serialized[0],c.size);
+	ec.ciphertext = (char *)malloc(ec.size);
+	memcpy(ec.ciphertext,&serialized[0],ec.size);
 	cout << "prima memcpy in unserialization fatta " << endl;
 
-
-	memcpy(hmac,&serialized[c.size],HASH_SIZE);
+	memcpy(hmac,&serialized[ec.size],HASH_SIZE);
 	cout << "seconda memcpy in unserialization fatta " << endl;
 
 	free(serialized);

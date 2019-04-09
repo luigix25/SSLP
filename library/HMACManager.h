@@ -10,7 +10,7 @@ class HMACManager{
 
 	public:
 		HMACManager(const char *);							//KEY
-		bool HMACUpdate(chunk &);
+		bool HMACUpdate(encryptedChunk &);
 		char* HMACFinal();
 
 };

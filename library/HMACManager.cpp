@@ -13,9 +13,9 @@ HMACManager::HMACManager(const char *key){
 
 }
 
-bool HMACManager::HMACUpdate(chunk &c){
+bool HMACManager::HMACUpdate(encryptedChunk &ec){
 
-    if(!HMAC_Update(mdctx, (unsigned char*) c.plaintext,c.size)){
+    if(!HMAC_Update(mdctx, (unsigned char*) ec.ciphertext,ec.size)){
     	perror("Error in EVP_DecryptUpdate");
     	return false;
     }
