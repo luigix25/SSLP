@@ -35,5 +35,5 @@
 *.pdf
 
 #Eseguibili dell'app 
-client_bin
-server_bin
+client
+server
