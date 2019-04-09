@@ -11,8 +11,8 @@ class DecryptManager{
 
 	public:
 		DecryptManager(const char *, const char *);				//KEY AND IV
-		bool DecyptUpdate(chunk &,encryptedChunk&);
-		bool DecyptFinal(chunk &);
+		bool DecryptUpdate(chunk &,encryptedChunk&);
+		bool DecryptFinal(chunk &);
 
 };
 

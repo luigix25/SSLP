@@ -55,29 +55,33 @@ void cmd_quit(){
 
 void cmd_list(){
 
-
-
 	if(!server_socket.sendInt(LIST_COMMAND))		return;
 	
-	int number_files;
+	char *recvd;
+	int len;
+	recvd = server_socket.recvData(len);
+	if(recvd == NULL) return;
 
-	if(!server_socket.recvInt(number_files))		return;
+	encryptedChunk ec;
+	ec.ciphertext = recvd;
+	ec.size = len;
 
-	vector<string> files_list(number_files);
+	chunk c;
+	c.plaintext = new char[ec.size+AES_BLOCK];
 
-	for(int i=0;i<number_files;i++){
-		int32_t len;
-		char *str;
+	DecryptManager dm(KEY_AES,AES_IV);
+	dm.DecryptUpdate(c,ec);
+	dm.DecryptFinal(c);
 
-		str = server_socket.recvData(len);
-		if(str == NULL) return;
-		files_list[i] = str;
-		free(str);
+	string concatenated(c.plaintext);
 
-	}
+	free(ec.ciphertext);
+	delete[] c.plaintext;
+
+	vector<string> files_list = split(concatenated,string(" "));
 
 	cout<<"Files Available for downloading fron Server:"<<endl;
-	for(int i= 0;i<number_files;i++){
+	for(uint i= 0;i<files_list.size();i++){
 		cout<<files_list[i]<<'\t';
 	}
 	cout<<endl;

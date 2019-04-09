@@ -158,7 +158,7 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 
 		cout << "stampo ec.size: " << ec.size << endl;
 
-		if(!dm.DecyptUpdate(c,ec)){
+		if(!dm.DecryptUpdate(c,ec)){
 			//handle error
 		}
 
@@ -166,7 +166,7 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 
 		if(file_size < AES_BLOCK){			//ultimo chunk
 		
-			dm.DecyptFinal(c);
+			dm.DecryptFinal(c);
 		}
 
 		if(!hmac.HMACUpdate(c)){
