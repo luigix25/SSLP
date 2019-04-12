@@ -1,6 +1,6 @@
 #include "SendReceiveFile.h"
 
-bool SendFileHMACchunk(string& path,NetSocket& receiverSocket,char* filename){
+bool SendFile(string& path,NetSocket& receiverSocket,char* filename){
 
 
 	if(filename == NULL){
@@ -41,7 +41,188 @@ bool SendFileHMACchunk(string& path,NetSocket& receiverSocket,char* filename){
 
 		char *ciphertext = (char*)malloc(c.size + 16);
 
+		encryptedChunk ec;
+		ec.ciphertext = ciphertext;
 
+		if(!em.EncyptUpdate(ec,c)){
+			cout<<"HANDLE ERROR"<<endl;
+		}	
+
+		if(last){
+			if(!em.EncyptFinal(ec)){
+				//handle
+			}
+		}
+
+		HMACManager hmac(KEY_HMAC);
+
+		if(!hmac.HMACUpdate(ec)){
+			cout<<"ERROR"<<endl;
+		}	
+
+		digest = hmac.HMACFinal();
+			if(digest == NULL){
+				cout << "digest NULL" << endl;
+		}
+
+		char* msg_serialized = serialization(ec.ciphertext, digest, ec.size);
+
+		cout<<"INVIO: "<<ec.size + HASH_SIZE<<endl;
+
+		if(!receiverSocket.sendData(msg_serialized,ec.size + HASH_SIZE)){
+			cout<<"ERRORE SEND"<<endl;
+			return false;
+		} 
+		
+		free(c.plaintext);
+		free(ec.ciphertext);
+		free(msg_serialized);
+		free(digest);
+		c.size = 0;
+
+	//	conta++;
+
+		if(last || conta == 2)
+			break;
+
+	}
+
+	return true;
+}
+
+bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
+
+	//handle get
+	path += filename;
+	cout<<"Scrivo: "<<path<<endl;
+
+	int32_t file_size;
+	if(!senderSocket.recvInt(file_size)) return false;
+
+	if(file_size == 0){				//file non esistente
+		cout<<"File does not exist"<<endl;
+		return false;
+	}
+
+	char *recvd_data,*digest;
+	int len = 0;
+	file_status status;
+
+	cout<<"File Size: "<<file_size<<endl;
+	WriteFileManager fm(path,file_size);
+	DecryptManager dm(KEY_AES,AES_IV);
+
+	while(true){
+
+		recvd_data = senderSocket.recvData(len);
+		
+		cout<<"Ricevuti "<<len<<endl;
+
+		if(recvd_data == NULL){
+			cout << "recvd_data NULL" <<endl;
+			return false;
+		} 
+
+		encryptedChunk ec;
+
+
+		char* recvd_hmac = (char*)malloc(HASH_SIZE);
+		unserialization(recvd_data,len,ec,recvd_hmac);
+
+
+
+		HMACManager hmac(KEY_HMAC);
+
+		if(!hmac.HMACUpdate(ec)){
+			cout<<"ERROR"<<endl;
+		}	
+
+		digest = hmac.HMACFinal();
+			if(digest == NULL){
+				cout << "digest NULL" << endl;
+		}
+
+		if(memcmp(digest,recvd_hmac,HASH_SIZE)){
+			cout << "HASH DIVERSI" << endl;
+			//invio stop comunicazione
+			return false;
+		}
+
+		char *plaintext = (char*)malloc(ec.size + AES_BLOCK);
+
+		chunk c;
+		c.plaintext = plaintext;
+
+		if(!dm.DecyptUpdate(c,ec)){
+			//handle error
+		}
+
+		file_size-= (c.size);
+
+		if(file_size < AES_BLOCK){			//ultimo chunk
+
+			dm.DecyptFinal(c);
+		}
+
+		status = fm.write(&c);
+
+		free(c.plaintext);
+		free(ec.ciphertext);
+
+		if(status == END_OF_FILE){
+			cout<<"FINITO"<<endl;
+			break;
+		} else if(status == FILE_ERROR){
+			cout << "FILE_ERROR" << endl;
+			return false;
+		}
+	}		
+
+	free(digest);
+	return true;
+
+}
+
+bool SendFileHMACchunk(string& path,NetSocket& receiverSocket,char* filename){
+
+
+	if(filename == NULL){
+		return false;
+	}
+	
+	path+= filename;
+	ReadFileManager fm(path);
+	uint32_t size = (uint32_t)fm.size_file();			//fix
+	cout<<"File size: "<<size<<endl;	
+
+	if(!receiverSocket.sendInt(size)) return false;
+
+	if(size == 0){				//file non esistente
+		return false;
+	}
+
+	chunk c;
+	file_status status;
+	bool last = false;
+
+	EncryptManager em(KEY_AES,AES_IV);
+
+	int conta = 0;
+ 	char* digest;
+
+	while(true){
+	
+		status = fm.read(&c);
+
+		if(status == FILE_ERROR){
+			cout<<"FILE ERROR"<<endl;
+			return false;
+		} else if(status == END_OF_FILE){
+			cout<<"EOF"<<endl;
+			last = true;
+		}
+
+		char *ciphertext = (char*)malloc(c.size + 16);
 
 		encryptedChunk ec;
 		ec.ciphertext = ciphertext;
