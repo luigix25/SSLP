@@ -63,7 +63,7 @@ void cmd_get(){
 	filename = client_socket.recvData(len);
 	string path(SERVER_PATH);
 	cout<<path<<endl;
-	if(!SendFile(path,client_socket,filename))
+	if(!SendFileHMACchunk(path,client_socket,filename))
 		cout << "sendFile fallita" << endl;
 	else
 		cout << "sendFile corretta" << endl;
@@ -77,7 +77,7 @@ void cmd_upload(){
 
 	filename = client_socket.recvData(len);
 	string path(SERVER_PATH);
-	if(!ReceiveFile(path,filename,client_socket))
+	if(!ReceiveFileHMACchunk(path,filename,client_socket))
 		cout << "cmd_upload fallita" << endl;
 	else
 		cout << "cmd_upload corretta" << endl;
