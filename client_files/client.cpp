@@ -1,5 +1,6 @@
 #include "client.h"
 
+
 fd_set master;
 int socket_tcp;
 struct sockaddr_in opponent;
