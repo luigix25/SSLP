@@ -1,15 +1,23 @@
 #include <iostream>
 #include "WriteFileManager.h"
 WriteFileManager::WriteFileManager(string &name, uint64_t size) : FileManager(name,size){
+	/*if(file_exists()){
+		char* old = (char*)name.c_str();
+		cout << "rinomino" << endl;
+		if(!rename(old,strcat(old,".old"))){
+			cout << "ERRORE rinomina" << endl;
+		}
+	}*/
 	if(file_exists()){
-		remove(name.c_str());
-	}}
-
-WriteFileManager::WriteFileManager(const char *name, uint64_t size) : FileManager((string&)name,size){
-	if(file_exists()){
-		remove(name);
+		original_file_name = file_name;
+		string tmp(strcat((char*)file_name.c_str(),".tmp"));
+		changeName(tmp);
+	} else{
+		original_file_name = "";
 	}
-};
+}
+
+WriteFileManager::WriteFileManager(const char *name, uint64_t size) : WriteFileManager((string&)name,size){};
 
 bool WriteFileManager::openStream(){
 	if(!fs.is_open()){
@@ -33,4 +41,14 @@ file_status WriteFileManager::write(chunk* c){ //write in append
 		return END_OF_FILE;
 	}
 	return NO_ERRORS; // All good
+}
+
+void WriteFileManager::finalize(){
+	if(remaining_size > 0){ // after error, remove file
+		remove((const char*)file_name.c_str());
+	}
+	if(original_file_name != ""){ // end of write, substitute previous file with tmp
+		remove((const char*)original_file_name.c_str());
+		rename((const char*)file_name.c_str(),(const char*)original_file_name.c_str());
+	}
 }

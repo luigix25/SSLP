@@ -20,6 +20,7 @@ class FileManager {
 		uint64_t size_file(); // -1 file not exits		
 		void close_stream(); //Close the file stream
 		void reset(); //The class restart from first chunk
+		void changeName(string&);
 };
 
 #endif
