@@ -153,7 +153,7 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 		chunk c;
 		c.plaintext = plaintext;
 
-		if(!dm.DecyptUpdate(c,ec)){
+		if(!dm.DecryptUpdate(c,ec)){
 			//handle error
 		}
 

@@ -11,7 +11,7 @@ DecryptManager::DecryptManager(const char *key, const char *IV){
 
 }
 
-bool DecryptManager::DecyptUpdate(chunk &c, encryptedChunk& ec){
+bool DecryptManager::DecryptUpdate(chunk &c, encryptedChunk& ec){
 
     if(!EVP_DecryptUpdate(this->ctx, (unsigned char*)c.plaintext, &c.size, (unsigned char*)ec.ciphertext, ec.size)){
     	perror("Error in EVP_DecryptUpdate");
@@ -22,7 +22,7 @@ bool DecryptManager::DecyptUpdate(chunk &c, encryptedChunk& ec){
 
 }
 
-bool DecryptManager::DecyptFinal(chunk &c){
+bool DecryptManager::DecryptFinal(chunk &c){
 	int len;
 	
 	if(!EVP_DecryptFinal(ctx, (unsigned char*)c.plaintext + c.size, &len)){

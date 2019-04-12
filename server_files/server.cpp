@@ -13,19 +13,36 @@ void cmd_list(){
 	int number;
 
 	number = (int)files.size();
-
+/*
 	if(!client_socket.sendInt(number))
 		return;
+*/
 
-	for(uint16_t i =0;i<number;i++){
-		const char *str = files[i].c_str();
-		int len = strlen(str)+1;
+	string concatenated = files[0];
 
-		//cout<<"Invio: "<<str<<endl;
-
-		if(!client_socket.sendData(str,len))
-			return;
+	for(uint16_t i =1;i<number;i++){
+		concatenated += " "+files[i];
 	}
+
+	const char *str = concatenated.c_str();
+	int len = concatenated.size()+1;
+
+	EncryptManager em(KEY_AES,AES_IV);
+	chunk c;
+	c.plaintext = (char*)str;
+	c.size = len;
+
+	encryptedChunk ec;
+	ec.ciphertext = new char[c.size+AES_BLOCK];
+
+	em.EncyptUpdate(ec,c);
+	em.EncyptFinal(ec);
+	//free(c.plaintext);
+
+	if(!client_socket.sendData(ec.ciphertext,ec.size))
+		return;
+	
+	delete[] ec.ciphertext;
 
 
 }
