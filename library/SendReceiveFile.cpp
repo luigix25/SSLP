@@ -161,7 +161,7 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 
 		if(file_size < AES_BLOCK){			//ultimo chunk
 
-			dm.DecyptFinal(c);
+			dm.DecryptFinal(c);
 		}
 
 		status = fm.write(&c);
@@ -336,7 +336,7 @@ bool ReceiveFileHMACchunk(string & path, char* filename, NetSocket & senderSocke
 		chunk c;
 		c.plaintext = plaintext;
 
-		if(!dm.DecyptUpdate(c,ec)){
+		if(!dm.DecryptUpdate(c,ec)){
 			//handle error
 		}
 
@@ -344,7 +344,7 @@ bool ReceiveFileHMACchunk(string & path, char* filename, NetSocket & senderSocke
 
 		if(file_size < AES_BLOCK){			//ultimo chunk
 
-			dm.DecyptFinal(c);
+			dm.DecryptFinal(c);
 		}
 
 		status = fm.write(&c);

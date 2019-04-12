@@ -1,5 +1,4 @@
 #include "client.h"
-ciao ciaociao
 
 fd_set master;
 int socket_tcp;
@@ -122,7 +121,7 @@ void cmd_upload(){
 	if(!server_socket.sendData((const char*)filename.c_str(),filename.length()+1)) return;
 
 	
-	if(!SendFileHMACchunk(path,server_socket,(char *)filename.c_str()))
+	if(!SendFile(path,server_socket,(char *)filename.c_str()))
 		cout << "sendFile fallita" << endl;
 	else
 		cout << "sendFile corretta" << endl;
@@ -139,7 +138,7 @@ void cmd_get(){
 	int32_t length = filename.length()+1;
 
 	if(!server_socket.sendData((const char*)filename.c_str(),length)) return;
-	if(!ReceiveFileHMACchunk(path,( char*)filename.c_str(),server_socket))
+	if(!ReceiveFile(path,( char*)filename.c_str(),server_socket))
 		cout << "ReceiveFile ERRATA" << endl;
 	else
 		cout << "ReceiveFile CORRETTA" << endl;
