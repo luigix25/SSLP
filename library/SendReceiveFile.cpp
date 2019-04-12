@@ -1,6 +1,6 @@
 #include "SendReceiveFile.h"
 
-bool SendFile(string& path,NetSocket& receiverSocket,char* filename){
+bool SendFileHMACchunk(string& path,NetSocket& receiverSocket,char* filename){
 
 
 	if(filename == NULL){
@@ -40,6 +40,8 @@ bool SendFile(string& path,NetSocket& receiverSocket,char* filename){
 		}
 
 		char *ciphertext = (char*)malloc(c.size + 16);
+
+
 
 		encryptedChunk ec;
 		ec.ciphertext = ciphertext;
@@ -90,7 +92,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,char* filename){
 	return true;
 }
 
-bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
+bool ReceiveFileHMACchunk(string & path, char* filename, NetSocket & senderSocket){
 
 	//handle get
 	path += filename;
@@ -145,7 +147,7 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 		if(memcmp(digest,recvd_hmac,HASH_SIZE)){
 			cout << "HASH DIVERSI" << endl;
 			//invio stop comunicazione
-			return;
+			return false;
 		}
 
 		char *plaintext = (char*)malloc(ec.size + AES_BLOCK);

@@ -24,6 +24,17 @@ bool HMACManager::HMACUpdate(encryptedChunk &ec){
 
 }
 
+bool HMACManager::HMACUpdate(chunk &ec){
+
+    if(!HMAC_Update(mdctx, (unsigned char*) ec.plaintext,ec.size)){
+    	perror("Error in EVP_DecryptUpdate");
+    	return false;
+    }
+
+    return true;
+
+}
+
 char* HMACManager::HMACFinal(){
 	int hash_size = EVP_MD_size(EVP_sha256());
 	char *digest = (char*)malloc(HASH_SIZE);
