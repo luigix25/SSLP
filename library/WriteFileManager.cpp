@@ -1,13 +1,6 @@
 #include <iostream>
 #include "WriteFileManager.h"
 WriteFileManager::WriteFileManager(string &name, uint64_t size) : FileManager(name,size){
-	/*if(file_exists()){
-		char* old = (char*)name.c_str();
-		cout << "rinomino" << endl;
-		if(!rename(old,strcat(old,".old"))){
-			cout << "ERRORE rinomina" << endl;
-		}
-	}*/
 	if(file_exists()){
 		original_file_name = file_name;
 		string tmp(strcat((char*)file_name.c_str(),".tmp"));
