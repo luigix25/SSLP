@@ -66,7 +66,7 @@ char* NetSocket::recvData(int32_t &len){
 		perror("[Error] recv");
 		return NULL;
 	}
-	char *buffer = (char *)malloc(len);
+	char *buffer = new char [len];
 
 	int ricevuti = 0;
 
@@ -101,7 +101,7 @@ bool NetSocket::recvInt(int &val){
 
 /*char* serialization(char* plaintext, char* hmac, int size){
 
-	char* serialized = ( char *)malloc(sizeof(int) + size + HASH_SIZE);
+	char* serialized = new char * [sizeof(int) + size + HASH_SIZE];
 	//cout << "stampo size: " << size << endl;
 	*(int* )serialized = size;
 	//cout << "in serialization stampo cosa ci metto in serialized come size: " << ((int*)serialized)[0] << endl;
@@ -113,7 +113,7 @@ bool NetSocket::recvInt(int &val){
 
 char* serialization(char* plaintext, char* hmac, int size){
 
-	char* serialized = ( char *)malloc(size + HASH_SIZE);
+	char* serialized = new char [size + HASH_SIZE];
 	//cout << "stampo size: " << size << endl;
 	//*(int* )serialized = size;
 	//cout << "in serialization stampo cosa ci metto in serialized come size: " << ((int*)serialized)[0] << endl;
@@ -130,7 +130,7 @@ char* serialization(char* plaintext, char* hmac, int size){
 	cout << "stampo serialized size: " << serialized_len << endl;
 	cout << "stampo c.size in unserialization: " << c.size << endl;
 
-	c.plaintext= (char *)malloc(c.size);
+	c.plaintext= new char *[c.size];
 	memcpy(c.plaintext,&serialized[4],c.size);
 	cout << "prima memcpy in unserialization fatta " << endl;
 
@@ -138,7 +138,7 @@ char* serialization(char* plaintext, char* hmac, int size){
 	memcpy(hmac,&serialized[4 + c.size],HASH_SIZE);
 	cout << "seconda memcpy in unserialization fatta " << endl;
 
-	free(serialized);
+	delete[] serialized;
 }*/
 
 void unserialization(char* serialized, int serialized_len, encryptedChunk &ec, char* hmac){
@@ -148,14 +148,14 @@ void unserialization(char* serialized, int serialized_len, encryptedChunk &ec, c
 	cout << "stampo serialized size: " << serialized_len << endl;
 	cout << "stampo c.size in unserialization: " << ec.size << endl;
 
-	ec.ciphertext = (char *)malloc(ec.size);
+	ec.ciphertext = new char [ec.size];
 	memcpy(ec.ciphertext,&serialized[0],ec.size);
 	cout << "prima memcpy in unserialization fatta " << endl;
 
 	memcpy(hmac,&serialized[ec.size],HASH_SIZE);
 	cout << "seconda memcpy in unserialization fatta " << endl;
 
-	free(serialized);
+	delete[] serialized;
 }
 
 vector<string> get_file_list(const char* path){

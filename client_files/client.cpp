@@ -29,14 +29,15 @@ struct sockaddr_in setup_sockaddr(char *ip,int port){
 
 void cmd_help(){
 
-	const char *desc[5] = {"--> mostra l'elenco dei comandi disponibili",
-			"--> mostra l'elenco dei client connessi al server",
-			"nomefile --> avvia una partita con l'utente nomefile",
-			"--> disconnette il client dal server","padding\n"};
+	const char *desc[5] = {"--> show available command",
+			"--> show file saved on server and client",
+			"filename --> download from server filename",
+			"filename --> upload to server filename",
+			"--> disconnect from server\n"};
 
 	int i;
 	cout<<endl;
-	cout<<"Sono disponibili i seguenti comandi:"<<endl;
+	cout<<"Available command:"<<endl;
 	for(i=0;i<5;i++){
 		cout<<commands_list[i]<<" "<<desc[i]<<endl;
 	}
@@ -55,7 +56,10 @@ void cmd_quit(){
 
 void cmd_list(){
 
-	if(!server_socket.sendInt(LIST_COMMAND))		return;
+	if(!server_socket.sendInt(LIST_COMMAND)){
+		cout << "socket error in cmd_list client" << endl;
+		return;
+	}
 	
 	char *recvd;
 	int len;
@@ -64,6 +68,7 @@ void cmd_list(){
 
 	encryptedChunk ec;
 	ec.ciphertext = recvd;
+	delete[] recvd;
 	ec.size = len;
 
 	chunk c;
@@ -75,7 +80,7 @@ void cmd_list(){
 
 	string concatenated(c.plaintext);
 
-	free(ec.ciphertext);
+	delete[] ec.ciphertext;
 	delete[] c.plaintext;
 
 	vector<string> files_list = split(concatenated,string(" "));
@@ -176,7 +181,7 @@ void read_input(){
 	cin>>buffer;
 
 	select_command(buffer);
-	//free(buffer);
+	//delete[] buffer;
 
 }
 

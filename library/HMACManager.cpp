@@ -37,7 +37,7 @@ bool HMACManager::HMACUpdate(chunk &ec){
 
 char* HMACManager::HMACFinal(){
 	int hash_size = EVP_MD_size(EVP_sha256());
-	char *digest = (char*)malloc(HASH_SIZE);
+	char *digest = new char [HASH_SIZE];
 
 	if(!HMAC_Final(mdctx, (unsigned char*)digest, (unsigned int*)&hash_size)){
 		perror("Error in HMAC_Final");

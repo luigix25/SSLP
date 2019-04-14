@@ -39,7 +39,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,char* filename){
 			last = true;
 		}
 
-		char *ciphertext = (char*)malloc(c.size + 16);
+		char *ciphertext = new char[c.size + 16];
 
 		encryptedChunk ec;
 		ec.ciphertext = ciphertext;
@@ -74,10 +74,10 @@ bool SendFile(string& path,NetSocket& receiverSocket,char* filename){
 			return false;
 		} 
 		
-		free(c.plaintext);
-		free(ec.ciphertext);
-		free(msg_serialized);
-		free(digest);
+		delete[] c.plaintext;
+		delete[] ec.ciphertext;
+		delete[] msg_serialized;
+		delete[] digest;
 		c.size = 0;
 
 	//	conta++;
@@ -126,7 +126,7 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 		encryptedChunk ec;
 
 
-		char* recvd_hmac = (char*)malloc(HASH_SIZE);
+		char* recvd_hmac = new char[HASH_SIZE];
 		unserialization(recvd_data,len,ec,recvd_hmac);
 
 
@@ -148,7 +148,7 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 			return false;
 		}
 
-		char *plaintext = (char*)malloc(ec.size + AES_BLOCK);
+		char *plaintext = new char[ec.size + AES_BLOCK];
 
 		chunk c;
 		c.plaintext = plaintext;
@@ -166,8 +166,8 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 
 		status = fm.write(&c);
 
-		free(c.plaintext);
-		free(ec.ciphertext);
+		delete[] c.plaintext;
+		delete[] ec.ciphertext;
 
 		if(status == END_OF_FILE){
 			fm.finalize();
@@ -179,7 +179,7 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 		}
 	}		
 
-	free(digest);
+	delete[] digest;
 	return true;
 
 }
@@ -223,7 +223,7 @@ bool SendFileHMACchunk(string& path,NetSocket& receiverSocket,char* filename){
 			last = true;
 		}
 
-		char *ciphertext = (char*)malloc(c.size + 16);
+		char *ciphertext = new char[c.size + 16];
 
 		encryptedChunk ec;
 		ec.ciphertext = ciphertext;
@@ -258,10 +258,10 @@ bool SendFileHMACchunk(string& path,NetSocket& receiverSocket,char* filename){
 			return false;
 		} 
 		
-		free(c.plaintext);
-		free(ec.ciphertext);
-		free(msg_serialized);
-		free(digest);
+		delete[] c.plaintext;
+		delete[] ec.ciphertext;
+		delete[] msg_serialized;
+		delete[] digest;
 		c.size = 0;
 
 	//	conta++;
@@ -310,7 +310,7 @@ bool ReceiveFileHMACchunk(string & path, char* filename, NetSocket & senderSocke
 		encryptedChunk ec;
 
 
-		char* recvd_hmac = (char*)malloc(HASH_SIZE);
+		char* recvd_hmac = new char [HASH_SIZE];
 		unserialization(recvd_data,len,ec,recvd_hmac);
 
 
@@ -332,7 +332,7 @@ bool ReceiveFileHMACchunk(string & path, char* filename, NetSocket & senderSocke
 			return false;
 		}
 
-		char *plaintext = (char*)malloc(ec.size + AES_BLOCK);
+		char *plaintext = new char [ec.size + AES_BLOCK];
 
 		chunk c;
 		c.plaintext = plaintext;
@@ -350,8 +350,8 @@ bool ReceiveFileHMACchunk(string & path, char* filename, NetSocket & senderSocke
 
 		status = fm.write(&c);
 
-		free(c.plaintext);
-		free(ec.ciphertext);
+		delete[] c.plaintext;
+		delete[] ec.ciphertext;
 
 		if(status == END_OF_FILE){
 			fm.finalize();
@@ -363,7 +363,7 @@ bool ReceiveFileHMACchunk(string & path, char* filename, NetSocket & senderSocke
 		}
 	}		
 
-	free(digest);
+	delete[] digest;
 	return true;
 
 }

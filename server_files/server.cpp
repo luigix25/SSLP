@@ -37,7 +37,7 @@ void cmd_list(){
 
 	em.EncyptUpdate(ec,c);
 	em.EncyptFinal(ec);
-	//free(c.plaintext);
+	//delete[] c.plaintext;
 
 	if(!client_socket.sendData(ec.ciphertext,ec.size))
 		return;
@@ -68,7 +68,7 @@ void cmd_get(){
 	else
 		cout << "sendFile corretta" << endl;
 
-	free(filename);
+	delete[] filename ;
 }
 
 void cmd_upload(){
@@ -82,7 +82,7 @@ void cmd_upload(){
 	else
 		cout << "cmd_upload corretta" << endl;
 
-	free(filename);
+	delete[] filename;
 }
 
 

@@ -136,7 +136,7 @@ printf("\nok\n");
 	EVP_DigestUpdate(mdctx, (unsigned char*)message, message_len);
 printf("\nok2\n");	
 	
-	//*digest = (unsigned char *)malloc(1000);
+	//*digest = new unsigned char *[1000];
 //printf("\nok3\n");
 	EVP_DigestFinal(mdctx, (unsigned char*)digest, (unsigned int*)digest_len);
 	
@@ -160,7 +160,7 @@ printf("\nok2\n");
   hash_size = EVP_MD_size(md);
   //create a buffer for our digest
   //unsigned char* hash_buf; //buffer containing digest
-  unsigned char* digest = (unsigned char*)malloc(hash_size); 
+  unsigned char* digest = new unsigned char* [hash_size]; 
   //create message digest context
   HMAC_CTX* mdctx;
   mdctx = HMAC_CTX_new();
@@ -195,7 +195,7 @@ void encryptChunk(chunk &c, encryptedChunk &ec){
 	//digest_message(c.plaintext, c.size,digest,&digest_len);
   cout << "eseguo memcpy in encryptChunk" << endl;
   /*ec.size = c.size;
-  ec.ciphertext = (char *)malloc(c.size);
+  ec.ciphertext = new char *[c.size];
   memcpy(ec.ciphertext,c.plaintext,c.size);
   cout << "eseguo computeHMAC" << endl;*/
 
@@ -205,33 +205,33 @@ void encryptChunk(chunk &c, encryptedChunk &ec){
   char* serialized = serialization((char*)c.plaintext,hmac,c.size);
   int serialized_len = sizeof(int) + c.size + HASH_SIZE;
 
-  char* ciphertext = (char* )malloc(serialized_len + 16); 
+  char* ciphertext = new char* [serialized_len + 16]; 
   int cipher_len = encrypt((unsigned char*) serialized,serialized_len,(unsigned char *)KEY_AES,NULL,(unsigned char*)ciphertext);
   cout << cipher_len <<endl;
   //BIO_dump_fp (stdout, (const char *)ciphertext, cipher_len);
 
-  ec.ciphertext = (char* ) malloc(cipher_len);
+  ec.ciphertext = new char* [cipher_len];
   ec.size = cipher_len;
 
   memcpy(ec.ciphertext,ciphertext,cipher_len);
 
-  free(serialized);
-  free(ciphertext);
-  free(hmac);
+  delete[] serialized;
+  delete[] ciphertext;
+  delete[] hmac;
 
 }
 
 void decryptChunk(encryptedChunk &ec, chunk &c){
-  char* chunkplaintext = (char*)malloc(ec.size);
+  char* chunkplaintext = new char*[ec.size];
   int chunkplaintext_len = decrypt((unsigned char*)ec.ciphertext, ec.size,(unsigned char *)KEY_AES,NULL,(unsigned char*)chunkplaintext);
-  char* hmac = (char *)malloc(HASH_SIZE);
+  char* hmac = new char *[HASH_SIZE];
   unserialization(chunkplaintext,chunkplaintext_len, c,hmac);
   cout <<"stampo plaintext in decryptChunk: " << c.plaintext << endl;
   char* myHMAC = computeHMAC(c.plaintext);
   if(!memcmp(myHMAC,hmac,HASH_SIZE))
     cout << "Le HASH corrispondono" << endl;
 
-  free(hmac);
-  free(myHMAC);
+  delete[] hmac;
+  delete[] myHMAC;
 
 }
