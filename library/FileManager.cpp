@@ -32,3 +32,7 @@ void FileManager::reset(){
 void FileManager::close_stream(){
 	fs.close();
 }
+
+void FileManager::changeName(string& name){
+	file_name = name;
+}

@@ -170,6 +170,7 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 		free(ec.ciphertext);
 
 		if(status == END_OF_FILE){
+			fm.finalize();
 			cout<<"FINITO"<<endl;
 			break;
 		} else if(status == FILE_ERROR){
@@ -353,6 +354,7 @@ bool ReceiveFileHMACchunk(string & path, char* filename, NetSocket & senderSocke
 		free(ec.ciphertext);
 
 		if(status == END_OF_FILE){
+			fm.finalize();
 			cout<<"FINITO"<<endl;
 			break;
 		} else if(status == FILE_ERROR){
