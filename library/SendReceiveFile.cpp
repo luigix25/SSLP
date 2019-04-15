@@ -145,6 +145,8 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 		if(memcmp(digest,recvd_hmac,HASH_SIZE)){
 			cout << "HASH DIVERSI" << endl;
 			//invio stop comunicazione
+			delete[] ec.ciphertext;
+			delete[] recvd_hmac;
 			return false;
 		}
 
@@ -166,6 +168,7 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 
 		status = fm.write(&c);
 
+		delete[] recvd_hmac;
 		delete[] c.plaintext;
 		delete[] ec.ciphertext;
 
@@ -328,6 +331,8 @@ bool ReceiveFileHMACchunk(string & path, char* filename, NetSocket & senderSocke
 
 		if(memcmp(digest,recvd_hmac,HASH_SIZE)){
 			cout << "HASH DIVERSI" << endl;
+			delete[] ec.ciphertext;
+			delete[] recvd_hmac;
 			//invio stop comunicazione
 			return false;
 		}
@@ -350,6 +355,7 @@ bool ReceiveFileHMACchunk(string & path, char* filename, NetSocket & senderSocke
 
 		status = fm.write(&c);
 
+		delete[] recvd_hmac;
 		delete[] c.plaintext;
 		delete[] ec.ciphertext;
 
