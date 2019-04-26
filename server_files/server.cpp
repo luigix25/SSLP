@@ -39,6 +39,7 @@ void cmd_list(){
 	em.EncyptFinal(ec);
 	//delete[] c.plaintext;
 
+	cout << "lista che invio da server: \n" << ec.ciphertext<<endl;
 	if(!client_socket.sendData(ec.ciphertext,ec.size))
 		return;
 	

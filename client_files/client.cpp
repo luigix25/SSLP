@@ -68,7 +68,7 @@ void cmd_list(){
 
 	encryptedChunk ec;
 	ec.ciphertext = recvd;
-	delete[] recvd;
+	
 	ec.size = len;
 
 	chunk c;
@@ -79,13 +79,13 @@ void cmd_list(){
 	dm.DecryptFinal(c);
 
 	string concatenated(c.plaintext);
-
-	delete[] ec.ciphertext;
+	delete[] recvd;
+	//delete[] ec.ciphertext;
 	delete[] c.plaintext;
 
 	vector<string> files_list = split(concatenated,string(" "));
 
-	cout<<"Files Available for downloading fron Server:"<<endl;
+	cout<<"Files Available for downloading from Server:"<<endl;
 	for(uint i= 0;i<files_list.size();i++){
 		cout<<files_list[i]<<'\t';
 	}

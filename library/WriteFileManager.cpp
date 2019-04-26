@@ -3,8 +3,9 @@
 WriteFileManager::WriteFileManager(string &name, uint64_t size) : FileManager(name,size){
 	if(file_exists()){
 		original_file_name = file_name;
-		string tmp(strcat((char*)file_name.c_str(),".tmp"));
-		changeName(tmp);
+		string tmp(".tmp");
+		string new_name = file_name + tmp;
+		changeName(new_name);
 	} else{
 		original_file_name = "";
 	}
