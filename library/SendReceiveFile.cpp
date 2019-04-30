@@ -54,11 +54,20 @@ bool SendFile(string& path,NetSocket& receiverSocket,char* filename){
 			}
 		}
 
+		int nonce_value = receiverSocket.getLocalNonce();
+		encryptedChunk nonce;
+		nonce.size = NONCE_SIZE;
+		nonce.ciphertext = (char*)&nonce_value;
+
 		HMACManager hmac(KEY_HMAC);
 
 		if(!hmac.HMACUpdate(ec)){
 			cout<<"ERROR"<<endl;
 		}	
+
+		if(!hmac.HMACUpdate(nonce)){						//appendo il nonce nell'hmac
+			cout<<"ERROR"<<endl;
+		}
 
 		digest = hmac.HMACFinal();
 		if(digest == NULL){
@@ -69,7 +78,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,char* filename){
 
 		cout<<"INVIO: "<<ec.size + HASH_SIZE<<endl;
 
-		if(!receiverSocket.sendData(msg_serialized,ec.size + HASH_SIZE)){
+		if(!receiverSocket.sendData(msg_serialized,ec.size + HASH_SIZE,true)){			//aggiorno il nonce
 			cout<<"ERRORE SEND"<<endl;
 			return false;
 		} 
@@ -114,7 +123,7 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 
 	while(true){
 
-		recvd_data = senderSocket.recvData(len);
+		recvd_data = senderSocket.recvData(len,true);
 		
 		//cout<<"Ricevuti "<<len<<endl;
 
@@ -128,9 +137,18 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 		char* recvd_hmac = new char[HASH_SIZE];
 		unserialization(recvd_data,len,ec,recvd_hmac);
 
+		int nonce_value = senderSocket.getRemoteNonce()-1;
+		encryptedChunk nonce;
+		nonce.size = NONCE_SIZE;
+		nonce.ciphertext = (char*)&nonce_value;
+
 		HMACManager hmac(KEY_HMAC);
 
 		if(!hmac.HMACUpdate(ec)){
+			cout<<"ERROR"<<endl;
+		}	
+		
+		if(!hmac.HMACUpdate(nonce)){
 			cout<<"ERROR"<<endl;
 		}	
 

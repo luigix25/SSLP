@@ -184,7 +184,7 @@ bool receive_command(int &command,const char *key_aes, const char* key_hmac){
 
 	//INIZIO CAFONATA
 	int numero = client_socket.getRemoteNonce()-1;		//i want the old nonce
-	//cout<<"nonce value "<<numero<<endl;
+	cout<<"nonce value "<<numero<<endl;
 
 	encryptedChunk nonce;
 	nonce.size = 4;

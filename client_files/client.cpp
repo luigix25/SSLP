@@ -79,7 +79,7 @@ bool send_command(uint32_t command, const char *key_aes, const char* key_hmac){
 	*temp_pointer = server_socket.getNonce();
 	ec.size += NONCE_SIZE;*/
 	int nonce_value = server_socket.getLocalNonce();
-	//cout<<"nonce value "<<nonce_value<<endl;
+	cout<<"nonce value "<<nonce_value<<endl;
 
 
 	encryptedChunk nonce;
