@@ -76,7 +76,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,char* filename){
 
 		char* msg_serialized = serialization(ec.ciphertext, digest, ec.size);
 
-		cout<<"INVIO: "<<ec.size + HASH_SIZE<<endl;
+		//cout<<"INVIO: "<<ec.size + HASH_SIZE<<endl;
 
 		if(!receiverSocket.sendData(msg_serialized,ec.size + HASH_SIZE,true)){			//aggiorno il nonce
 			cout<<"ERRORE SEND"<<endl;
@@ -330,11 +330,8 @@ bool ReceiveFileHMACchunk(string & path, char* filename, NetSocket & senderSocke
 
 		encryptedChunk ec;
 
-
 		char* recvd_hmac = new char [HASH_SIZE];
 		unserialization(recvd_data,len,ec,recvd_hmac);
-
-
 
 		HMACManager hmac(KEY_HMAC);
 

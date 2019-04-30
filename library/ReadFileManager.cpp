@@ -4,7 +4,7 @@ ReadFileManager::ReadFileManager(string &name) : FileManager(name,0){
 	remaining_size = file_size = compute_size_file();
 }
 
-ReadFileManager::ReadFileManager(const char *name) : ReadFileManager((string&)name){};
+ReadFileManager::ReadFileManager(const char *name) : ReadFileManager((string&)name){}
 
 //USE ONLY IN CONSTRUCTOR
 uint64_t ReadFileManager::compute_size_file(){

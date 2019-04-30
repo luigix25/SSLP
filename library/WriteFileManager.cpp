@@ -11,7 +11,7 @@ WriteFileManager::WriteFileManager(string &name, uint64_t size) : FileManager(na
 	}
 }
 
-WriteFileManager::WriteFileManager(const char *name, uint64_t size) : WriteFileManager((string&)name,size){};
+WriteFileManager::WriteFileManager(const char *name, uint64_t size) : WriteFileManager((string&)name,size){}
 
 bool WriteFileManager::openStream(){
 	if(!fs.is_open()){

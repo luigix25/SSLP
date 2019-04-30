@@ -72,15 +72,11 @@ bool send_command(uint32_t command, const char *key_aes, const char* key_hmac){
 	encryptedChunk ec;
 	ec.ciphertext = new char[c.size + AES_BLOCK];
 
-	em.EncyptUpdate(ec,c);
-	em.EncyptFinal(ec);
+	if(!em.EncyptUpdate(ec,c)) 	return false;
+	if(!em.EncyptFinal(ec))		return false;
 
-	/*int *temp_pointer = (int*)&ec.ciphertext[ec.size];
-	*temp_pointer = server_socket.getNonce();
-	ec.size += NONCE_SIZE;*/
 	int nonce_value = server_socket.getLocalNonce();
 	cout<<"nonce value "<<nonce_value<<endl;
-
 
 	encryptedChunk nonce;
 	nonce.size = NONCE_SIZE;
@@ -119,12 +115,10 @@ bool send_command(uint32_t command, const char *key_aes, const char* key_hmac){
 
 void cmd_list(){
 
-	send_command(LIST_COMMAND,KEY_AES,KEY_HMAC);
-
-	/*if(!server_socket.sendInt(LIST_COMMAND)){
-		cout << "socket error in cmd_list client" << endl;
+	if(!send_command(LIST_COMMAND,KEY_AES,KEY_HMAC)){
+		cout<<"Error in send command"<<endl;
 		return;
-	}*/
+	}
 	
 	char *recvd;
 	int len;
