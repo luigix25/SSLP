@@ -65,24 +65,30 @@ struct encryptedChunk{
 class NetSocket{
 
 	int socket;
-	int nonce;
+	int local_nonce,remote_nonce;
 
 	public:
 		NetSocket();
 		//NetSocket(int);
-		NetSocket(int,int);
+		NetSocket(int,int,int);
 
 		void setSocket(int);
-		void setNonce(int);
+		void setLocalNonce(int);
+		void setRemoteNonce(int);
 
-		int getNonce();
+		int getLocalNonce();
+		int getRemoteNonce();
 
 
-		bool sendInt(int);							//socket value
+		bool sendInt(int);	
+		bool sendInt(int,bool);													
 		bool sendData(const char *,int32_t);
+		bool sendData(const char *,int32_t,bool);
 
 		char* recvData(int32_t&);
+		char* recvData(int32_t&,bool);
 		bool recvInt(int&);
+		bool recvInt(int&,bool);
 
 		void closeConnection();
 

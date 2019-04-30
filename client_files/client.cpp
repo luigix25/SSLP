@@ -78,7 +78,9 @@ bool send_command(uint32_t command, const char *key_aes, const char* key_hmac){
 	/*int *temp_pointer = (int*)&ec.ciphertext[ec.size];
 	*temp_pointer = server_socket.getNonce();
 	ec.size += NONCE_SIZE;*/
-	int nonce_value = server_socket.getNonce();
+	int nonce_value = server_socket.getLocalNonce();
+	//cout<<"nonce value "<<nonce_value<<endl;
+
 
 	encryptedChunk nonce;
 	nonce.size = NONCE_SIZE;
@@ -105,7 +107,7 @@ bool send_command(uint32_t command, const char *key_aes, const char* key_hmac){
 	//print_hex((unsigned char*)digest,HASH_SIZE);
 
 	char* msg_serialized = serialization(ec.ciphertext, digest, ec.size);
-	if(!server_socket.sendData(msg_serialized,ec.size + HASH_SIZE)){
+	if(!server_socket.sendData(msg_serialized,ec.size + HASH_SIZE,true)){			//aggiorno il nonce
 		cout<<"ERRORE SEND"<<endl;
 		return false;
 	}
@@ -289,7 +291,7 @@ int main(int argc,char **argv){
 	
 	cout<<endl<<"Connessione al server "<<argv[1]<<" (port "<<portServer<<" effettuata con successo"<<endl;
 	
-	server_socket = NetSocket(socket_tcp,CLIENT_NONCE);
+	server_socket = NetSocket(socket_tcp,CLIENT_NONCE,SERVER_NONCE);
 
 	cmd_help();
 

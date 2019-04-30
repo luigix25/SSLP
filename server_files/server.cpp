@@ -146,7 +146,7 @@ int initialize_server(int port){
 bool receive_command(int &command,const char *key_aes, const char* key_hmac){
 
 	int len;
-	char *raw_data = client_socket.recvData(len);
+	char *raw_data = client_socket.recvData(len,true);
 
 	if(raw_data == NULL){
 		cout<<"Errore receive command"<<endl;
@@ -183,7 +183,9 @@ bool receive_command(int &command,const char *key_aes, const char* key_hmac){
 	delete[] ec.ciphertext;
 
 	//INIZIO CAFONATA
-	int numero = CLIENT_NONCE;
+	int numero = client_socket.getRemoteNonce()-1;		//i want the old nonce
+	//cout<<"nonce value "<<numero<<endl;
+
 	encryptedChunk nonce;
 	nonce.size = 4;
 	nonce.ciphertext = (char*)&numero;
@@ -264,7 +266,7 @@ int main(int argc,char **argv){
 
 	//GENERATE NONCE
 
-	client_socket = NetSocket(new_sock,SERVER_NONCE);
+	client_socket = NetSocket(new_sock,SERVER_NONCE,CLIENT_NONCE);
 	cout<<"Connessione stabilita con il client"<<endl;
 	close(server_socket);											//no more clients allowed
 

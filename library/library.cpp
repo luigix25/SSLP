@@ -2,31 +2,50 @@
 const char *commands_list[5] = {"!help","!list","!get","!upload","!quit"};
 
 
-NetSocket::NetSocket(int socket,int nonce){
+NetSocket::NetSocket(int socket,int local_nonce,int remote_nonce){
 	this->socket = socket;
-	this->nonce = nonce;
+	this->local_nonce = local_nonce;
+	this->remote_nonce = remote_nonce;
 }
 
 NetSocket::NetSocket(){
 	this->socket = -1;
-	this->nonce = -1;
+	this->local_nonce = -1;
+	this->remote_nonce = -1;
+
 }
 
 void NetSocket::setSocket(int socket){
 	this->socket = socket;
 }
 
-void NetSocket::setNonce(int nonce){
-	this->nonce = nonce;
+void NetSocket::setLocalNonce(int nonce){
+	this->local_nonce = nonce;
 }
 
-int NetSocket::getNonce(){
-	return this->nonce;
+void NetSocket::setRemoteNonce(int nonce){
+	this->remote_nonce = nonce;
+}
+
+int NetSocket::getLocalNonce(){
+	return this->local_nonce;
+}
+
+int NetSocket::getRemoteNonce(){
+	return this->remote_nonce;
 }
 
 void NetSocket::closeConnection(){
 	close(this->socket);
 }
+
+bool NetSocket::sendInt(int value,bool update){
+	bool result =  sendInt(value);
+	if(update)
+		local_nonce++;
+	return result;
+}
+
 
 bool NetSocket::sendInt(int value){
 	int status;
@@ -40,10 +59,18 @@ bool NetSocket::sendInt(int value){
 		return false;
 	}
 
-//	nonce++;
 	return (status==sizeof(uint32_t));
 
 }
+
+bool NetSocket::sendData(const char *buffer,int32_t len,bool update){
+	bool result =  sendData(buffer,len);
+	if(update){
+		local_nonce++;
+	}
+	return result;
+}
+
 
 bool NetSocket::sendData(const char *buffer,int32_t len){
 	int ret;
@@ -65,11 +92,16 @@ bool NetSocket::sendData(const char *buffer,int32_t len){
 		inviati += ret;
 	}
 	
-	//nonce++;
 	return (inviati == len);
 
 }
 
+char* NetSocket::recvData(int32_t &len,bool update){
+	char *result = recvData(len);
+	if(update)
+		remote_nonce++;
+	return result;
+}
 
 char* NetSocket::recvData(int32_t &len){
 	int ret;
@@ -92,6 +124,15 @@ char* NetSocket::recvData(int32_t &len){
 	}
 
 	return buffer;
+}
+
+bool NetSocket::recvInt(int &val, bool update){
+	bool result = recvInt(val);
+	if(update)
+		remote_nonce++;
+
+	return result;
+
 }
 
 bool NetSocket::recvInt(int &val){
