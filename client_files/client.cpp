@@ -243,11 +243,11 @@ void protocol_error(int sock_tcp){
 
 }
 
-void select_command_server(int socket,int cmd){
+/*void select_command_server(int socket,int cmd){
 
 
 
-}
+}*/
 
 int main(int argc,char **argv){
 
@@ -256,7 +256,7 @@ int main(int argc,char **argv){
 		exit(-1);
 	}
 
-	int status,portServer,cmd;
+	int status,portServer;
 	struct sockaddr_in serverAddress;
 
 	int i,fdmax;
@@ -314,11 +314,14 @@ int main(int argc,char **argv){
 					read_input();				//keyboard			
 					//continue;
 				} else if(i == socket_tcp) {			//server tcp
-					if(!server_socket.recvInt(cmd)){
+					/*if(!server_socket.recvInt(cmd)){
 						cout<<"Connessione Persa"<<endl;
 						return -1;
 					}			
-					select_command_server(i,cmd);	
+					select_command_server(i,cmd);*/
+					//non dovrei mai arrivare qui	
+					cout<<"ERRORE PROTOCOLLARE!"<<endl;
+					exit(-1);
 				} 
 
 			}

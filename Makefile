@@ -1,4 +1,4 @@
-CFLAGS= -Wall -std=c++14 -g -pedantic
+CFLAGS= -Wall -Wextra -pedantic -std=c++14 -g
 LIBFLG = -lcrypto
 LIBDIP = library/library.h library/ReadFileManager.h library/WriteFileManager.h library/FileManager.h library/EncryptManager.h library/DecryptManager.h library/HMAC.h library/SendReceiveFile.h
 LIBFLS = library.o filemanager.o writefilemanager.o readfilemanager.o encryptmanager.o decryptmanager.o hmac.o sendreceivefile.o
