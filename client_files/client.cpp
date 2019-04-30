@@ -321,6 +321,7 @@ int main(int argc,char **argv){
 					select_command_server(i,cmd);*/
 					//non dovrei mai arrivare qui	
 					cout<<"ERRORE PROTOCOLLARE!"<<endl;
+					server_socket.closeConnection();
 					exit(-1);
 				} 
 
