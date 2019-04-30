@@ -125,7 +125,6 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 
 		encryptedChunk ec;
 
-
 		char* recvd_hmac = new char[HASH_SIZE];
 		unserialization(recvd_data,len,ec,recvd_hmac);
 

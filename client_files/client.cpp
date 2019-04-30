@@ -70,18 +70,28 @@ bool send_command(uint32_t command, const char *key_aes, const char* key_hmac){
 	c.size = 4;
 
 	encryptedChunk ec;
-	ec.ciphertext = new char[c.size + AES_BLOCK + NONCE_SIZE];
+	ec.ciphertext = new char[c.size + AES_BLOCK];
 
 	em.EncyptUpdate(ec,c);
 	em.EncyptFinal(ec);
 
-	int *temp_pointer = (int*)&ec.ciphertext[ec.size];
+	/*int *temp_pointer = (int*)&ec.ciphertext[ec.size];
 	*temp_pointer = server_socket.getNonce();
-	ec.size += NONCE_SIZE;
+	ec.size += NONCE_SIZE;*/
+	int nonce_value = server_socket.getNonce();
+
+	encryptedChunk nonce;
+	nonce.size = NONCE_SIZE;
+	nonce.ciphertext = (char*)&nonce_value;
 
 
 	HMACManager hmac(key_hmac);
 	if(!hmac.HMACUpdate(ec)){
+		cout<<"ERROR"<<endl;
+		return false;
+	}
+
+	if(!hmac.HMACUpdate(nonce)){
 		cout<<"ERROR"<<endl;
 		return false;
 	}
@@ -91,8 +101,6 @@ bool send_command(uint32_t command, const char *key_aes, const char* key_hmac){
 		cout << "digest NULL" << endl;
 		return false;
 	}
-
-	ec.size -= NONCE_SIZE;													//I  don't want to send it
 
 	//print_hex((unsigned char*)digest,HASH_SIZE);
 
