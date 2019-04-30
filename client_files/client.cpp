@@ -190,7 +190,7 @@ void cmd_get(){
 
 	int32_t length = filename.length()+1;
 
-	if(!server_socket.sendData((const char*)filename.c_str(),length)) return;
+	if(!server_socket.sendData((const char*)filename.c_str(),length)) return;			//va cifrato
 	if(!ReceiveFile(path,( char*)filename.c_str(),server_socket))
 		cout << "ReceiveFile ERRATA" << endl;
 	else

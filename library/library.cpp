@@ -34,8 +34,8 @@ bool NetSocket::sendInt(int value){
 
 	tosend = htonl(value);
 	//status = send(sd, &tosend, sizeof(uint32_t), 0);
-	status = sendto(this->socket, &tosend, sizeof(uint32_t), 0,NULL,0);
-	if(status < (int)sizeof(uint32_t))	{
+	status = sendto(this->socket, &tosend, sizeof(int32_t), 0,NULL,0);
+	if(status < (int)sizeof(int32_t))	{
 		perror("[Error] send");
 		return false;
 	}

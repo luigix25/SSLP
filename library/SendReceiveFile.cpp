@@ -9,10 +9,10 @@ bool SendFile(string& path,NetSocket& receiverSocket,char* filename){
 	
 	path+= filename;
 	ReadFileManager fm(path);
-	uint32_t size = (uint32_t)fm.size_file();			//fix
+	uint32_t size = (uint32_t)fm.size_file();			//32 bit ok
 	cout<<"File size: "<<size<<endl;	
 
-	if(!receiverSocket.sendInt(size)) return false;
+	if(!receiverSocket.sendInt(size)) return false;		//32 bit ok
 
 	if(size == 0){				//file non esistente
 		return false;
