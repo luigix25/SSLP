@@ -13,6 +13,14 @@ void pulisci_buff(){
 
 }
 
+void print_hex(unsigned char* buff, unsigned int size)
+{
+    printf("Printing %d bytes\n", size);
+    for(unsigned int i=0; i<size; i++)
+        printf("%02hx", *((unsigned char*)(buff + i)));
+    printf("\n");
+}
+
 struct sockaddr_in setup_sockaddr(char *ip,int port){
 
 	struct sockaddr_in sv_addr;
@@ -53,13 +61,60 @@ void cmd_quit(){
 
 }
 
+bool send_command(uint32_t command, const char *key_aes, const char* key_hmac){
+
+	EncryptManager em(key_aes,AES_IV);
+
+	chunk c;
+	c.plaintext = (char*)&command;
+	c.size = 4;
+
+	encryptedChunk ec;
+	ec.ciphertext = new char[c.size + AES_BLOCK + NONCE_SIZE];
+
+	em.EncyptUpdate(ec,c);
+	em.EncyptFinal(ec);
+
+	int *temp_pointer = (int*)&ec.ciphertext[ec.size];
+	*temp_pointer = server_socket.getNonce();
+	ec.size += NONCE_SIZE;
+
+
+	HMACManager hmac(key_hmac);
+	if(!hmac.HMACUpdate(ec)){
+		cout<<"ERROR"<<endl;
+		return false;
+	}
+
+	char *digest = hmac.HMACFinal();	
+	if(digest == NULL){
+		cout << "digest NULL" << endl;
+		return false;
+	}
+
+	ec.size -= NONCE_SIZE;													//I  don't want to send it
+
+	//print_hex((unsigned char*)digest,HASH_SIZE);
+
+	char* msg_serialized = serialization(ec.ciphertext, digest, ec.size);
+	if(!server_socket.sendData(msg_serialized,ec.size + HASH_SIZE)){
+		cout<<"ERRORE SEND"<<endl;
+		return false;
+	}
+
+	delete[] msg_serialized; 
+
+	return true;
+}
 
 void cmd_list(){
 
-	if(!server_socket.sendInt(LIST_COMMAND)){
+	send_command(LIST_COMMAND,KEY_AES,KEY_HMAC);
+
+	/*if(!server_socket.sendInt(LIST_COMMAND)){
 		cout << "socket error in cmd_list client" << endl;
 		return;
-	}
+	}*/
 	
 	char *recvd;
 	int len;
@@ -102,14 +157,6 @@ void cmd_list(){
 
 }
 
-void print_hex(unsigned char* buff, unsigned int size)
-{
-    printf("Printing %d bytes\n", size);
-    for(unsigned int i=0; i<size; i++)
-        printf("%02hx", *((unsigned char*)(buff + i)));
-    printf("\n");
-}
-
 void cmd_upload(){
 	string filename;
 	cin >> filename;
@@ -121,9 +168,9 @@ void cmd_upload(){
 	}
 	else
 		cout << "il file esiste" << endl;
-	if(!server_socket.sendInt(UPLOAD_COMMAND)) return;
+	if(!send_command(UPLOAD_COMMAND,KEY_AES,KEY_HMAC)) return;
 
-	if(!server_socket.sendData((const char*)filename.c_str(),filename.length()+1)) return;
+	if(!server_socket.sendData((const char*)filename.c_str(),filename.length()+1)) return;		//vanno cifrati
 
 	
 	if(!SendFile(path,server_socket,(char *)filename.c_str()))
@@ -135,7 +182,8 @@ void cmd_upload(){
 
 void cmd_get(){
 
-	if(!server_socket.sendInt(GET_COMMAND)) return;
+	//if(!server_socket.sendInt(GET_COMMAND)) return;
+	if(!send_command(GET_COMMAND,KEY_AES,KEY_HMAC)) return;
 	string filename;
 	cin >> filename;
 	string path(CLIENT_PATH);
@@ -181,7 +229,6 @@ void read_input(){
 	cin>>buffer;
 
 	select_command(buffer);
-	//delete[] buffer;
 
 }
 
@@ -234,7 +281,7 @@ int main(int argc,char **argv){
 	
 	cout<<endl<<"Connessione al server "<<argv[1]<<" (port "<<portServer<<" effettuata con successo"<<endl;
 	
-	server_socket = NetSocket(socket_tcp);
+	server_socket = NetSocket(socket_tcp,CLIENT_NONCE);
 
 	cmd_help();
 

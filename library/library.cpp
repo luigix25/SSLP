@@ -2,16 +2,26 @@
 const char *commands_list[5] = {"!help","!list","!get","!upload","!quit"};
 
 
-NetSocket::NetSocket(int socket){
+NetSocket::NetSocket(int socket,int nonce){
 	this->socket = socket;
+	this->nonce = nonce;
 }
 
 NetSocket::NetSocket(){
 	this->socket = -1;
+	this->nonce = -1;
 }
 
 void NetSocket::setSocket(int socket){
 	this->socket = socket;
+}
+
+void NetSocket::setNonce(int nonce){
+	this->nonce = nonce;
+}
+
+int NetSocket::getNonce(){
+	return this->nonce;
 }
 
 void NetSocket::closeConnection(){
@@ -30,6 +40,7 @@ bool NetSocket::sendInt(int value){
 		return false;
 	}
 
+//	nonce++;
 	return (status==sizeof(uint32_t));
 
 }
@@ -54,6 +65,7 @@ bool NetSocket::sendData(const char *buffer,int32_t len){
 		inviati += ret;
 	}
 	
+	//nonce++;
 	return (inviati == len);
 
 }
@@ -120,6 +132,8 @@ char* serialization(char* plaintext, char* hmac, int size){
 	memcpy(&serialized[0],plaintext,size);
 	memcpy(&serialized[size],hmac,HASH_SIZE);
 
+	delete[] plaintext;
+	delete[] hmac;
 	return serialized;
 }
 
@@ -144,16 +158,17 @@ char* serialization(char* plaintext, char* hmac, int size){
 void unserialization(char* serialized, int serialized_len, encryptedChunk &ec, char* hmac){
 	//BIO_dump_fp (stdout, (const char *)serialized, serialized_len);
 
-	ec.size =  serialized_len-32;// *(int* )serialized;
-	cout << "stampo serialized size: " << serialized_len << endl;
-	cout << "stampo c.size in unserialization: " << ec.size << endl;
+	ec.size =  serialized_len - HASH_SIZE; // *(int* )serialized;
+
+//	cout << "stampo serialized size: " << serialized_len << endl;
+//	cout << "stampo c.size in unserialization: " << ec.size << endl;
 
 	ec.ciphertext = new char [ec.size];
 	memcpy(ec.ciphertext,&serialized[0],ec.size);
-	cout << "prima memcpy in unserialization fatta " << endl;
+//	cout << "prima memcpy in unserialization fatta " << endl;
 
 	memcpy(hmac,&serialized[ec.size],HASH_SIZE);
-	cout << "seconda memcpy in unserialization fatta " << endl;
+//	cout << "seconda memcpy in unserialization fatta " << endl;
 
 	delete[] serialized;
 }

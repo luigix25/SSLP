@@ -61,7 +61,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,char* filename){
 		}	
 
 		digest = hmac.HMACFinal();
-			if(digest == NULL){
+		if(digest == NULL){
 				cout << "digest NULL" << endl;
 		}
 
@@ -75,9 +75,9 @@ bool SendFile(string& path,NetSocket& receiverSocket,char* filename){
 		} 
 		
 		delete[] c.plaintext;
-		delete[] ec.ciphertext;
+		//delete[] ec.ciphertext;
 		delete[] msg_serialized;
-		delete[] digest;
+		//delete[] digest;
 		c.size = 0;
 
 	//	conta++;
@@ -116,7 +116,7 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 
 		recvd_data = senderSocket.recvData(len);
 		
-		cout<<"Ricevuti "<<len<<endl;
+		//cout<<"Ricevuti "<<len<<endl;
 
 		if(recvd_data == NULL){
 			cout << "recvd_data NULL" <<endl;
@@ -128,8 +128,6 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 
 		char* recvd_hmac = new char[HASH_SIZE];
 		unserialization(recvd_data,len,ec,recvd_hmac);
-
-
 
 		HMACManager hmac(KEY_HMAC);
 
@@ -147,8 +145,12 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 			//invio stop comunicazione
 			delete[] ec.ciphertext;
 			delete[] recvd_hmac;
+			delete[] digest;
+
 			return false;
 		}
+
+		delete[] digest;
 
 		char *plaintext = new char[ec.size + AES_BLOCK];
 
@@ -182,7 +184,6 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 		}
 	}		
 
-	delete[] digest;
 	return true;
 
 }
@@ -254,7 +255,7 @@ bool SendFileHMACchunk(string& path,NetSocket& receiverSocket,char* filename){
 
 		char* msg_serialized = serialization(ec.ciphertext, digest, ec.size);
 
-		cout<<"INVIO: "<<ec.size + HASH_SIZE<<endl;
+		//cout<<"INVIO: "<<ec.size + HASH_SIZE<<endl;
 
 		if(!receiverSocket.sendData(msg_serialized,ec.size + HASH_SIZE)){
 			cout<<"ERRORE SEND"<<endl;
@@ -262,9 +263,9 @@ bool SendFileHMACchunk(string& path,NetSocket& receiverSocket,char* filename){
 		} 
 		
 		delete[] c.plaintext;
-		delete[] ec.ciphertext;
+		//delete[] ec.ciphertext; lo fa la serialization
 		delete[] msg_serialized;
-		delete[] digest;
+		//delete[] digest;
 		c.size = 0;
 
 	//	conta++;
@@ -303,7 +304,7 @@ bool ReceiveFileHMACchunk(string & path, char* filename, NetSocket & senderSocke
 
 		recvd_data = senderSocket.recvData(len);
 		
-		cout<<"Ricevuti "<<len<<endl;
+		//cout<<"Ricevuti "<<len<<endl;
 
 		if(recvd_data == NULL){
 			cout << "recvd_data NULL" <<endl;

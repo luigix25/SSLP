@@ -29,6 +29,11 @@
 #define KEY_HMAC "bombabombabomba"
 #define AES_IV "cornettonebomba"
 
+#define SERVER_NONCE 12345
+#define CLIENT_NONCE 12345
+#define NONCE_SIZE 4
+
+
 #define CLIENT_PATH "client_files/database/"
 #define SERVER_PATH "server_files/database/"
 
@@ -60,12 +65,18 @@ struct encryptedChunk{
 class NetSocket{
 
 	int socket;
+	int nonce;
 
 	public:
 		NetSocket();
-		NetSocket(int);
+		//NetSocket(int);
+		NetSocket(int,int);
 
 		void setSocket(int);
+		void setNonce(int);
+
+		int getNonce();
+
 
 		bool sendInt(int);							//socket value
 		bool sendData(const char *,int32_t);
