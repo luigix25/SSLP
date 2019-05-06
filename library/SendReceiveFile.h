@@ -10,7 +10,5 @@
 bool SendFile(string & ,NetSocket &,char* );
 bool ReceiveFile(string & ,char *, NetSocket &);
 
-bool SendFileHMACchunk(string & ,NetSocket &,char* );
-bool ReceiveFileHMACchunk(string & ,char *, NetSocket &);
 
 #endif
