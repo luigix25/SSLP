@@ -6,6 +6,7 @@
 #include "ReadFileManager.h"
 #include "WriteFileManager.h"
 #include "DecryptManager.h"
+#include "RSASignManager.h"
 
 bool SendFile(string & ,NetSocket &,char* );
 bool ReceiveFile(string & ,char *, NetSocket &);
