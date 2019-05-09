@@ -18,7 +18,7 @@
 #include <vector>
 #include <fstream>
 #include <dirent.h>
-
+#include <stdint.h>
 
 
 #define true 1

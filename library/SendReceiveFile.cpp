@@ -9,8 +9,19 @@ bool SendFile(string& path,NetSocket& receiverSocket,char* filename){
 	
 	path+= filename;
 	ReadFileManager fm(path);
-	uint32_t size = (uint32_t)fm.size_file();			//32 bit ok
-	cout<<"File size: "<<size<<endl;	
+	uint64_t size_64 = fm.size_file();			//32 bit ok
+	cout<<"File size: "<<size_64<<endl;	
+
+	if(size_64 >= UINT32_MAX){
+		//Bigger than 4GiBs
+		cout<<"File bigger than 4GiBs"<<endl;
+		return false;
+	}
+
+	uint32_t size = (uint32_t)size_64;
+
+	//check for overflow!!!
+
 
 	if(!receiverSocket.sendInt(size)) return false;		//32 bit ok
 
@@ -125,8 +136,8 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 	path += filename;
 	cout<<"Scrivo: "<<path<<endl;
 
-	int32_t file_size;
-	if(!senderSocket.recvInt(file_size)) return false;
+	uint32_t file_size;
+	if(!senderSocket.recvInt((int32_t&)file_size)) return false;
 
 	if(file_size == 0){				//file non esistente
 		cout<<"File does not exist"<<endl;

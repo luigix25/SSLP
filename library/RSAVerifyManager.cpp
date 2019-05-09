@@ -36,10 +36,10 @@ bool RSAVerifyManager::RSAUpdate(chunk &ec){
 
 char* RSAVerifyManager::RSAFinal(){
 	//int hash_size = EVP_MD_size(EVP_sha256());
-	char *signature = new char [EVP_PKEY_size(this->prvkey)];
+	char *signature = new char [EVP_PKEY_size(this->pubkey)];
   unsigned int signature_len;
 
-	if(!EVP_VerifyFinal(mdctx,(unsigned char*)signature, signature_len, this->prvkey)){
+	if(!EVP_VerifyFinal(mdctx,(unsigned char*)signature, signature_len, this->pubkey)){
 		perror("Error in RSA_Final");
 		return NULL;
 	}
