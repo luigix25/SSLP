@@ -258,7 +258,7 @@ int main(int argc,char **argv){
 
 	//GENERATE NONCE
 
-	client_socket = NetSocket(new_sock,SERVER_NONCE,CLIENT_NONCE);
+	client_socket = NetSocket(new_sock);
 	cout<<"Connessione stabilita con il client"<<endl;
 	close(server_socket);											//no more clients allowed
 

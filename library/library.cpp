@@ -4,16 +4,12 @@
 const char *commands_list[5] = {"!help","!list","!get","!upload","!quit"};
 
 
-NetSocket::NetSocket(int socket,int local_nonce,int remote_nonce){
+NetSocket::NetSocket(int socket){
 	this->socket = socket;
-	this->local_nonce = local_nonce;
-	this->remote_nonce = remote_nonce;
 }
 
 NetSocket::NetSocket(){
 	this->socket = -1;
-	this->local_nonce = -1;
-	this->remote_nonce = -1;
 
 }
 

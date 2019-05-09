@@ -65,7 +65,6 @@ struct encryptedChunk{
 class NetSocket{
 
 	int socket;
-	int local_nonce,remote_nonce;
 
 	private:
 	bool wrapperSendData(const char *,int32_t,bool);
@@ -77,7 +76,7 @@ class NetSocket{
 	public:
 		NetSocket();
 		//NetSocket(int);
-		NetSocket(int,int,int);
+		NetSocket(int);
 
 		void setSocket(int);
 

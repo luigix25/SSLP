@@ -282,7 +282,7 @@ int main(int argc,char **argv){
 	HMACManager::setRemoteNonce(SERVER_NONCE);
 
 
-	server_socket = NetSocket(socket_tcp,CLIENT_NONCE,SERVER_NONCE);
+	server_socket = NetSocket(socket_tcp);
 
 	cmd_help();
 
