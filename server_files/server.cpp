@@ -40,7 +40,7 @@ void cmd_list(){
 	//delete[] c.plaintext;
 
 	//cout << "lista che invio da server: \n" << ec.ciphertext<<endl;
-	if(!client_socket.sendData(ec.ciphertext,ec.size))
+	if(!client_socket.sendDataHMAC(ec.ciphertext,ec.size))
 		return;
 	
 	delete[] ec.ciphertext;
@@ -57,11 +57,12 @@ void print_hex(unsigned char* buff, unsigned int size)
 }
 
 void cmd_get(){
+	cout<<"RiCEVUTO COMANDO GET"<<endl;
 
 	char *filename;
 	int len;
 
-	filename = client_socket.recvData(len);
+	filename = client_socket.recvDataHMAC(len);
 	string path(SERVER_PATH);
 	cout<<path<<endl;
 	if(!SendFile(path,client_socket,filename))
@@ -76,7 +77,7 @@ void cmd_upload(){
 	char *filename;
 	int len;
 
-	filename = client_socket.recvData(len);
+	filename = client_socket.recvDataHMAC(len);
 	string path(SERVER_PATH);
 	if(!ReceiveFile(path,filename,client_socket))
 		cout << "cmd_upload fallita" << endl;
@@ -146,7 +147,7 @@ int initialize_server(int port){
 bool receive_command(int &command,const char *key_aes, const char* key_hmac){
 
 	int len;
-	char *raw_data = client_socket.recvData(len,true);
+	char *raw_data = client_socket.recvDataHMAC(len);
 
 	if(raw_data == NULL){
 		cout<<"Errore receive command"<<endl;
@@ -182,21 +183,12 @@ bool receive_command(int &command,const char *key_aes, const char* key_hmac){
 
 	delete[] ec.ciphertext;
 
-	//INIZIO CAFONATA
-	int numero = client_socket.getRemoteNonce()-1;		//i want the old nonce
-	cout<<"nonce value "<<numero<<endl;
-
-	encryptedChunk nonce;
-	nonce.size = 4;
-	nonce.ciphertext = (char*)&numero;
-	//FINE CAFONATA
-
-	if(!hmac.HMACUpdate(nonce)){
+	/*if(!hmac.HMACUpdate(nonce)){
 		cout<<"ERROR"<<endl;
 		return false;
-	}
+	}*/
 
-	char *digest = hmac.HMACFinal();	
+	char *digest = hmac.HMACFinal(HMACManager::remote_nonce);	
 	if(digest == NULL){
 		cout << "digest NULL" << endl;
 		return false;
@@ -270,7 +262,9 @@ int main(int argc,char **argv){
 	cout<<"Connessione stabilita con il client"<<endl;
 	close(server_socket);											//no more clients allowed
 
-	//test_hash();
+
+	HMACManager::setRemoteNonce(CLIENT_NONCE);
+	HMACManager::setLocalNonce(SERVER_NONCE);
 	
 	while(true){
 		read_fds = master;

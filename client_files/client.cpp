@@ -75,13 +75,11 @@ bool send_command(uint32_t command, const char *key_aes, const char* key_hmac){
 	if(!em.EncyptUpdate(ec,c)) 	return false;
 	if(!em.EncyptFinal(ec))		return false;
 
-	int nonce_value = server_socket.getLocalNonce();
-	cout<<"nonce value "<<nonce_value<<endl;
 
-	encryptedChunk nonce;
+	/*encryptedChunk nonce;
 	nonce.size = NONCE_SIZE;
 	nonce.ciphertext = (char*)&nonce_value;
-
+*/
 
 	HMACManager hmac(key_hmac);
 	if(!hmac.HMACUpdate(ec)){
@@ -89,12 +87,7 @@ bool send_command(uint32_t command, const char *key_aes, const char* key_hmac){
 		return false;
 	}
 
-	if(!hmac.HMACUpdate(nonce)){
-		cout<<"ERROR"<<endl;
-		return false;
-	}
-
-	char *digest = hmac.HMACFinal();	
+	char *digest = hmac.HMACFinal(HMACManager::local_nonce);	
 	if(digest == NULL){
 		cout << "digest NULL" << endl;
 		return false;
@@ -103,7 +96,7 @@ bool send_command(uint32_t command, const char *key_aes, const char* key_hmac){
 	//print_hex((unsigned char*)digest,HASH_SIZE);
 
 	char* msg_serialized = serialization(ec.ciphertext, digest, ec.size);
-	if(!server_socket.sendData(msg_serialized,ec.size + HASH_SIZE,true)){			//aggiorno il nonce
+	if(!server_socket.sendDataHMAC(msg_serialized,ec.size + HASH_SIZE)){			//aggiorno il nonce
 		cout<<"ERRORE SEND"<<endl;
 		return false;
 	}
@@ -122,7 +115,7 @@ void cmd_list(){
 	
 	char *recvd;
 	int len;
-	recvd = server_socket.recvData(len);
+	recvd = server_socket.recvDataHMAC(len);
 	if(recvd == NULL) return;
 
 	encryptedChunk ec;
@@ -174,7 +167,7 @@ void cmd_upload(){
 		cout << "il file esiste" << endl;
 	if(!send_command(UPLOAD_COMMAND,KEY_AES,KEY_HMAC)) return;
 
-	if(!server_socket.sendData((const char*)filename.c_str(),filename.length()+1)) return;		//vanno cifrati
+	if(!server_socket.sendDataHMAC((const char*)filename.c_str(),filename.length()+1)) return;		//vanno cifrati
 
 	
 	if(!SendFile(path,server_socket,(char *)filename.c_str()))
@@ -194,7 +187,7 @@ void cmd_get(){
 
 	int32_t length = filename.length()+1;
 
-	if(!server_socket.sendData((const char*)filename.c_str(),length)) return;			//va cifrato
+	if(!server_socket.sendDataHMAC((const char*)filename.c_str(),length)) return;			//va cifrato
 	if(!ReceiveFile(path,( char*)filename.c_str(),server_socket))
 		cout << "ReceiveFile ERRATA" << endl;
 	else
@@ -285,6 +278,10 @@ int main(int argc,char **argv){
 	
 	cout<<endl<<"Connessione al server "<<argv[1]<<" (port "<<portServer<<" effettuata con successo"<<endl;
 	
+	HMACManager::setLocalNonce(CLIENT_NONCE);
+	HMACManager::setRemoteNonce(SERVER_NONCE);
+
+
 	server_socket = NetSocket(socket_tcp,CLIENT_NONCE,SERVER_NONCE);
 
 	cmd_help();

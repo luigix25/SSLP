@@ -19,7 +19,7 @@
 #include <fstream>
 #include <dirent.h>
 #include <stdint.h>
-
+//#include "HMACManager.h"
 
 #define true 1
 #define false 0
@@ -30,7 +30,7 @@
 #define AES_IV "cornettonebomba"
 
 #define SERVER_NONCE 12345
-#define CLIENT_NONCE 12345
+#define CLIENT_NONCE 54321
 #define NONCE_SIZE 4
 
 
@@ -67,26 +67,27 @@ class NetSocket{
 	int socket;
 	int local_nonce,remote_nonce;
 
+	private:
+	bool wrapperSendData(const char *,int32_t,bool);
+//	bool wrapperSendInt(uin32_t,bool);
+
+//	bool wrapperRecvInt(uin32_t&,bool);
+	char* wrapperRecvData(int32_t&,bool);
+
 	public:
 		NetSocket();
 		//NetSocket(int);
 		NetSocket(int,int,int);
 
 		void setSocket(int);
-		void setLocalNonce(int);
-		void setRemoteNonce(int);
-
-		int getLocalNonce();
-		int getRemoteNonce();
-
 
 		bool sendInt(int);	
 		bool sendInt(int,bool);													
 		bool sendData(const char *,int32_t);
-		bool sendData(const char *,int32_t,bool);
+		bool sendDataHMAC(const char *,int32_t);
 
 		char* recvData(int32_t&);
-		char* recvData(int32_t&,bool);
+		char* recvDataHMAC(int32_t&);
 		bool recvInt(int&);
 		bool recvInt(int&,bool);
 
