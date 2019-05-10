@@ -1,5 +1,10 @@
 #!/bin/sh
 
+#check if folder exists
+if [ ! -d "keys/" ]; then
+	mkdir keys
+fi
+
 #Chiave Privata Server
 openssl genrsa -out keys/server_privkey.pem 3072
 
