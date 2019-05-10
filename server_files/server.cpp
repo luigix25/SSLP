@@ -188,7 +188,7 @@ bool receive_command(int &command,const char *key_aes, const char* key_hmac){
 		return false;
 	}*/
 
-	char *digest = hmac.HMACFinal(HMACManager::remote_nonce);	
+	char *digest = hmac.HMACFinal(REMOTE_NONCE);	
 	if(digest == NULL){
 		cout << "digest NULL" << endl;
 		return false;

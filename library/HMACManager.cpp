@@ -1,7 +1,7 @@
 #include "HMACManager.h"
 
-uint32_t HMACManager::local_nonce = 0;
-uint32_t HMACManager::remote_nonce = 0;
+
+uint32_t HMACManager::nonce[] = {0,0,0,0};
 
 HMACManager::HMACManager(const char *key){
 	memcpy(this->key,key,16);
@@ -38,27 +38,27 @@ bool HMACManager::HMACUpdate(chunk &ec){
 
 }
 
-char* HMACManager::HMACFinal(){
+/*char* HMACManager::HMACFinal(){
   uint32_t a = 0;           //giusto per farlo compilare
   return HMACFinal(a);
-}
+}*/
 
 
-char* HMACManager::HMACFinal(uint32_t &nonce){
+char* HMACManager::HMACFinal(enum_nonce en){
 	int hash_size = EVP_MD_size(EVP_sha256());
 	char *digest = new char [HASH_SIZE];
 
   if(nonce != 0){
     chunk c;
     c.size = sizeof(uint32_t);
-    c.plaintext = (char*)&nonce;
+    c.plaintext = (char*)&nonce[en];
 
     if(!HMACUpdate(c)){
       return NULL;
     }
-    cout<<"LOCAL NONCE: "<<local_nonce<<endl;
-    cout<<"REMOTE NONCE: "<<remote_nonce<<endl;
-    nonce++;
+   // cout<<"LOCAL NONCE: "<<nonce[LOCAL_NONCE]<<endl;
+   // cout<<"REMOTE NONCE: "<<nonce[REMOTE_NONCE]<<endl;
+    nonce[en]++;
   }
 
 	if(!HMAC_Final(mdctx, (unsigned char*)digest, (unsigned int*)&hash_size)){
@@ -70,27 +70,32 @@ char* HMACManager::HMACFinal(uint32_t &nonce){
 	return digest;
 }
 
-bool HMACManager::setLocalNonce(uint32_t nonce){
-  if(local_nonce != 0 || nonce == 0)
+bool HMACManager::setLocalNonce(uint32_t new_nonce){
+  if(nonce[LOCAL_NONCE] != 0 || new_nonce == 0)
     return false;
 
-  local_nonce = nonce;
+  nonce[LOCAL_NONCE] = new_nonce;
+  nonce[LOCAL_INT_NONCE] = new_nonce + NONCE_OFFSET;
+
   return true;
 }
 
-bool HMACManager::setRemoteNonce(uint32_t nonce){
-  if(remote_nonce != 0 || nonce == 0)
+bool HMACManager::setRemoteNonce(uint32_t new_nonce){
+  if(nonce[REMOTE_NONCE] != 0 || new_nonce == 0)
     return false;
 
-  remote_nonce = nonce;
+  nonce[REMOTE_NONCE] = new_nonce;
+  nonce[REMOTE_INT_NONCE] = new_nonce + NONCE_OFFSET;
+
   return true;
 }
 
+/*
 uint32_t HMACManager::getLocalNonce(){
-  return local_nonce;
+  return nonce[LOCAL_NONCE];
 }
 
 uint32_t HMACManager::getRemoteNonce(){
-  return remote_nonce;
-}
+  return nonce[REMOTE_NONCE];
+}*/
 

@@ -29,9 +29,10 @@
 #define KEY_HMAC "bombabombabomba"
 #define AES_IV "cornettonebomba"
 
-#define SERVER_NONCE 12345
-#define CLIENT_NONCE 54321
-#define NONCE_SIZE 4
+#define SERVER_NONCE 	12345
+#define CLIENT_NONCE 	54321
+#define NONCE_SIZE 		4
+#define NONCE_OFFSET 	50
 
 
 #define CLIENT_PATH "client_files/database/"
@@ -56,6 +57,7 @@ struct encryptedChunk{
 	char* ciphertext;
 };
 
+enum enum_nonce{LOCAL_NONCE, REMOTE_NONCE,LOCAL_INT_NONCE, REMOTE_INT_NONCE};
 
 
 //enum protocol_login {LOGIN_OK,LOGIN_FAIL};

@@ -87,7 +87,7 @@ bool send_command(uint32_t command, const char *key_aes, const char* key_hmac){
 		return false;
 	}
 
-	char *digest = hmac.HMACFinal(HMACManager::local_nonce);	
+	char *digest = hmac.HMACFinal(LOCAL_NONCE);	
 	if(digest == NULL){
 		cout << "digest NULL" << endl;
 		return false;
