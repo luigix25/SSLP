@@ -199,25 +199,9 @@ bool NetSocket::recvInt(int &val){
 
 }
 
-
-/*char* serialization(char* plaintext, char* hmac, int size){
-
-	char* serialized = new char * [sizeof(int) + size + HASH_SIZE];
-	//cout << "stampo size: " << size << endl;
-	*(int* )serialized = size;
-	//cout << "in serialization stampo cosa ci metto in serialized come size: " << ((int*)serialized)[0] << endl;
-	memcpy(&serialized[4],plaintext,size);
-	memcpy(&serialized[4 + size],hmac,HASH_SIZE);
-
-	return serialized;
-}*/
-
 char* serialization(char* plaintext, char* hmac, int size){
 
 	char* serialized = new char [size + HASH_SIZE];
-	//cout << "stampo size: " << size << endl;
-	//*(int* )serialized = size;
-	//cout << "in serialization stampo cosa ci metto in serialized come size: " << ((int*)serialized)[0] << endl;
 	memcpy(&serialized[0],plaintext,size);
 	memcpy(&serialized[size],hmac,HASH_SIZE);
 
@@ -225,24 +209,6 @@ char* serialization(char* plaintext, char* hmac, int size){
 	delete[] hmac;
 	return serialized;
 }
-
-/*void unserialization(char* serialized, int serialized_len, chunk &c, char* hmac){
-	BIO_dump_fp (stdout, (const char *)serialized, serialized_len);
-
-	c.size = *(int* )serialized;
-	cout << "stampo serialized size: " << serialized_len << endl;
-	cout << "stampo c.size in unserialization: " << c.size << endl;
-
-	c.plaintext= new char *[c.size];
-	memcpy(c.plaintext,&serialized[4],c.size);
-	cout << "prima memcpy in unserialization fatta " << endl;
-
-
-	memcpy(hmac,&serialized[4 + c.size],HASH_SIZE);
-	cout << "seconda memcpy in unserialization fatta " << endl;
-
-	delete[] serialized;
-}*/
 
 void unserialization(char* serialized, int serialized_len, encryptedChunk &ec, char* hmac){
 	//BIO_dump_fp (stdout, (const char *)serialized, serialized_len);
