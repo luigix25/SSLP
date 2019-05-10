@@ -38,12 +38,6 @@ bool HMACManager::HMACUpdate(chunk &ec){
 
 }
 
-/*char* HMACManager::HMACFinal(){
-  uint32_t a = 0;           //giusto per farlo compilare
-  return HMACFinal(a);
-}*/
-
-
 char* HMACManager::HMACFinal(enum_nonce en){
 	int hash_size = EVP_MD_size(EVP_sha256());
 	char *digest = new char [HASH_SIZE];

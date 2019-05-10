@@ -34,6 +34,9 @@
 *.txt
 *.pdf
 
+#RSA keys
+*.pem
+
 #Eseguibili dell'app 
 client
 server
