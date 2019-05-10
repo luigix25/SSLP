@@ -7,9 +7,10 @@
 #include "WriteFileManager.h"
 #include "DecryptManager.h"
 #include "RSASignManager.h"
+#include "RSAVerifyManager.h"
 
-bool SendFile(string & ,NetSocket &,char* );
-bool ReceiveFile(string & ,char *, NetSocket &);
+bool SendFile(string & ,NetSocket &,const char* ,const char *);
+bool ReceiveFile(string & ,const char *, NetSocket &,const char *);
 
 
 #endif

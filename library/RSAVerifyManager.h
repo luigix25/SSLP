@@ -13,7 +13,7 @@ class RSAVerifyManager{
 		bool RSAUpdate(encryptedChunk &);
 		bool RSAUpdate(chunk &);
 
-		char* RSAFinal();
+		int RSAFinal(char *signature);
 
 };
 

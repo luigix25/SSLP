@@ -13,7 +13,7 @@ class RSASignManager{
 		bool RSAUpdate(encryptedChunk &);
 		bool RSAUpdate(chunk &);
 
-		char* RSAFinal();
+		char* RSAFinal(uint32_t&);
 
 };
 

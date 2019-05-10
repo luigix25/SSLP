@@ -10,6 +10,7 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <openssl/conf.h>
+#include <openssl/pem.h>
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
 #include <openssl/err.h>
@@ -37,6 +38,11 @@
 
 #define CLIENT_PATH "client_files/database/"
 #define SERVER_PATH "server_files/database/"
+
+#define CLIENT_PRIVKEY_PATH "keys/client_privkey.pem"
+#define CLIENT_PUBKEY_PATH 	"keys/client_pubkey.pem"
+#define SERVER_PRIVKEY_PATH "keys/server_privkey.pem"
+#define SERVER_PUBKEY_PATH 	"keys/server_pubkey.pem"
 
 using namespace std;
 

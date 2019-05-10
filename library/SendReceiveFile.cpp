@@ -1,6 +1,7 @@
 #include "SendReceiveFile.h"
 
-bool SendFile(string& path,NetSocket& receiverSocket,char* filename){
+bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const char *key_path){
+	cout<<"USO CHIAVE "<<key_path<<endl;
 
 
 	if(filename == NULL){
@@ -38,7 +39,8 @@ bool SendFile(string& path,NetSocket& receiverSocket,char* filename){
 	int conta = 0;
  	char* digest;
  
-	HMACManager full_hmac(KEY_HMAC);
+	//HMACManager full_hmac(KEY_HMAC);
+	RSASignManager sign(key_path);
 
 
 	while(true){
@@ -62,6 +64,10 @@ bool SendFile(string& path,NetSocket& receiverSocket,char* filename){
 			cout<<"HANDLE ERROR"<<endl;
 		}	
 
+		if(!sign.RSAUpdate(c)){						//hash on plaintext
+			cout<<"ERORR"<<endl;
+		}
+
 		if(last){
 			if(!em.EncyptFinal(ec)){
 				//handle
@@ -70,17 +76,12 @@ bool SendFile(string& path,NetSocket& receiverSocket,char* filename){
 
 
 		HMACManager hmac(KEY_HMAC);
-		if(!full_hmac.HMACUpdate(ec)){						//hmac da firmare
-			cout<<"ERORR"<<endl;
-		}
+
 
 		if(!hmac.HMACUpdate(ec)){
 			cout<<"ERROR"<<endl;
 		}	
 
-		/*if(!hmac.HMACUpdate(nonce)){						//appendo il nonce nell'hmac
-			cout<<"ERROR"<<endl;
-		}*/	
 
 		digest = hmac.HMACFinal(LOCAL_NONCE);
 		if(digest == NULL){
@@ -109,13 +110,15 @@ bool SendFile(string& path,NetSocket& receiverSocket,char* filename){
 
 	}
 
-	digest = full_hmac.HMACFinal(LOCAL_NONCE);
+	uint32_t sign_len;
+
+	digest = sign.RSAFinal(sign_len);
 	if(digest == NULL){
-		cout<<"ERRORE HMACFinal"<<endl;
+		cout<<"ERRORE SignFinal"<<endl;
 		return false;
 	}	
 
-	if(!receiverSocket.sendDataHMAC(digest,HASH_SIZE)){			//valutare nonce
+	if(!receiverSocket.sendDataHMAC(digest,sign_len)){			//valutare nonce
 		cout<<"ERRORE SEND"<<endl;
 		delete[] digest;
 		return false;
@@ -126,7 +129,9 @@ bool SendFile(string& path,NetSocket& receiverSocket,char* filename){
 	return true;
 }
 
-bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
+bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,const char *key_path){
+
+	cout<<"USO CHIAVE "<<key_path<<endl;
 
 	//handle get
 	path += filename;
@@ -147,7 +152,8 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 	cout<<"File Size: "<<file_size<<endl;
 	WriteFileManager fm(path,file_size);
 	DecryptManager dm(KEY_AES,AES_IV);
-	HMACManager full_hmac(KEY_HMAC);
+	//HMACManager full_hmac(KEY_HMAC);
+	RSAVerifyManager verify(key_path);
 
 	while(true){
 
@@ -165,20 +171,12 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 		char* recvd_hmac = new char[HASH_SIZE];
 		unserialization(recvd_data,len,ec,recvd_hmac);
 
-
-		if(!full_hmac.HMACUpdate(ec)){
-			cout<<"ERROR"<<endl;
-		}	
-
 		HMACManager hmac(KEY_HMAC);
+
 
 		if(!hmac.HMACUpdate(ec)){
 			cout<<"ERROR"<<endl;
 		}	
-		
-		/*if(!hmac.HMACUpdate(nonce)){
-			cout<<"ERROR"<<endl;
-		}*/	
 
 		digest = hmac.HMACFinal(REMOTE_NONCE);
 			if(digest == NULL){
@@ -213,6 +211,10 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 			dm.DecryptFinal(c);
 		}
 
+		if(!verify.RSAUpdate(c)){
+			cout<<"ERROR"<<endl;
+		}	
+
 		status = fm.write(&c);
 
 		delete[] recvd_hmac;
@@ -230,27 +232,21 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 	}
 
 	len = 0;
-	char *recvd_digest = senderSocket.recvDataHMAC(len);		
+	char *recvd_digest = senderSocket.recvDataHMAC(len);	
 
-	digest = full_hmac.HMACFinal(REMOTE_NONCE);
-	if(digest == NULL){
-		cout<<"ERRORE HMACFinal"<<endl;
+	int result;
+	result = verify.RSAFinal(recvd_digest);
+
+	if(result != 1){
+		cout<<"ERRORE verifyFinal"<<endl;
 		delete[] recvd_digest;
-		return false;
-	}
-	
-	if(memcmp(digest,recvd_digest,HASH_SIZE)){
-		cout<<"HASH DIVERSI"<<endl;
-		delete[] recvd_digest;
-		delete[] digest;
 		return false;
 	} else {
-		cout<<"HASH UGUALE"<<endl;
+		cout<<"verify OK"<<endl;
 	}
-
-
+	
 	delete[] recvd_digest;
-	delete[] digest;
+	//delete[] digest;
 
 	return true;
 
