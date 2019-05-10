@@ -82,7 +82,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,char* filename){
 			cout<<"ERROR"<<endl;
 		}*/	
 
-		digest = hmac.HMACFinal(HMACManager::local_nonce);
+		digest = hmac.HMACFinal(LOCAL_NONCE);
 		if(digest == NULL){
 				cout << "digest NULL" << endl;				//HANDLE ERROR
 		}
@@ -109,7 +109,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,char* filename){
 
 	}
 
-	digest = full_hmac.HMACFinal(HMACManager::local_nonce);
+	digest = full_hmac.HMACFinal(LOCAL_NONCE);
 	if(digest == NULL){
 		cout<<"ERRORE HMACFinal"<<endl;
 		return false;
@@ -180,7 +180,7 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 			cout<<"ERROR"<<endl;
 		}*/	
 
-		digest = hmac.HMACFinal(HMACManager::remote_nonce);
+		digest = hmac.HMACFinal(REMOTE_NONCE);
 			if(digest == NULL){
 				cout << "digest NULL" << endl;
 		}
@@ -232,7 +232,7 @@ bool ReceiveFile(string & path, char* filename, NetSocket & senderSocket){
 	len = 0;
 	char *recvd_digest = senderSocket.recvDataHMAC(len);		
 
-	digest = full_hmac.HMACFinal(HMACManager::remote_nonce);
+	digest = full_hmac.HMACFinal(REMOTE_NONCE);
 	if(digest == NULL){
 		cout<<"ERRORE HMACFinal"<<endl;
 		delete[] recvd_digest;

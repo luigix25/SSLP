@@ -56,6 +56,7 @@ struct encryptedChunk{
 	char* ciphertext;
 };
 
+enum enum_nonce{LOCAL_NONCE, REMOTE_NONCE};
 
 
 //enum protocol_login {LOGIN_OK,LOGIN_FAIL};
