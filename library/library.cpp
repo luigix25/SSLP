@@ -37,7 +37,7 @@ bool NetSocket::sendInt(int value,bool hmac){
 		c.size = sizeof(uint32_t);
 		hm.HMACUpdate(c);
 
-		char *digest = hm.HMACFinal(LOCAL_NONCE);
+		char *digest = hm.HMACFinal(LOCAL_INT_NONCE);
 		status = sendto(this->socket,digest,HASH_SIZE,0,NULL,0);
 		result = (status == HASH_SIZE);
 
@@ -153,7 +153,7 @@ bool NetSocket::recvInt(int &val, bool hmac){
 		c.plaintext = (char*)&val;
 
 		hm.HMACUpdate(c);
-		char *digest = hm.HMACFinal(REMOTE_NONCE);
+		char *digest = hm.HMACFinal(REMOTE_INT_NONCE);
 
 		if(digest == NULL){
 			return false;
