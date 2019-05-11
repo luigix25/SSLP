@@ -112,36 +112,6 @@ bool NetSocket::recvInt(int &val){
 }
 
 
-
-char* serialization(char* plaintext, char* hmac, int size){
-
-	char* serialized = new char [size + HASH_SIZE];
-	memcpy(&serialized[0],plaintext,size);
-	memcpy(&serialized[size],hmac,HASH_SIZE);
-
-	delete[] plaintext;
-	delete[] hmac;
-	return serialized;
-}
-
-void unserialization(char* serialized, int serialized_len, encryptedChunk &ec, char* hmac){
-	//BIO_dump_fp (stdout, (const char *)serialized, serialized_len);
-
-	ec.size =  serialized_len - HASH_SIZE; // *(int* )serialized;
-
-//	cout << "stampo serialized size: " << serialized_len << endl;
-//	cout << "stampo c.size in unserialization: " << ec.size << endl;
-
-	ec.ciphertext = new char [ec.size];
-	memcpy(ec.ciphertext,&serialized[0],ec.size);
-//	cout << "prima memcpy in unserialization fatta " << endl;
-
-	memcpy(hmac,&serialized[ec.size],HASH_SIZE);
-//	cout << "seconda memcpy in unserialization fatta " << endl;
-
-	delete[] serialized;
-}
-
 vector<string> get_file_list(const char* path){
 
 	DIR* folder = opendir(path);
@@ -187,7 +157,7 @@ bool sendIntHMAC(NetSocket& sender_socket,int32_t value){
 	c.size = sizeof(uint32_t);
 	hm.HMACUpdate(c);
 
-	char *digest = hm.HMACFinal(LOCAL_INT_NONCE);
+	char *digest = hm.HMACFinal(LOCAL_NONCE);
 	if(digest == NULL) return false;
 
 	bool return_value;
@@ -217,7 +187,7 @@ bool recvIntHMAC(NetSocket& receiver_socket,int32_t& value){
 	c.plaintext = (char*)&value;
 
 	hm.HMACUpdate(c);
-	char *digest = hm.HMACFinal(REMOTE_INT_NONCE);
+	char *digest = hm.HMACFinal(REMOTE_NONCE);
 
 	if(digest == NULL){
 		return false;

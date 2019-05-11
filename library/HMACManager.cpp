@@ -1,7 +1,7 @@
 #include "HMACManager.h"
 
 
-uint32_t HMACManager::nonce[] = {0,0,0,0};
+uint32_t HMACManager::nonce[] = {0,0};
 
 HMACManager::HMACManager(const char *key){
 	memcpy(this->key,key,16);
@@ -50,8 +50,7 @@ char* HMACManager::HMACFinal(enum_nonce en){
     if(!HMACUpdate(c)){
       return NULL;
     }
-   // cout<<"LOCAL NONCE: "<<nonce[LOCAL_NONCE]<<endl;
-   // cout<<"REMOTE NONCE: "<<nonce[REMOTE_NONCE]<<endl;
+
     nonce[en]++;
   }
 
@@ -69,7 +68,6 @@ bool HMACManager::setLocalNonce(uint32_t new_nonce){
     return false;
 
   nonce[LOCAL_NONCE] = new_nonce;
-  nonce[LOCAL_INT_NONCE] = new_nonce + NONCE_OFFSET;
 
   return true;
 }
@@ -79,17 +77,7 @@ bool HMACManager::setRemoteNonce(uint32_t new_nonce){
     return false;
 
   nonce[REMOTE_NONCE] = new_nonce;
-  nonce[REMOTE_INT_NONCE] = new_nonce + NONCE_OFFSET;
 
   return true;
 }
-
-/*
-uint32_t HMACManager::getLocalNonce(){
-  return nonce[LOCAL_NONCE];
-}
-
-uint32_t HMACManager::getRemoteNonce(){
-  return nonce[REMOTE_NONCE];
-}*/
 

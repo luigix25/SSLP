@@ -57,7 +57,6 @@ void print_hex(unsigned char* buff, unsigned int size)
 }
 
 void cmd_get(){
-	cout<<"RiCEVUTO COMANDO GET"<<endl;
 
 	char *filename;
 	int len;
