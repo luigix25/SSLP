@@ -53,4 +53,4 @@ server: server.o $(LIBFLS)
 
 
 clean:
-	rm -f *.o server_bin client_bin
+	rm -f *.o server client
