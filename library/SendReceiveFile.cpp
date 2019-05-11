@@ -12,17 +12,16 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 	ReadFileManager fm(path);
 	uint64_t size_64 = fm.size_file();			//32 bit ok
 	cout<<"File size: "<<size_64<<endl;	
-
-	if(size_64 >= UINT32_MAX){
+	
+	uint32_t size;
+	
+	if(size_64 >= UINT32_MAX){					//check for overflow
 		//Bigger than 4GiBs
 		cout<<"File bigger than 4GiBs"<<endl;
-		return false;
+		size = 0;
+	} else {
+		size = (uint32_t)size_64;
 	}
-
-	uint32_t size = (uint32_t)size_64;
-
-	//check for overflow!!!
-
 
 	if(!sendIntHMAC(receiverSocket,size)) return false;		//32 bit ok
 
@@ -118,7 +117,7 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,c
 	if(!recvIntHMAC(senderSocket,(int32_t&)file_size)) return false;
 
 	if(file_size == 0){				//file non esistente
-		cout<<"File does not exist"<<endl;
+		cout<<"File does not exist or too big"<<endl;
 		return false;
 	}
 
