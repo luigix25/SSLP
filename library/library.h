@@ -20,7 +20,6 @@
 #include <fstream>
 #include <dirent.h>
 #include <stdint.h>
-//#include "HMACManager.h"
 
 #define true 1
 #define false 0
@@ -33,7 +32,6 @@
 #define SERVER_NONCE 	12345
 #define CLIENT_NONCE 	54321
 #define NONCE_SIZE 		4
-#define NONCE_OFFSET 	50
 
 
 #define CLIENT_PATH "client_files/database/"
@@ -63,11 +61,7 @@ struct encryptedChunk{
 	char* ciphertext;
 };
 
-enum enum_nonce{LOCAL_NONCE, REMOTE_NONCE,LOCAL_INT_NONCE, REMOTE_INT_NONCE};
-
-
-//enum protocol_login {LOGIN_OK,LOGIN_FAIL};
-//enum protocol_connect {CONNECT_NOUSER,CONNECT_BUSY,CONNECT_REFUSED,CONNECT_OK,CONNECT_REQ,CONNECT_DATA,CONNECT_ACPT,CONNECT_RFSD};
+enum enum_nonce{LOCAL_NONCE, REMOTE_NONCE};
 
 
 class NetSocket{
@@ -75,28 +69,22 @@ class NetSocket{
 	int socket;
 
 	private:
-	bool wrapperSendData(const char *,int32_t,bool);
-//	bool wrapperSendInt(uin32_t,bool);
 
-//	bool wrapperRecvInt(uin32_t&,bool);
-	char* wrapperRecvData(int32_t&,bool);
+	bool utilitySend(const char*,uint32_t);
+	bool utilityRecv(char *,uint32_t);
+
 
 	public:
 		NetSocket();
-		//NetSocket(int);
 		NetSocket(int);
 
 		void setSocket(int);
 
 		bool sendInt(int);	
-		bool sendInt(int,bool);													
-		bool sendData(const char *,int32_t);
-		bool sendDataHMAC(const char *,int32_t);
+		bool sendData(const char *,uint32_t);
 
-		char* recvData(int32_t&);
-		char* recvDataHMAC(int32_t&);
+		char* recvData(uint32_t);
 		bool recvInt(int&);
-		bool recvInt(int&,bool);
 
 		void closeConnection();
 
@@ -104,9 +92,11 @@ class NetSocket{
 };
 
 
-char* serialization(char*, char*, int);
-void unserialization(char* ,int, encryptedChunk &, char*);
+bool sendIntHMAC(NetSocket&,int32_t);
+bool recvIntHMAC(NetSocket&,int32_t&);
 
+bool sendDataHMAC(NetSocket&,const char *,int32_t);
+char* recvDataHMAC(NetSocket&,int32_t&);
 
 vector<string> get_file_list(const char*);
 vector<string> split (string, string);

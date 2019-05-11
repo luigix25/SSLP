@@ -7,7 +7,7 @@ class HMACManager{
 	private:
 		unsigned char key[16];
 		HMAC_CTX* mdctx;
-		static uint32_t nonce[4];
+		static uint32_t nonce[2];
 	public:
 		HMACManager(const char *);							//KEY
 		bool HMACUpdate(encryptedChunk &);
