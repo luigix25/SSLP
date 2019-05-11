@@ -36,12 +36,9 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 
 	EncryptManager em(KEY_AES,AES_IV);
 
-	int conta = 0;
  	char* digest;
  
-	//HMACManager full_hmac(KEY_HMAC);
 	RSASignManager sign(key_path);
-
 
 	while(true){
 	
@@ -75,37 +72,17 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 		}
 
 
-		HMACManager hmac(KEY_HMAC);
-
-
-		if(!hmac.HMACUpdate(ec)){
-			cout<<"ERROR"<<endl;
-		}	
-
-
-		digest = hmac.HMACFinal(LOCAL_NONCE);
-		if(digest == NULL){
-				cout << "digest NULL" << endl;				//HANDLE ERROR
-		}
-
-		char* msg_serialized = serialization(ec.ciphertext, digest, ec.size);
-
-		//cout<<"INVIO: "<<ec.size + HASH_SIZE<<endl;
-
-		if(!receiverSocket.sendDataHMAC(msg_serialized,ec.size + HASH_SIZE)){			//aggiorno il nonce
+		if(!receiverSocket.sendDataHMAC(ec.ciphertext,ec.size)){			//aggiorno il nonce
 			cout<<"ERRORE SEND"<<endl;
 			return false;
 		} 
 		
 		delete[] c.plaintext;
-		//delete[] ec.ciphertext;
-		delete[] msg_serialized;
-		//delete[] digest;
+		delete[] ec.ciphertext;
 		c.size = 0;
 
-	//	conta++;
 
-		if(last || conta == 2)
+		if(last)
 			break;
 
 	}
@@ -118,7 +95,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 		return false;
 	}	
 
-	if(!receiverSocket.sendDataHMAC(digest,sign_len)){			//valutare nonce
+	if(!receiverSocket.sendDataHMAC(digest,sign_len)){		
 		cout<<"ERRORE SEND"<<endl;
 		delete[] digest;
 		return false;
@@ -145,14 +122,13 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,c
 		return false;
 	}
 
-	char *recvd_data,*digest;
+	char *recvd_data;
 	int len = 0;
 	file_status status;
 
 	cout<<"File Size: "<<file_size<<endl;
 	WriteFileManager fm(path,file_size);
 	DecryptManager dm(KEY_AES,AES_IV);
-	//HMACManager full_hmac(KEY_HMAC);
 	RSAVerifyManager verify(key_path);
 
 	while(true){
@@ -167,33 +143,8 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,c
 		} 
 
 		encryptedChunk ec;
-
-		char* recvd_hmac = new char[HASH_SIZE];
-		unserialization(recvd_data,len,ec,recvd_hmac);
-
-		HMACManager hmac(KEY_HMAC);
-
-
-		if(!hmac.HMACUpdate(ec)){
-			cout<<"ERROR"<<endl;
-		}	
-
-		digest = hmac.HMACFinal(REMOTE_NONCE);
-			if(digest == NULL){
-				cout << "digest NULL" << endl;
-		}
-
-		if(memcmp(digest,recvd_hmac,HASH_SIZE)){
-			cout << "HASH DIVERSI" << endl;
-			//invio stop comunicazione
-			delete[] ec.ciphertext;
-			delete[] recvd_hmac;
-			delete[] digest;
-
-			return false;
-		}
-
-		delete[] digest;
+		ec.size  = len;
+		ec.ciphertext = recvd_data;
 
 		char *plaintext = new char[ec.size + AES_BLOCK];
 
@@ -217,7 +168,6 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,c
 
 		status = fm.write(&c);
 
-		delete[] recvd_hmac;
 		delete[] c.plaintext;
 		delete[] ec.ciphertext;
 
@@ -246,7 +196,6 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,c
 	}
 	
 	delete[] recvd_digest;
-	//delete[] digest;
 
 	return true;
 

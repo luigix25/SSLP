@@ -144,7 +144,7 @@ int initialize_server(int port){
 
 }
 
-bool receive_command(int &command,const char *key_aes, const char* key_hmac){
+bool receive_command(int &command,const char *key_aes/*, const char* key_hmac*/){
 
 	int len;
 	char *raw_data = client_socket.recvDataHMAC(len);
@@ -154,12 +154,12 @@ bool receive_command(int &command,const char *key_aes, const char* key_hmac){
 		return false;
 	}
 
-
 	encryptedChunk ec;
 	ec.size = len;
+	ec.ciphertext = raw_data;
 
-	char* recvd_hmac = new char[HASH_SIZE];
-	unserialization(raw_data,len,ec,recvd_hmac);
+	//char* recvd_hmac = new char[HASH_SIZE];
+	//unserialization(raw_data,len,ec,recvd_hmac);
 
 	chunk c;
 	c.plaintext = new char[ec.size+AES_BLOCK];
@@ -174,33 +174,7 @@ bool receive_command(int &command,const char *key_aes, const char* key_hmac){
 	command = *p;
 
 	delete[] c.plaintext;			//non mi serve più
-
-	HMACManager hmac(key_hmac);
-	if(!hmac.HMACUpdate(ec)){
-		cout<<"ERROR"<<endl;
-		return false;
-	}
-
 	delete[] ec.ciphertext;
-
-	/*if(!hmac.HMACUpdate(nonce)){
-		cout<<"ERROR"<<endl;
-		return false;
-	}*/
-
-	char *digest = hmac.HMACFinal(REMOTE_NONCE);	
-	if(digest == NULL){
-		cout << "digest NULL" << endl;
-		return false;
-	}
-
-	if(memcmp(digest,recvd_hmac,HASH_SIZE)){
-		cout << "HASH DIVERSI" << endl;
-		return false;
-	}
-
-	delete[] digest;
-	delete[] recvd_hmac;
 
 	return true;
 
@@ -275,25 +249,14 @@ int main(int argc,char **argv){
 
 		for(i = 0; i <= fdmax; i++){
 			if(FD_ISSET(i,&read_fds)){			
-				/*if(i==server_socket){			//qualcuno si vuole connettere
-					cout<<"NO"<<endl;
-										
-					//continue;
-
-				} else {	*/			//qualcuno vuole scrivere
-					status = receive_command(cmd,KEY_AES,KEY_HMAC);
-					//status = client_socket.recvInt(cmd);
-					if(!status){
-						cout<<"Client Disconnesso"<<endl;
-						client_socket.closeConnection();
-						return -1;
-					}
-					select_command(cmd);
-
-					//printf("%d\n",cmd);
-
-					
-				//}
+				status = receive_command(cmd,KEY_AES/*,KEY_HMAC*/);
+				//status = client_socket.recvInt(cmd);
+				if(!status){
+					cout<<"Client Disconnesso"<<endl;
+					client_socket.closeConnection();
+					return -1;
+				}
+				select_command(cmd);
 			}
 
 		}	

@@ -76,10 +76,11 @@ class NetSocket{
 
 	private:
 	bool wrapperSendData(const char *,int32_t,bool);
-//	bool wrapperSendInt(uin32_t,bool);
-
-//	bool wrapperRecvInt(uin32_t&,bool);
 	char* wrapperRecvData(int32_t&,bool);
+
+	bool utilitySend(const char*,uint32_t);
+	bool utilityRecv(char *,uint32_t);
+
 
 	public:
 		NetSocket();

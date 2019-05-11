@@ -70,14 +70,49 @@ bool NetSocket::sendDataHMAC(const char *buffer,int32_t len){
 
 bool NetSocket::wrapperSendData(const char *buffer,int32_t len,bool hmac){
 
-	int ret;
+	int to_send = len;
 
-	if(!sendInt(len,hmac)){
+	if(hmac)
+		to_send += HASH_SIZE;
+
+	if(!sendInt(to_send,hmac)){
 		cout << "sendInt di sendData fallita" << endl;
 		return false;
 	}
-	
-	int inviati = 0;
+
+
+	if(!utilitySend(buffer,len)) return false;
+
+	if(hmac){
+		chunk c;
+		c.plaintext = (char*)buffer;
+		c.size = len;
+
+
+		HMACManager hmac(KEY_HMAC);
+		if(!hmac.HMACUpdate(c)) return false;
+
+		char *digest = hmac.HMACFinal(LOCAL_NONCE);
+		if(digest == NULL) return false;
+
+		if(!utilitySend(digest,HASH_SIZE)){
+			delete[] digest;
+			return false;
+		} 
+
+		delete[] digest;
+	}
+
+
+	return true;
+
+
+}
+
+bool NetSocket::utilitySend(const char* buffer,uint32_t len){
+
+	uint32_t inviati = 0;
+	int32_t ret =  0;
 
 	while(inviati < len){
 
@@ -93,6 +128,22 @@ bool NetSocket::wrapperSendData(const char *buffer,int32_t len,bool hmac){
 
 }
 
+bool NetSocket::utilityRecv(char* buffer,uint32_t len){
+	uint32_t ricevuti = 0;
+	int ret = 0;
+
+	while(ricevuti < len){ 										//posso leggere meno byte
+		ret = recvfrom(this->socket,buffer+ricevuti,len-ricevuti,0,NULL,0);
+		if(ret == -1){
+			perror("[Error] recv");
+			return false;	
+		}
+		ricevuti += ret;
+	}
+
+	return true;
+}
+
 
 bool NetSocket::sendData(const char *buffer,int32_t len){
 	return wrapperSendData(buffer,len,false);
@@ -100,7 +151,6 @@ bool NetSocket::sendData(const char *buffer,int32_t len){
 }
 
 char* NetSocket::wrapperRecvData(int32_t &len,bool hmac){
-	int ret;
 
 	if(!recvInt(len,hmac)){
 		perror("[Error] recv");
@@ -108,18 +158,39 @@ char* NetSocket::wrapperRecvData(int32_t &len,bool hmac){
 	}
 	char *buffer = new char [len];
 
-	int ricevuti = 0;
-
-	while(ricevuti < len){ 										//posso leggere meno byte
-		ret = recvfrom(this->socket,buffer+ricevuti,len-ricevuti,0,NULL,0);
-		if(ret == -1){
-			perror("[Error] recv");
-			return NULL;	
-		}
-		ricevuti += ret;
+	if(!utilityRecv(buffer,len)){
+		delete[] buffer;
+		return false;
 	}
 
+	if(hmac){
+		HMACManager hmac(KEY_HMAC);
+		chunk c;
+		c.size = len - HASH_SIZE;
+		c.plaintext = buffer;
+		if(!hmac.HMACUpdate(c)){
+			return false;
+		}
+
+		char *digest = hmac.HMACFinal(REMOTE_NONCE);
+		if(digest == NULL)
+			return NULL;
+
+		if(memcmp(digest,buffer+len-HASH_SIZE,HASH_SIZE)){
+			cout<<"HASH DIVERSI"<<endl;
+			delete[] digest;
+			return NULL;
+		} else {
+			delete[] digest;
+			len -= HASH_SIZE;
+		}
+
+
+	}
+
+
 	return buffer;
+
 }
 
 char* NetSocket::recvDataHMAC(int32_t &len){
