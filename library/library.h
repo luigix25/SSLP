@@ -105,8 +105,8 @@ class NetSocket{
 };
 
 
-char* serialization(char*, char*, int);
-void unserialization(char* ,int, encryptedChunk &, char*);
+//char* serialization(char*, char*, int);
+//void unserialization(char* ,int, encryptedChunk &, char*);
 
 
 vector<string> get_file_list(const char*);

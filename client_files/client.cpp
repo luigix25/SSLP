@@ -174,7 +174,7 @@ void cmd_get(){
 	//WARING SECURECODING
 }
 
-void select_command(string buffer){
+void select_command(string &buffer){
 
 
 	if(buffer.compare("!help") == 0){
