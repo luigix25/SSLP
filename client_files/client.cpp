@@ -75,7 +75,7 @@ bool send_command(uint32_t command, const char *key_aes/*, const char* key_hmac*
 	if(!em.EncyptUpdate(ec,c)) 	return false;
 	if(!em.EncyptFinal(ec))		return false;
 
-	if(!server_socket.sendDataHMAC(ec.ciphertext,ec.size)){			//aggiorno il nonce
+	if(!sendDataHMAC(server_socket,ec.ciphertext,ec.size)){			//aggiorno il nonce
 		cout<<"ERRORE SEND"<<endl;
 		return false;
 	}
@@ -94,7 +94,7 @@ void cmd_list(){
 	
 	char *recvd;
 	int len;
-	recvd = server_socket.recvDataHMAC(len);
+	recvd = recvDataHMAC(server_socket,len);
 	if(recvd == NULL) return;
 
 	encryptedChunk ec;
@@ -145,7 +145,7 @@ void cmd_upload(){
 		cout << "il file esiste" << endl;
 	if(!send_command(UPLOAD_COMMAND,KEY_AES/*,KEY_HMAC*/)) return;
 
-	if(!server_socket.sendDataHMAC((const char*)filename.c_str(),filename.length()+1)) return;		//vanno cifrati
+	if(!sendDataHMAC(server_socket,(const char*)filename.c_str(),filename.length()+1)) return;		//vanno cifrati
 
 	
 	if(!SendFile(path,server_socket,(char *)filename.c_str(),CLIENT_PRIVKEY_PATH))
@@ -165,7 +165,7 @@ void cmd_get(){
 
 	int32_t length = filename.length()+1;
 
-	if(!server_socket.sendDataHMAC((const char*)filename.c_str(),length)) return;			//va cifrato
+	if(!sendDataHMAC(server_socket,(const char*)filename.c_str(),length)) return;			//va cifrato
 	if(!ReceiveFile(path,( char*)filename.c_str(),server_socket,SERVER_PUBKEY_PATH))
 		cout << "ReceiveFile ERRATA" << endl;
 	else

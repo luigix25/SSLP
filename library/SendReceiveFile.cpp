@@ -24,7 +24,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 	//check for overflow!!!
 
 
-	if(!receiverSocket.sendInt(size,true)) return false;		//32 bit ok
+	if(!sendIntHMAC(receiverSocket,size)) return false;		//32 bit ok
 
 	if(size == 0){				//file non esistente
 		return false;
@@ -72,7 +72,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 		}
 
 
-		if(!receiverSocket.sendDataHMAC(ec.ciphertext,ec.size)){			//aggiorno il nonce
+		if(!sendDataHMAC(receiverSocket,ec.ciphertext,ec.size)){			//aggiorno il nonce
 			cout<<"ERRORE SEND"<<endl;
 			return false;
 		} 
@@ -95,7 +95,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 		return false;
 	}	
 
-	if(!receiverSocket.sendDataHMAC(digest,sign_len)){		
+	if(!sendDataHMAC(receiverSocket,digest,sign_len)){		
 		cout<<"ERRORE SEND"<<endl;
 		delete[] digest;
 		return false;
@@ -115,7 +115,7 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,c
 	cout<<"Scrivo: "<<path<<endl;
 
 	uint32_t file_size;
-	if(!senderSocket.recvInt((int32_t&)file_size,true)) return false;
+	if(!recvIntHMAC(senderSocket,(int32_t&)file_size)) return false;
 
 	if(file_size == 0){				//file non esistente
 		cout<<"File does not exist"<<endl;
@@ -133,7 +133,7 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,c
 
 	while(true){
 
-		recvd_data = senderSocket.recvDataHMAC(len);
+		recvd_data = recvDataHMAC(senderSocket,len);
 		
 		//cout<<"Ricevuti "<<len<<endl;
 
@@ -182,7 +182,7 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,c
 	}
 
 	len = 0;
-	char *recvd_digest = senderSocket.recvDataHMAC(len);	
+	char *recvd_digest = recvDataHMAC(senderSocket,len);	
 
 	int result;
 	result = verify.RSAFinal(recvd_digest);

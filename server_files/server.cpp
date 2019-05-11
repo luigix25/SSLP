@@ -40,7 +40,7 @@ void cmd_list(){
 	//delete[] c.plaintext;
 
 	//cout << "lista che invio da server: \n" << ec.ciphertext<<endl;
-	if(!client_socket.sendDataHMAC(ec.ciphertext,ec.size))
+	if(!sendDataHMAC(client_socket,ec.ciphertext,ec.size))
 		return;
 	
 	delete[] ec.ciphertext;
@@ -62,7 +62,7 @@ void cmd_get(){
 	char *filename;
 	int len;
 
-	filename = client_socket.recvDataHMAC(len);
+	filename = recvDataHMAC(client_socket,len);
 	string path(SERVER_PATH);
 	cout<<path<<endl;
 	if(!SendFile(path,client_socket,filename,SERVER_PRIVKEY_PATH))
@@ -77,7 +77,7 @@ void cmd_upload(){
 	char *filename;
 	int len;
 
-	filename = client_socket.recvDataHMAC(len);
+	filename = recvDataHMAC(client_socket,len);
 	string path(SERVER_PATH);
 	if(!ReceiveFile(path,filename,client_socket,CLIENT_PUBKEY_PATH))
 		cout << "cmd_upload fallita" << endl;
@@ -147,7 +147,7 @@ int initialize_server(int port){
 bool receive_command(int &command,const char *key_aes/*, const char* key_hmac*/){
 
 	int len;
-	char *raw_data = client_socket.recvDataHMAC(len);
+	char *raw_data = recvDataHMAC(client_socket,len);
 
 	if(raw_data == NULL){
 		cout<<"Errore receive command"<<endl;

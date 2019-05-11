@@ -75,8 +75,6 @@ class NetSocket{
 	int socket;
 
 	private:
-	bool wrapperSendData(const char *,int32_t,bool);
-	char* wrapperRecvData(int32_t&,bool);
 
 	bool utilitySend(const char*,uint32_t);
 	bool utilityRecv(char *,uint32_t);
@@ -84,20 +82,15 @@ class NetSocket{
 
 	public:
 		NetSocket();
-		//NetSocket(int);
 		NetSocket(int);
 
 		void setSocket(int);
 
 		bool sendInt(int);	
-		bool sendInt(int,bool);													
-		bool sendData(const char *,int32_t);
-		bool sendDataHMAC(const char *,int32_t);
+		bool sendData(const char *,uint32_t);
 
-		char* recvData(int32_t&);
-		char* recvDataHMAC(int32_t&);
+		char* recvData(uint32_t);
 		bool recvInt(int&);
-		bool recvInt(int&,bool);
 
 		void closeConnection();
 
@@ -107,7 +100,11 @@ class NetSocket{
 
 //char* serialization(char*, char*, int);
 //void unserialization(char* ,int, encryptedChunk &, char*);
+bool sendIntHMAC(NetSocket&,int32_t);
+bool recvIntHMAC(NetSocket&,int32_t&);
 
+bool sendDataHMAC(NetSocket&,const char *,int32_t);
+char* recvDataHMAC(NetSocket&,int32_t&);
 
 vector<string> get_file_list(const char*);
 vector<string> split (string, string);

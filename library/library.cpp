@@ -22,32 +22,6 @@ void NetSocket::closeConnection(){
 	close(this->socket);
 }
 
-bool NetSocket::sendInt(int value,bool hmac){
-	bool result =  sendInt(value);
-	if(!result)
-		return false;
-
-	int status;
-
-	if(hmac){
-		HMACManager hm(KEY_HMAC);
-
-		chunk c;
-		c.plaintext = (char*)&value;
-		c.size = sizeof(uint32_t);
-		hm.HMACUpdate(c);
-
-		char *digest = hm.HMACFinal(LOCAL_INT_NONCE);
-		status = sendto(this->socket,digest,HASH_SIZE,0,NULL,0);
-		result = (status == HASH_SIZE);
-
-		delete[] digest;
-
-	}
-	return result;
-}
-
-
 bool NetSocket::sendInt(int value){
 	int status;
 	uint32_t tosend;
@@ -61,51 +35,6 @@ bool NetSocket::sendInt(int value){
 	}
 
 	return (status==sizeof(uint32_t));
-
-}
-
-bool NetSocket::sendDataHMAC(const char *buffer,int32_t len){
-	return wrapperSendData(buffer,len,true);
-}
-
-bool NetSocket::wrapperSendData(const char *buffer,int32_t len,bool hmac){
-
-	int to_send = len;
-
-	if(hmac)
-		to_send += HASH_SIZE;
-
-	if(!sendInt(to_send,hmac)){
-		cout << "sendInt di sendData fallita" << endl;
-		return false;
-	}
-
-
-	if(!utilitySend(buffer,len)) return false;
-
-	if(hmac){
-		chunk c;
-		c.plaintext = (char*)buffer;
-		c.size = len;
-
-
-		HMACManager hmac(KEY_HMAC);
-		if(!hmac.HMACUpdate(c)) return false;
-
-		char *digest = hmac.HMACFinal(LOCAL_NONCE);
-		if(digest == NULL) return false;
-
-		if(!utilitySend(digest,HASH_SIZE)){
-			delete[] digest;
-			return false;
-		} 
-
-		delete[] digest;
-	}
-
-
-	return true;
-
 
 }
 
@@ -145,114 +74,26 @@ bool NetSocket::utilityRecv(char* buffer,uint32_t len){
 }
 
 
-bool NetSocket::sendData(const char *buffer,int32_t len){
-	return wrapperSendData(buffer,len,false);
+bool NetSocket::sendData(const char *buffer,uint32_t len){
+
+	return utilitySend(buffer,len);
+
 
 }
 
-char* NetSocket::wrapperRecvData(int32_t &len,bool hmac){
 
-	if(!recvInt(len,hmac)){
-		perror("[Error] recv");
+char* NetSocket::recvData(uint32_t len){
+
+	char *buffer = new char[len];
+	if(buffer == NULL)
 		return NULL;
-	}
-	char *buffer = new char [len];
 
-	if(!utilityRecv(buffer,len)){
-		delete[] buffer;
-		return false;
-	}
-
-	if(hmac){
-		HMACManager hmac(KEY_HMAC);
-		chunk c;
-		c.size = len - HASH_SIZE;
-		c.plaintext = buffer;
-		if(!hmac.HMACUpdate(c)){
-			return false;
-		}
-
-		char *digest = hmac.HMACFinal(REMOTE_NONCE);
-		if(digest == NULL)
-			return NULL;
-
-		if(memcmp(digest,buffer+len-HASH_SIZE,HASH_SIZE)){
-			cout<<"HASH DIVERSI"<<endl;
-			delete[] digest;
-			return NULL;
-		} else {
-			delete[] digest;
-			len -= HASH_SIZE;
-		}
-
-
-	}
-
-
-	return buffer;
-
+	if(utilityRecv(buffer,len))
+		return buffer;
+	else
+		return NULL;
 }
 
-char* NetSocket::recvDataHMAC(int32_t &len){
-	return wrapperRecvData(len,true);
-}
-
-char* NetSocket::recvData(int32_t &len){
-	return wrapperRecvData(len,false);
-}
-
-bool NetSocket::recvInt(int &val, bool hmac){
-	bool result = recvInt(val);
-	if(!result){
-		return false;
-	}
-	//I expect HASH_SIZE bytes of hmac
-	int32_t ret;
-
-
-	if(hmac){
-		char *data = new char[HASH_SIZE];
-		ret = recvfrom(this->socket,data,HASH_SIZE,0,NULL,0);
-		if(ret != HASH_SIZE){
-			delete[] data;
-			return false;
-		}
-
-		HMACManager hm(KEY_HMAC);
-		chunk c;
-		c.size = sizeof(uint32_t);
-		c.plaintext = (char*)&val;
-
-		hm.HMACUpdate(c);
-		char *digest = hm.HMACFinal(REMOTE_INT_NONCE);
-
-		if(digest == NULL){
-			return false;
-		}
-
-		if(memcmp(data,digest,HASH_SIZE)){
-			cout<<"HASH DIVERSI"<<endl;
-			cout<<"Ricevuto:"<<endl;
-			BIO_dump_fp (stdout, (const char *)data, HASH_SIZE);
-			cout<<endl<<"Calcolato:"<<endl;
-
-			BIO_dump_fp (stdout, (const char *)digest, HASH_SIZE);
-			cout<<endl;
-			//close connection
-			result = false;
-		} else {
-			cout<<"HASH SENDINT OK"<<endl;
-			result = true;
-		}
-
-		delete[] digest;
-		delete[] data;
-
-	}
-
-	return result;
-
-}
 
 bool NetSocket::recvInt(int &val){
 
@@ -269,6 +110,8 @@ bool NetSocket::recvInt(int &val){
 	return (ret == (int)sizeof(uint32_t));
 
 }
+
+
 
 char* serialization(char* plaintext, char* hmac, int size){
 
@@ -330,4 +173,134 @@ vector<string> split (string s, string delimiter) {
 
     res.push_back (s.substr (pos_start));
     return res;
+}
+
+bool sendIntHMAC(NetSocket& sender_socket,int32_t value){
+
+	if(!sender_socket.sendInt(value))
+		return false;
+
+	HMACManager hm(KEY_HMAC);
+
+	chunk c;
+	c.plaintext = (char*)&value;
+	c.size = sizeof(uint32_t);
+	hm.HMACUpdate(c);
+
+	char *digest = hm.HMACFinal(LOCAL_INT_NONCE);
+	if(digest == NULL) return false;
+
+	bool return_value;
+
+	return_value = sender_socket.sendData(digest,HASH_SIZE);
+
+	delete[] digest;
+
+	return return_value;
+
+}
+
+
+bool recvIntHMAC(NetSocket& receiver_socket,int32_t& value){
+
+	if(!receiver_socket.recvInt(value))
+		return false;
+
+	char *received_digest = receiver_socket.recvData(HASH_SIZE);
+	if(received_digest == NULL)
+		return false;
+
+
+	HMACManager hm(KEY_HMAC);
+	chunk c;
+	c.size = sizeof(uint32_t);
+	c.plaintext = (char*)&value;
+
+	hm.HMACUpdate(c);
+	char *digest = hm.HMACFinal(REMOTE_INT_NONCE);
+
+	if(digest == NULL){
+		return false;
+	}
+
+	bool result;
+
+	if(memcmp(received_digest,digest,HASH_SIZE)){
+		cout<<"HASH DIVERSI"<<endl;
+		cout<<"Ricevuto:"<<endl;
+		//close connection
+		result = false;
+	} else {
+		result = true;
+	}
+
+	delete[] digest;
+	delete[] received_digest;
+	return result;
+
+}
+
+bool sendDataHMAC(NetSocket& sender_socket,const char *data,int32_t length){
+
+	if(!sendIntHMAC(sender_socket,length+HASH_SIZE))
+		return false;
+
+	if(!sender_socket.sendData(data,length)){
+		return false;
+	}
+
+	HMACManager hmac(KEY_HMAC);
+	chunk c;
+	c.size = length;
+	c.plaintext = (char*)data;
+
+	if(!hmac.HMACUpdate(c)) return false;
+
+	char *digest = hmac.HMACFinal(LOCAL_NONCE);
+
+	bool ret = sender_socket.sendData(digest,HASH_SIZE);
+
+	delete[] digest;
+	return ret;
+
+}
+
+char* recvDataHMAC(NetSocket& receiver_socket,int32_t &length){
+
+	if(!recvIntHMAC(receiver_socket,length))
+		return false;
+
+	length -= HASH_SIZE;
+
+	char *data = receiver_socket.recvData(length);
+
+	chunk c;
+	c.size = length;
+	c.plaintext = data;
+
+	HMACManager hmac(KEY_HMAC);
+	if(!hmac.HMACUpdate(c)) return NULL;
+
+	char *digest = hmac.HMACFinal(REMOTE_NONCE);
+	if(digest == NULL) return NULL;
+
+	char *received_digest = receiver_socket.recvData(HASH_SIZE);
+
+	if(received_digest == NULL){
+		delete[] digest;
+		return NULL;
+	}
+
+	if(memcmp(received_digest,digest,HASH_SIZE)){
+		cout<<"HASH DIVERSI"<<endl;
+		delete[] digest;
+		delete[] received_digest;
+		return NULL;
+	}
+
+	delete[] digest;
+	delete[] received_digest;
+	return data;
+
+
 }
