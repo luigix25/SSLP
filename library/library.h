@@ -3,6 +3,7 @@
 	#define LIBRARY
 
 #include <stdio.h>
+#include <sys/ioctl.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>

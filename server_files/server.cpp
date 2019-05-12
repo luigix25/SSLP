@@ -238,7 +238,8 @@ int main(int argc,char **argv){
 
 	HMACManager::setRemoteNonce(CLIENT_NONCE);
 	HMACManager::setLocalNonce(SERVER_NONCE);
-	
+
+
 	while(true){
 		read_fds = master;
 		if(select(fdmax+1,&read_fds,NULL,NULL,NULL) <=0){

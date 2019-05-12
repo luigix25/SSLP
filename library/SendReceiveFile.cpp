@@ -114,12 +114,15 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,c
 	cout<<"Scrivo: "<<path<<endl;
 
 	uint32_t file_size;
+	uint32_t completeFileSize;
 	if(!recvIntHMAC(senderSocket,(int32_t&)file_size)) return false;
 
 	if(file_size == 0){				//file non esistente
 		cout<<"File does not exist or too big"<<endl;
 		return false;
 	}
+
+	completeFileSize = file_size;
 
 	char *recvd_data;
 	int len = 0;
@@ -130,7 +133,16 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,c
 	DecryptManager dm(KEY_AES,AES_IV);
 	RSAVerifyManager verify(key_path);
 
-	while(true){
+
+	struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+
+    float currentPercentage = 0;
+    uint32_t receivedBytes = 0;
+    float percentageStep = 100.0f / w.ws_col;
+    float lastPercentage = 0.0f;
+
+    while(true){
 
 		recvd_data = recvDataHMAC(senderSocket,len);
 		
@@ -156,9 +168,28 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,c
 
 		file_size-= (c.size);
 
+
 		if(file_size < AES_BLOCK){			//ultimo chunk
 
 			dm.DecryptFinal(c);
+		}
+
+		receivedBytes += c.size;
+
+		currentPercentage = (double)receivedBytes/(double)completeFileSize * 100;
+
+		while(lastPercentage + percentageStep < currentPercentage){
+			cout << "\u25A0"<<flush;
+			lastPercentage+=percentageStep;
+		}
+
+		/*int col,row;
+
+
+		cout << "\033[" << col << ";" << row << "H";*/
+
+		if(currentPercentage  >= 100){
+			cout << endl;
 		}
 
 		if(!verify.RSAUpdate(c)){
