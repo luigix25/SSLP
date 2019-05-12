@@ -39,9 +39,6 @@ rsas.o: library/library.h library/RSASignManager.h library/RSASignManager.cpp
 rsav.o: library/library.h library/RSAVerifyManager.h library/RSAVerifyManager.cpp
 	g++ $(CFLAGS) library/RSAVerifyManager.cpp -c -o rsav.o 
 
-#enc_dec.o: library/library.h library/enc_dec.cpp 
-#	g++ $(CFLAGS) library/enc_dec.cpp -c -o enc_dec.o
-
 sendreceivefile.o: library/library.h library/SendReceiveFile.h library/SendReceiveFile.cpp
 	g++ $(CFLAGS) library/SendReceiveFile.cpp -c -o sendreceivefile.o
 
