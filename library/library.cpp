@@ -195,7 +195,7 @@ bool recvIntHMAC(NetSocket& receiver_socket,int32_t& value){
 
 	bool result;
 
-	if(memcmp(received_digest,digest,HASH_SIZE)){
+	if(CRYPTO_memcmp(received_digest,digest,HASH_SIZE)){
 		cout<<"HASH DIVERSI"<<endl;
 		cout<<"Ricevuto:"<<endl;
 		//close connection
@@ -261,7 +261,7 @@ char* recvDataHMAC(NetSocket& receiver_socket,int32_t &length){
 		return NULL;
 	}
 
-	if(memcmp(received_digest,digest,HASH_SIZE)){
+	if(CRYPTO_memcmp(received_digest,digest,HASH_SIZE)){
 		cout<<"HASH DIVERSI"<<endl;
 		delete[] digest;
 		delete[] received_digest;
