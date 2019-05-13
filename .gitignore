@@ -33,6 +33,7 @@
 *.zip
 *.txt
 *.pdf
+*.tmp
 
 #RSA keys
 #*.pem

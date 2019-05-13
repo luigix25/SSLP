@@ -213,31 +213,12 @@ int main(int argc,char **argv){
 	
 	FD_ZERO(&master);	
 	FD_ZERO(&read_fds);
-	//FD_SET(server_socket,&master);
+	FD_SET(server_socket,&master);
+	fdmax = server_socket;
 
-	memset(&clientAddress,0,sizeof(clientAddress));
-	addrlen = sizeof(clientAddress);
-	new_sock = accept(server_socket,(struct sockaddr*)&clientAddress,&addrlen);
-	if(new_sock < 0){
-		perror("[Errore] accept\n");
-		return -1;
-	}
+	client_socket = NetSocket();
 
-	FD_SET(new_sock,&master);
-	//fdmax = server_socket;
-
-	//if(new_sock > fdmax) 
-	fdmax = new_sock;
-
-	//GENERATE NONCE
-
-	client_socket = NetSocket(new_sock);
-	cout<<"Connessione stabilita con il client"<<endl;
-	close(server_socket);											//no more clients allowed
-
-
-	HMACManager::setRemoteNonce(CLIENT_NONCE);
-	HMACManager::setLocalNonce(SERVER_NONCE);
+	bool alreadyConnected = false;
 
 
 	while(true){
@@ -248,21 +229,59 @@ int main(int argc,char **argv){
 		}
 
 		for(i = 0; i <= fdmax; i++){
-			if(FD_ISSET(i,&read_fds)){			
-				status = receive_command(cmd,KEY_AES/*,KEY_HMAC*/);
-				//status = client_socket.recvInt(cmd);
-				if(!status){
-					cout<<"Client Disconnesso"<<endl;
-					client_socket.closeConnection();
-					return -1;
+			if(FD_ISSET(i,&read_fds)){	
+				if(i == server_socket){ 						//new connection
+					memset(&clientAddress,0,sizeof(clientAddress));
+					addrlen = sizeof(clientAddress);
+					new_sock = accept(server_socket,(struct sockaddr*)&clientAddress,&addrlen);
+					
+					if(new_sock < 0){
+						perror("[Errore] accept\n");
+						continue;
+						//return -1;
+					}
+
+					if(alreadyConnected)					
+						close(new_sock);						//refuse new connections
+
+					FD_SET(new_sock,&master);
+					if(new_sock > fdmax) 
+						fdmax = new_sock;
+					
+					cout<<"Connessione stabilita con il client"<<endl;
+					client_socket.setSocket(new_sock);
+					alreadyConnected = true;
+
+					//start_protocol();
+
+					HMACManager::setRemoteNonce(CLIENT_NONCE);
+					HMACManager::setLocalNonce(SERVER_NONCE);
+
+					continue;
+
+
+				} else {
+
+					status = receive_command(cmd,KEY_AES/*,KEY_HMAC*/);
+					if(!status){
+						cout<<"Client Disconnesso"<<endl;
+						client_socket.closeConnection();
+						alreadyConnected = false;
+						FD_CLR(i,&master);							//remove socket from select
+
+					} else {
+						select_command(cmd);
+					}
+
 				}
-				select_command(cmd);
 			}
 
 		}	
 
 	}
 	
+	//close(server_socket);											//no more clients allowed
+
 	return 0;
 
 }

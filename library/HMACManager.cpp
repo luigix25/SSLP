@@ -64,7 +64,7 @@ char* HMACManager::HMACFinal(enum_nonce en){
 }
 
 bool HMACManager::setLocalNonce(uint32_t new_nonce){
-  if(nonce[LOCAL_NONCE] != 0 || new_nonce == 0)
+  if(/*nonce[LOCAL_NONCE] != 0 || */new_nonce == 0)
     return false;
 
   nonce[LOCAL_NONCE] = new_nonce;
@@ -73,7 +73,7 @@ bool HMACManager::setLocalNonce(uint32_t new_nonce){
 }
 
 bool HMACManager::setRemoteNonce(uint32_t new_nonce){
-  if(nonce[REMOTE_NONCE] != 0 || new_nonce == 0)
+  if(/*nonce[REMOTE_NONCE] != 0 ||*/ new_nonce == 0)
     return false;
 
   nonce[REMOTE_NONCE] = new_nonce;
