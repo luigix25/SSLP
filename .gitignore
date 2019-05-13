@@ -35,7 +35,7 @@
 *.pdf
 
 #RSA keys
-*.pem
+#*.pem
 
 #Eseguibili dell'app 
 client
