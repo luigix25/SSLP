@@ -15,7 +15,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 	
 	uint32_t size;
 	
-	if(size_64 >= UINT32_MAX){					//check for overflow
+	if(size_64 > UINT32_MAX){					//check for overflow
 		//Bigger than 4GiBs
 		cout<<"File bigger than 4GiBs"<<endl;
 		size = 0;
