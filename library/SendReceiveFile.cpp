@@ -163,15 +163,18 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,c
 		c.plaintext = plaintext;
 
 		if(!dm.DecryptUpdate(c,ec)){
-			//handle error
-		}
+			cout<<"DecryptUpdate error"<<endl;
+			return false;		}
 
 		file_size-= (c.size);
 
 
 		if(file_size < AES_BLOCK){			//ultimo chunk
 
-			dm.DecryptFinal(c);
+			if(!dm.DecryptFinal(c)){
+				cout<<"DecryptFinal error"<<endl;
+				return false;
+			}
 		}
 
 		receivedBytes += c.size;
@@ -194,6 +197,7 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,c
 
 		if(!verify.RSAUpdate(c)){
 			cout<<"ERROR"<<endl;
+			return false;
 		}	
 
 		status = fm.write(&c);
