@@ -79,8 +79,8 @@ bool send_command(uint32_t command, const char *key_aes/*, const char* key_hmac*
 	encryptedChunk ec;
 	ec.ciphertext = new char[c.size + AES_BLOCK];
 
-	if(!em.EncyptUpdate(ec,c)) 	return false;
-	if(!em.EncyptFinal(ec))		return false;
+	if(!em.EncryptUpdate(ec,c)) 	return false;
+	if(!em.EncryptFinal(ec))		return false;
 
 	if(!sendDataHMAC(server_socket,ec.ciphertext,ec.size)){			//aggiorno il nonce
 		cout<<"ERRORE SEND"<<endl;
@@ -260,17 +260,25 @@ bool initial_protocol(NetSocket &server_socket){
 	char *old_ptr = server_cert_data;
 
 	X509 *server_cert = d2i_X509(NULL,(const unsigned char **)&server_cert_data,cert_size);
+	delete[] old_ptr;
 
 	if(!server_cert)
 		return false;
 
 	CertificateManager cm(CERT_CA_PATH,CERT_CA_CRL_PATH);
-	cm.verifyCertificate(server_cert);
+	if(!cm.verifyCertificate(server_cert)){
+		X509_free(server_cert);
+		return false;
+	}
+
 	char *name = cm.extractCommonName(server_cert);
+	if(name == NULL){
+		X509_free(server_cert);
+		return false;
+	}
 
 	cout<<"Connessione stabilita con il server "<<name<<endl;
 
-	delete[] old_ptr;
 	delete[] name;
 
 	X509_free(server_cert);
@@ -349,15 +357,10 @@ int main(int argc,char **argv){
 
 		for(i = 0; i <= fdmax; i++){
 			if(FD_ISSET(i,&read_fds)){
-				if(i == 0){			//stdin
+				if(i == 0){						//stdin
 					read_input();				//keyboard			
 					//continue;
 				} else if(i == socket_tcp) {			//server tcp
-					/*if(!server_socket.recvInt(cmd)){
-						cout<<"Connessione Persa"<<endl;
-						return -1;
-					}			
-					select_command_server(i,cmd);*/
 					//non dovrei mai arrivare qui	
 					cout<<"ERRORE PROTOCOLLARE!"<<endl;
 					server_socket.closeConnection();

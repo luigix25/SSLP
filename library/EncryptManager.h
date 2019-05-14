@@ -12,8 +12,8 @@ class EncryptManager{
 	public:
 		EncryptManager(const char *, const char *);				//KEY AND IV
 		~EncryptManager();
-		bool EncyptUpdate(encryptedChunk&, chunk&);
-		bool EncyptFinal(encryptedChunk&);
+		bool EncryptUpdate(encryptedChunk&, chunk&);
+		bool EncryptFinal(encryptedChunk&);
 
 };
 

@@ -44,8 +44,8 @@ void cmd_list(){
 	encryptedChunk ec;
 	ec.ciphertext = new char[c.size+AES_BLOCK];
 
-	em.EncyptUpdate(ec,c);
-	em.EncyptFinal(ec);
+	em.EncryptUpdate(ec,c);
+	em.EncryptFinal(ec);
 
 
 	//delete[] c.plaintext;
@@ -209,17 +209,21 @@ bool initial_protocol(NetSocket &client_socket){
 	char *old_ptr = client_cert_data;
 
 	X509 *client_cert = d2i_X509(NULL,(const unsigned char **)&client_cert_data,cert_size);
+	delete[] old_ptr;
 
 	if(!client_cert)
 		return false;
 
 	CertificateManager cm(CERT_CA_PATH,CERT_CA_CRL_PATH);
-	cm.verifyCertificate(client_cert);
+	if(!cm.verifyCertificate(client_cert)){
+		X509_free(client_cert);
+		return false;
+	}
+
 	char *name = cm.extractCommonName(client_cert);
 
 	cout<<"Connessione stabilita con il client "<<name<<endl;
 
-	delete[] old_ptr;
 	delete[] name;
 
 	X509_free(client_cert);
@@ -321,7 +325,7 @@ int main(int argc,char **argv){
 						close(new_sock);						//refuse new connections
 						continue;
 					}
-					
+
 					FD_SET(new_sock,&master);
 					if(new_sock > fdmax) 
 						fdmax = new_sock;

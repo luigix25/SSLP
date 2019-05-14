@@ -11,7 +11,7 @@ EncryptManager::EncryptManager(const char *key, const char *IV){
 
 }				//KEY AND IV
 
-bool EncryptManager::EncyptUpdate(encryptedChunk& ec, chunk& c){
+bool EncryptManager::EncryptUpdate(encryptedChunk& ec, chunk& c){
 
     if(!EVP_EncryptUpdate(this->ctx, (unsigned char*)ec.ciphertext, &ec.size, (unsigned char*)c.plaintext, c.size)){
     	perror("Error in EVP_EncryptUpdate");
@@ -22,7 +22,7 @@ bool EncryptManager::EncyptUpdate(encryptedChunk& ec, chunk& c){
 
 }
 
-bool EncryptManager::EncyptFinal(encryptedChunk& ec){
+bool EncryptManager::EncryptFinal(encryptedChunk& ec){
 	int len;
 	
 	if(!EVP_EncryptFinal(ctx, (unsigned char*)ec.ciphertext + ec.size, &len)){

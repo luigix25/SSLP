@@ -56,7 +56,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 		encryptedChunk ec;
 		ec.ciphertext = ciphertext;
 
-		if(!em.EncyptUpdate(ec,c)){
+		if(!em.EncryptUpdate(ec,c)){
 			cout<<"HANDLE ERROR"<<endl;
 		}	
 
@@ -68,7 +68,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 		c.size = 0;
 
 		if(last){
-			if(!em.EncyptFinal(ec)){
+			if(!em.EncryptFinal(ec)){
 				//handle
 			}
 
