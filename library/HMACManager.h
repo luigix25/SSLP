@@ -10,6 +10,8 @@ class HMACManager{
 		static uint32_t nonce[2];
 	public:
 		HMACManager(const char *);							//KEY
+		~HMACManager();
+
 		bool HMACUpdate(encryptedChunk &);
 		bool HMACUpdate(chunk &);
 		char* HMACFinal(enum_nonce);

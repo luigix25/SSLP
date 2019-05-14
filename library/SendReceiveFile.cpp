@@ -64,21 +64,25 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 			cout<<"ERORR"<<endl;
 		}
 
+		delete[] c.plaintext;
+		c.size = 0;
+
 		if(last){
 			if(!em.EncyptFinal(ec)){
 				//handle
 			}
+
+
 		}
 
 
 		if(!sendDataHMAC(receiverSocket,ec.ciphertext,ec.size)){			//aggiorno il nonce
 			cout<<"ERRORE SEND"<<endl;
+			delete[] ec.ciphertext;
 			return false;
 		} 
 		
-		delete[] c.plaintext;
 		delete[] ec.ciphertext;
-		c.size = 0;
 
 
 		if(last)
@@ -89,6 +93,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 	uint32_t sign_len;
 
 	digest = sign.RSAFinal(sign_len);
+
 	if(digest == NULL){
 		cout<<"ERRORE SignFinal"<<endl;
 		return false;
@@ -164,7 +169,8 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,c
 
 		if(!dm.DecryptUpdate(c,ec)){
 			cout<<"DecryptUpdate error"<<endl;
-			return false;		}
+			return false;		
+		}
 
 		file_size-= (c.size);
 
@@ -175,6 +181,7 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,c
 				cout<<"DecryptFinal error"<<endl;
 				return false;
 			}
+
 		}
 
 		receivedBytes += c.size;

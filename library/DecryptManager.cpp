@@ -30,7 +30,10 @@ bool DecryptManager::DecryptFinal(chunk &c){
 		return false;
 	}
   	c.size += len;
-	EVP_CIPHER_CTX_free(ctx);
+	//EVP_CIPHER_CTX_free(ctx);
 	return true;
 }
 
+DecryptManager::~DecryptManager(){
+	EVP_CIPHER_CTX_free(ctx);
+}

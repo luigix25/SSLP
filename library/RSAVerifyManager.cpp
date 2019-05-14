@@ -54,8 +54,14 @@ int RSAVerifyManager::RSAFinal(char *signature){
 	ret = EVP_VerifyFinal(this->mdctx,(unsigned char*)signature, len, this->pubkey);
 
   //distruggere chiave pubblica
-  EVP_PKEY_free(this->pubkey);
-	EVP_MD_CTX_free(mdctx);
+ // EVP_PKEY_free(this->pubkey);
+	//EVP_MD_CTX_free(mdctx);
 	return ret;
+}
+
+RSAVerifyManager::~RSAVerifyManager(){
+  EVP_PKEY_free(this->pubkey);
+  EVP_MD_CTX_free(mdctx);
+  CRYPTO_cleanup_all_ex_data();
 }
 

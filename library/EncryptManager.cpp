@@ -30,7 +30,10 @@ bool EncryptManager::EncyptFinal(encryptedChunk& ec){
 		return false;
 	}
   	ec.size += len;
-	EVP_CIPHER_CTX_free(ctx);
+	//EVP_CIPHER_CTX_free(ctx);
 	return true;
 }
 
+EncryptManager::~EncryptManager(){
+	EVP_CIPHER_CTX_free(ctx);
+}

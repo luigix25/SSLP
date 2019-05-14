@@ -59,8 +59,14 @@ char* HMACManager::HMACFinal(enum_nonce en){
 		return NULL;
 	}
 
-	HMAC_CTX_free(mdctx);
+//	HMAC_CTX_free(mdctx);
 	return digest;
+}
+
+HMACManager::~HMACManager(){
+
+  HMAC_CTX_free(mdctx);
+
 }
 
 bool HMACManager::setLocalNonce(uint32_t new_nonce){

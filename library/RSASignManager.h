@@ -7,9 +7,11 @@ class RSASignManager{
 	private:
 		EVP_MD_CTX* mdctx;
 		EVP_PKEY *prvkey;
+		string privkeyPath;
 
 	public:
 		RSASignManager(const char *);							//KEY
+		~RSASignManager();
 		bool RSAUpdate(encryptedChunk &);
 		bool RSAUpdate(chunk &);
 

@@ -227,6 +227,8 @@ int main(int argc,char **argv){
 		exit(-1);
 	}
 
+	signal(SIGPIPE, SIG_IGN);
+
 	int status,portServer;
 	struct sockaddr_in serverAddress;
 

@@ -10,6 +10,8 @@ class RSAVerifyManager{
 
 	public:
 		RSAVerifyManager(const char *);							//KEY
+		~RSAVerifyManager();
+
 		bool RSAUpdate(encryptedChunk &);
 		bool RSAUpdate(chunk &);
 

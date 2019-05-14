@@ -21,6 +21,7 @@
 #include <fstream>
 #include <dirent.h>
 #include <stdint.h>
+#include <signal.h>
 
 #define true 1
 #define false 0
@@ -73,6 +74,7 @@ class NetSocket{
 
 	bool utilitySend(const char*,uint32_t);
 	bool utilityRecv(char *,uint32_t);
+	bool isClosed;
 
 
 	public:

@@ -37,6 +37,8 @@ void cmd_list(){
 
 	em.EncyptUpdate(ec,c);
 	em.EncyptFinal(ec);
+
+
 	//delete[] c.plaintext;
 
 	//cout << "lista che invio da server: \n" << ec.ciphertext<<endl;
@@ -78,8 +80,9 @@ void cmd_upload(){
 
 	filename = recvDataHMAC(client_socket,len);
 	string path(SERVER_PATH);
-	if(!ReceiveFile(path,filename,client_socket,CLIENT_PUBKEY_PATH))
+	if(!ReceiveFile(path,filename,client_socket,CLIENT_PUBKEY_PATH)){
 		cout << "cmd_upload fallita" << endl;
+	}
 	else
 		cout << "cmd_upload corretta" << endl;
 
@@ -188,7 +191,8 @@ int main(int argc,char **argv){
 		exit(-1);
 	}
 
-
+	signal(SIGPIPE, SIG_IGN);					//ignoro sigpipe
+	
 	struct sockaddr_in clientAddress;
 
 	int port = atoi(argv[1]);

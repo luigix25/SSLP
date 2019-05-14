@@ -6,23 +6,32 @@ const char *commands_list[5] = {"!help","!list","!get","!upload","!quit"};
 
 NetSocket::NetSocket(int socket){
 	this->socket = socket;
+	isClosed = false;
 }
 
 NetSocket::NetSocket(){
 	this->socket = -1;
+	isClosed = true;
 
 }
 
 void NetSocket::setSocket(int socket){
 	this->socket = socket;
+	isClosed = false;
+
 }
 
 
 void NetSocket::closeConnection(){
 	close(this->socket);
+	isClosed = true;
+
 }
 
 bool NetSocket::sendInt(int value){
+	if(isClosed)
+		return false;
+
 	int status;
 	uint32_t tosend;
 
@@ -39,6 +48,9 @@ bool NetSocket::sendInt(int value){
 }
 
 bool NetSocket::utilitySend(const char* buffer,uint32_t len){
+
+	if(isClosed)
+		return false;
 
 	uint32_t inviati = 0;
 	int32_t ret =  0;
@@ -158,8 +170,8 @@ bool sendIntHMAC(NetSocket& sender_socket,int32_t value){
 	hm.HMACUpdate(c);
 
 	char *digest = hm.HMACFinal(LOCAL_NONCE);
-	if(digest == NULL) return false;
 
+	if(digest == NULL) return false;
 	bool return_value;
 
 	return_value = sender_socket.sendData(digest,HASH_SIZE);
@@ -252,6 +264,7 @@ char* recvDataHMAC(NetSocket& receiver_socket,int32_t &length){
 	if(!hmac.HMACUpdate(c)) return NULL;
 
 	char *digest = hmac.HMACFinal(REMOTE_NONCE);
+
 	if(digest == NULL) return NULL;
 
 	char *received_digest = receiver_socket.recvData(HASH_SIZE);
