@@ -85,3 +85,10 @@ char* CertificateManager::extractCommonName(X509* certificate){
 	return tmp;
 
 }
+
+
+EVP_PKEY * extractPubKey(X509* certificate){
+
+	return X509_get_pubkey(certificate);										//doesn't need to be freed
+
+}
