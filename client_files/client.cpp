@@ -6,6 +6,13 @@ struct sockaddr_in opponent;
 
 NetSocket server_socket;
 
+void close_handler(int s){
+	cout<<endl<<"Terminating.."<<endl;
+	server_socket.closeConnection();
+	exit(s);
+
+}
+
 void pulisci_buff(){
 	char c;
 	while((c = getchar()) != '\n' && c != EOF)
@@ -283,7 +290,7 @@ int main(int argc,char **argv){
 	}
 
 	signal(SIGPIPE, SIG_IGN);
-
+	signal (SIGINT,close_handler);
 
 	int status,portServer;
 	struct sockaddr_in serverAddress;

@@ -3,9 +3,18 @@
 
 fd_set master;
 NetSocket client_socket;
-
+int server_socket;
 chunk test;
 encryptedChunk encryptedtest;
+
+
+void close_handler(int s){
+	cout<<endl<<"Terminating.."<<endl;
+	client_socket.closeConnection();
+	close(server_socket);
+	exit(s);
+
+}
 
 void cmd_list(){
 	vector <string> files;
@@ -254,11 +263,13 @@ int main(int argc,char **argv){
 	}
 
 	signal(SIGPIPE, SIG_IGN);					//ignoro sigpipe
-	
+	signal (SIGINT,close_handler);				//gestisco i ctrl-c
+
+
 	struct sockaddr_in clientAddress;
 
 	int port = atoi(argv[1]);
-	int fdmax,server_socket;
+	int fdmax;
 	unsigned int addrlen;
 	int i,status,new_sock;
 	int cmd;
@@ -306,9 +317,11 @@ int main(int argc,char **argv){
 						continue;
 					}
 
-					if(alreadyConnected)					
+					if(alreadyConnected){					
 						close(new_sock);						//refuse new connections
-
+						continue;
+					}
+					
 					FD_SET(new_sock,&master);
 					if(new_sock > fdmax) 
 						fdmax = new_sock;

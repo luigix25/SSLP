@@ -23,6 +23,8 @@ void NetSocket::setSocket(int socket){
 
 
 void NetSocket::closeConnection(){
+	if(isClosed)
+		return;
 	close(this->socket);
 	isClosed = true;
 
