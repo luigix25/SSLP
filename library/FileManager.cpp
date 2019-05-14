@@ -30,10 +30,15 @@ void FileManager::reset(){
 
 //Close the stream
 void FileManager::close_stream(){
-	fs.close();
+	if(fs.is_open())
+		fs.close();
 }
 
 void FileManager::changeName(string& name){
 	file_name = name;
 	cout << "NAME " << file_name << endl;
+}
+
+FileManager::~FileManager(){
+	close_stream();
 }

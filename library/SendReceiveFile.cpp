@@ -155,6 +155,7 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,c
 
 		if(recvd_data == NULL){
 			cout << "recvd_data NULL" <<endl;
+			fm.finalize(true);
 			return false;
 		} 
 
@@ -169,6 +170,7 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,c
 
 		if(!dm.DecryptUpdate(c,ec)){
 			cout<<"DecryptUpdate error"<<endl;
+			fm.finalize(true);
 			return false;		
 		}
 
@@ -179,6 +181,7 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,c
 
 			if(!dm.DecryptFinal(c)){
 				cout<<"DecryptFinal error"<<endl;
+				fm.finalize(true);
 				return false;
 			}
 
@@ -204,6 +207,7 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,c
 
 		if(!verify.RSAUpdate(c)){
 			cout<<"ERROR"<<endl;
+			fm.finalize(true);
 			return false;
 		}	
 
@@ -213,11 +217,11 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,c
 		delete[] ec.ciphertext;
 
 		if(status == END_OF_FILE){
-			fm.finalize();
 			cout<<"FINITO"<<endl;
 			break;
 		} else if(status == FILE_ERROR){
 			cout << "FILE_ERROR" << endl;
+			fm.finalize(true);
 			return false;
 		}
 	}
@@ -229,11 +233,13 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,c
 	result = verify.RSAFinal(recvd_digest);
 
 	if(result != 1){
+		fm.finalize(true);						//error
 		cout<<"ERRORE verifyFinal"<<endl;
 		delete[] recvd_digest;
 		return false;
 	} else {
 		cout<<"verify OK"<<endl;
+		fm.finalize(false);
 	}
 	
 	delete[] recvd_digest;

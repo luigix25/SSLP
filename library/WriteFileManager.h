@@ -15,7 +15,7 @@ class WriteFileManager : public FileManager {
 		WriteFileManager(string &name, uint64_t size); //Constructor for write operation 
 		WriteFileManager(const char *name, uint64_t size);
 		file_status write(chunk *c); //Write in append chunk
-		void finalize();
+		void finalize(bool);
 };
 
 #endif

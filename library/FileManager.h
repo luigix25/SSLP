@@ -16,6 +16,7 @@ class FileManager {
 		
 	public:
 		FileManager(string &name, uint64_t size); //Constructor for write operation 
+		~FileManager();
 		bool file_exists(); //Check existance of file
 		uint64_t size_file(); // -1 file not exits		
 		void close_stream(); //Close the file stream

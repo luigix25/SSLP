@@ -37,9 +37,10 @@ file_status WriteFileManager::write(chunk* c){ //write in append
 	return NO_ERRORS; // All good
 }
 
-void WriteFileManager::finalize(){
-	if(remaining_size > 0){ // after error, remove file
+void WriteFileManager::finalize(bool error){
+	if(error || remaining_size > 0){ // after error, remove file
 		remove((const char*)file_name.c_str());
+		return;
 	}
 	if(original_file_name != ""){ // end of write, substitute previous file with tmp
 		remove((const char*)original_file_name.c_str());
