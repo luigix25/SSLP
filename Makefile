@@ -1,7 +1,7 @@
 CFLAGS= -Wall -Wextra -pedantic -std=c++14 -g
 LIBFLG = -lcrypto
 LIBDIP = library/library.h library/ReadFileManager.h library/WriteFileManager.h library/FileManager.h library/EncryptManager.h library/DecryptManager.h library/HMAC.h library/SendReceiveFile.h
-LIBFLS = library.o filemanager.o writefilemanager.o readfilemanager.o encryptmanager.o decryptmanager.o hmac.o rsav.o rsas.o sendreceivefile.o
+LIBFLS = library.o filemanager.o writefilemanager.o readfilemanager.o encryptmanager.o decryptmanager.o hmac.o rsav.o rsas.o sendreceivefile.o certm.o
 
 
 all: client server
@@ -38,6 +38,9 @@ rsas.o: library/library.h library/RSASignManager.h library/RSASignManager.cpp
 
 rsav.o: library/library.h library/RSAVerifyManager.h library/RSAVerifyManager.cpp
 	g++ $(CFLAGS) library/RSAVerifyManager.cpp -c -o rsav.o 
+
+certm.o: library/library.h library/CertificateManager.h library/CertificateManager.cpp
+	g++ $(CFLAGS) library/CertificateManager.cpp -c -o certm.o 
 
 sendreceivefile.o: library/library.h library/SendReceiveFile.h library/SendReceiveFile.cpp
 	g++ $(CFLAGS) library/SendReceiveFile.cpp -c -o sendreceivefile.o

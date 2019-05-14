@@ -10,11 +10,15 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <string.h>
+
 #include <openssl/conf.h>
 #include <openssl/pem.h>
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
+#include <openssl/x509_vfy.h>
 #include <openssl/err.h>
+#include <openssl/crypto.h>
+
 #include <string>
 #include <iostream>
 #include <vector>
@@ -43,6 +47,13 @@
 #define CLIENT_PUBKEY_PATH 	"keys/client_pubkey.pem"
 #define SERVER_PRIVKEY_PATH "keys/server_privkey.pem"
 #define SERVER_PUBKEY_PATH 	"keys/server_pubkey.pem"
+
+#define CERT_CA_PATH		"certificates/SSLPCA_cert.pem"
+#define CERT_CA_CRL_PATH	"certificates/SSLPCA_crl.pem"
+
+#define CLIENT_NAME			"SSLPClient"
+#define SERVER_NAME			"SSLPServer"
+
 
 using namespace std;
 

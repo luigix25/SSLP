@@ -183,6 +183,68 @@ bool receive_command(int &command,const char *key_aes/*, const char* key_hmac*/)
 
 }
 
+
+bool initial_protocol(NetSocket &client_socket){
+
+	int cert_size;
+
+	if(!client_socket.recvInt(cert_size)) 		return false;
+
+	if(cert_size < 0)
+		return false;
+
+	char *client_cert_data = client_socket.recvData(cert_size);
+	if(client_cert_data == NULL)
+		return false;
+
+	char *old_ptr = client_cert_data;
+
+	X509 *client_cert = d2i_X509(NULL,(const unsigned char **)&client_cert_data,cert_size);
+
+	if(!client_cert)
+		return false;
+
+	CertificateManager cm(CERT_CA_PATH,CERT_CA_CRL_PATH);
+	cm.verifyCertificate(client_cert);
+	char *name = cm.extractCommonName(client_cert);
+
+	cout<<"Connessione stabilita con il client "<<name<<endl;
+
+	delete[] old_ptr;
+	delete[] name;
+
+	X509_free(client_cert);
+
+	//read my certificate from file
+	FILE* cacert_file = fopen(CERT_SERVER_PATH, "r");
+	if(!cacert_file){ cerr << "Error: cannot open file '" << CERT_SERVER_PATH << "' (missing?)\n"; exit(1); }
+	X509* server_cert = PEM_read_X509(cacert_file, NULL, NULL, NULL);
+	fclose(cacert_file);
+	if(!server_cert){ cerr << "Error: PEM_read_X509 returned NULL\n"; exit(1); }
+
+	//serialize it
+
+	unsigned char* cert_buf= NULL; 
+	cert_size = i2d_X509(server_cert, &cert_buf); 
+	if(cert_size< 0) { /* handle error */ } 
+	
+	//send through the socket
+
+	if(!client_socket.sendInt(cert_size)) 			return false;					//chiedere perazzo
+	if(!client_socket.sendData((const char*)cert_buf,cert_size)) return false;
+
+	OPENSSL_free(cert_buf);
+	X509_free(server_cert);
+
+
+
+	HMACManager::setRemoteNonce(CLIENT_NONCE);
+	HMACManager::setLocalNonce(SERVER_NONCE);
+
+	return true;
+
+}
+
 int main(int argc,char **argv){
 
 
@@ -242,7 +304,6 @@ int main(int argc,char **argv){
 					if(new_sock < 0){
 						perror("[Errore] accept\n");
 						continue;
-						//return -1;
 					}
 
 					if(alreadyConnected)					
@@ -252,14 +313,10 @@ int main(int argc,char **argv){
 					if(new_sock > fdmax) 
 						fdmax = new_sock;
 					
-					cout<<"Connessione stabilita con il client"<<endl;
 					client_socket.setSocket(new_sock);
 					alreadyConnected = true;
 
-					//start_protocol();
-
-					HMACManager::setRemoteNonce(CLIENT_NONCE);
-					HMACManager::setLocalNonce(SERVER_NONCE);
+					initial_protocol(client_socket);
 
 					continue;
 

@@ -6,3 +6,7 @@
 #include "../library/HMACManager.h"
 #include "../library/SendReceiveFile.h"
 #include "../library/FileManager.h"
+#include "../library/CertificateManager.h"
+
+
+#define CERT_CLIENT_PATH 				"certificates/SSLPClient_cert.pem"
