@@ -9,10 +9,12 @@ RSAEncryptManager::RSAEncryptManager(EVP_PKEY *pubkey){
   this->pubkey = pubkey;
   
   unsigned char* key = new unsigned char[EVP_PKEY_size(pubkey)];
+  unsigned char *iv = new unsigned char[EVP_CIPHER_iv_length(EVP_aes_128_cbc())];
+
   int key_len;
 
 
-  if(!EVP_SealInit(mdctx,EVP_aes_128_cbc(),&key,&key_len,NULL,&pubkey,1)){
+  if(!EVP_SealInit(mdctx,EVP_aes_128_cbc(),&key,&key_len,iv,&pubkey,1)){
       perror("Error In RSA_Init_ex");
   }
 

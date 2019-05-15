@@ -4,5 +4,6 @@
 #include "../library/HMACManager.h"
 #include "../library/CertificateManager.h"
 #include "../library/SendReceiveFile.h"
+#include "../library/RSAEncryptManager.h"
 
 #define CERT_SERVER_PATH 				"certificates/SSLPServer_cert.pem"
