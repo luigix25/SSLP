@@ -50,9 +50,15 @@ char * DHManager::computeSimmetricKey(const char *received_data,uint32_t len,int
 	unsigned char* key = new unsigned char[DH_size(this->session)];
 	key_len = DH_compute_key(key,opponent_pubkey,this->session);
 
+	BN_free(opponent_pubkey);
+
 	if(key_len <=0)
 		return NULL;
 
 	return (char*)key;
 
+}
+
+DHManager::~DHManager(){
+	DH_free(this->session);
 }

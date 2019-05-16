@@ -302,14 +302,16 @@ bool initial_protocol(NetSocket &server_socket){
 	if(opponent_pub_key == NULL)
 		return false;
 
-
 	if(!server_socket.sendInt(pub_key_len)) 			return false;
 	if(!server_socket.sendData(pub_key,pub_key_len)) 	return false;
 
+	delete[] pub_key;
 
 	int key_length;
 	char *simmetric_key = dh.computeSimmetricKey(opponent_pub_key,opponent_pub_key_len,key_length);
 
+	delete[] simmetric_key;
+	delete[] opponent_pub_key;
 	//BIO_dump_fp(stdout,(const char*)simmetric_key,key_length);
 
 

@@ -11,7 +11,7 @@ class DHManager{
 		char * generatePublicKey(int &);
 		char * computeSimmetricKey(const char *,uint32_t,int &);
 
-		//~DHManager();
+		~DHManager();
 
 		//char* HMACFinal();
 
