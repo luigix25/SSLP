@@ -68,9 +68,9 @@ void cmd_quit(){
 
 }
 
-bool send_command(uint32_t command, const char *key_aes/*, const char* key_hmac*/){
+bool send_command(uint32_t command){
 
-	EncryptManager em(key_aes,AES_IV);
+	EncryptManager em;
 
 	chunk c;
 	c.plaintext = (char*)&command;
@@ -94,7 +94,7 @@ bool send_command(uint32_t command, const char *key_aes/*, const char* key_hmac*
 
 void cmd_list(){
 
-	if(!send_command(LIST_COMMAND,KEY_AES/*,KEY_HMAC*/)){
+	if(!send_command(LIST_COMMAND)){
 		cout<<"Error in send command"<<endl;
 		return;
 	}
@@ -112,7 +112,7 @@ void cmd_list(){
 	chunk c;
 	c.plaintext = new char[ec.size+AES_BLOCK];
 
-	DecryptManager dm(KEY_AES,AES_IV);
+	DecryptManager dm;
 	dm.DecryptUpdate(c,ec);
 	dm.DecryptFinal(c);
 
@@ -150,7 +150,7 @@ void cmd_upload(){
 	}
 	else
 		cout << "il file esiste" << endl;
-	if(!send_command(UPLOAD_COMMAND,KEY_AES/*,KEY_HMAC*/)) return;
+	if(!send_command(UPLOAD_COMMAND)) return;
 
 	if(!sendDataHMAC(server_socket,(const char*)filename.c_str(),filename.length()+1)) return;		//vanno cifrati
 
@@ -165,7 +165,7 @@ void cmd_upload(){
 void cmd_get(){
 
 	//if(!server_socket.sendInt(GET_COMMAND)) return;
-	if(!send_command(GET_COMMAND,KEY_AES/*,KEY_HMAC*/)) return;
+	if(!send_command(GET_COMMAND)) return;
 	string filename;
 	cin >> filename;
 	string path(CLIENT_PATH);
@@ -317,6 +317,10 @@ bool initial_protocol(NetSocket &server_socket){
 
 	HMACManager::setLocalNonce(CLIENT_NONCE);
 	HMACManager::setRemoteNonce(SERVER_NONCE);
+
+	KeyManager::setAESKey(KEY_AES);
+	KeyManager::setAESIV(AES_IV);
+	KeyManager::setHMACKey(KEY_HMAC);
 
 	return true;
 

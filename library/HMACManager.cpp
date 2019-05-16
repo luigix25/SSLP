@@ -3,16 +3,19 @@
 
 uint32_t HMACManager::nonce[] = {0,0};
 
-HMACManager::HMACManager(const char *key){
-	memcpy(this->key,key,16);
-
-	this->mdctx = HMAC_CTX_new();
-	size_t key_hmac_size = sizeof(KEY_HMAC);
+HMACManager::HMACManager(){
+  this->mdctx = HMAC_CTX_new();
+  size_t key_hmac_size = sizeof(KEY_HMAC);
 
 
-  	if(!HMAC_Init_ex(mdctx, this->key, key_hmac_size, EVP_sha256(), NULL)){
-  		perror("Error In HMAC_Init_ex");
-  	}
+    if(!HMAC_Init_ex(mdctx, this->hmac_key, key_hmac_size, EVP_sha256(), NULL)){
+      perror("Error In HMAC_Init_ex");
+    }
+
+}
+
+HMACManager::HMACManager(const char *_key) : HMACManager(){
+	memcpy(this->hmac_key,_key,16);
 
 }
 
