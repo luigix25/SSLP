@@ -163,7 +163,7 @@ bool sendIntHMAC(NetSocket& sender_socket,int32_t value,bool no_nonce){
 	if(!sender_socket.sendInt(value))
 		return false;
 
-	HMACManager hm(KEY_HMAC);
+	HMACManager hm;
 
 	chunk c;
 	c.plaintext = (char*)&value;
@@ -194,7 +194,7 @@ bool recvIntHMAC(NetSocket& receiver_socket,int32_t& value,bool no_nonce){
 		return false;
 
 
-	HMACManager hm(KEY_HMAC);
+	HMACManager hm;
 	chunk c;
 	c.size = sizeof(uint32_t);
 	c.plaintext = (char*)&value;
@@ -232,7 +232,7 @@ bool sendDataHMAC(NetSocket& sender_socket,const char *data,int32_t length,bool 
 		return false;
 	}
 
-	HMACManager hmac(KEY_HMAC);
+	HMACManager hmac;
 	chunk c;
 	c.size = length;
 	c.plaintext = (char*)data;
@@ -261,7 +261,7 @@ char* recvDataHMAC(NetSocket& receiver_socket,int32_t &length,bool no_nonce){
 	c.size = length;
 	c.plaintext = data;
 
-	HMACManager hmac(KEY_HMAC);
+	HMACManager hmac;
 	if(!hmac.HMACUpdate(c)) return NULL;
 
 	char *digest = hmac.HMACFinal(REMOTE_NONCE, no_nonce);
