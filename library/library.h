@@ -17,6 +17,7 @@
 #include <openssl/hmac.h>
 #include <openssl/x509_vfy.h>
 #include <openssl/err.h>
+#include <openssl/dh.h>
 #include <openssl/crypto.h>
 
 #include <string>
@@ -50,6 +51,8 @@
 
 #define CERT_CA_PATH		"certificates/SSLPCA_cert.pem"
 #define CERT_CA_CRL_PATH	"certificates/SSLPCA_crl.pem"
+
+#define DH_PARAMS_PATH		"certificates/DH.pem"
 
 #define CLIENT_NAME			"SSLPClient"
 #define SERVER_NAME			"SSLPServer"

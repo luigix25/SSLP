@@ -266,6 +266,11 @@ int main(int argc,char **argv){
 		exit(-1);
 	}
 
+	DHManager dh(DH_PARAMS_PATH);
+	int len;
+	char *t = dh.generatePublicKey(len);
+	cout<<len<<endl;
+
 	signal(SIGPIPE, SIG_IGN);					//ignoro sigpipe
 	signal (SIGINT,close_handler);				//gestisco i ctrl-c
 
