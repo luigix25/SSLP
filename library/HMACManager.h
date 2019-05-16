@@ -2,13 +2,14 @@
 
 #define MAC_MNG
 #include "library.h"
+#include "KeyManager.h"
 
-class HMACManager{
+class HMACManager : public KeyManager{
 	private:
-		unsigned char key[16];
 		HMAC_CTX* mdctx;
 		static uint32_t nonce[2];
 	public:
+		HMACManager();							
 		HMACManager(const char *);							//KEY
 		~HMACManager();
 

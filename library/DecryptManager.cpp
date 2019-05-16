@@ -1,13 +1,17 @@
 #include "DecryptManager.h"
 
-DecryptManager::DecryptManager(const char *key, const char *IV){
-	memcpy(this->key,key,16);
-	memcpy(this->IV,IV,16);
+DecryptManager::DecryptManager(){
 	
-  	this->ctx = EVP_CIPHER_CTX_new();
+	this->ctx = EVP_CIPHER_CTX_new();
   	if(!EVP_DecryptInit(ctx, EVP_aes_128_cbc(), this->key, this->IV)){
   		perror("Error In EVP_DecryptInit");
   	}
+
+}
+
+DecryptManager::DecryptManager(const char *_key, const char *_IV) : DecryptManager(){
+	setAESKey(_key);
+	setAESIV(_IV);
 
 }
 

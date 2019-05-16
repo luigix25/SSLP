@@ -2,14 +2,14 @@
 
 #define DECRYPT
 #include "library.h"
+#include "KeyManager.h"
 
-class DecryptManager{
+class DecryptManager : public KeyManager{
 	private:
-		unsigned char key[16];
-		unsigned char IV[16];
 		EVP_CIPHER_CTX *ctx;
 
 	public:
+		DecryptManager();
 		DecryptManager(const char *, const char *);				//KEY AND IV
 		~DecryptManager();
 		bool DecryptUpdate(chunk &,encryptedChunk&);

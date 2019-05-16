@@ -53,7 +53,7 @@ void cmd_list(){
 	const char *str = concatenated.c_str();
 	int len = concatenated.size()+1;
 
-	EncryptManager em(KEY_AES,AES_IV);
+	EncryptManager em;
 	chunk c;
 	c.plaintext = (char*)str;
 	c.size = len;
@@ -172,7 +172,7 @@ int initialize_server(int port){
 
 }
 
-bool receive_command(int &command,const char *key_aes/*, const char* key_hmac*/){
+bool receive_command(int &command){
 
 	int len;
 	char *raw_data = recvDataHMAC(client_socket,len);
@@ -192,7 +192,7 @@ bool receive_command(int &command,const char *key_aes/*, const char* key_hmac*/)
 	chunk c;
 	c.plaintext = new char[ec.size+AES_BLOCK];
 
-	DecryptManager dm(key_aes,AES_IV);
+	DecryptManager dm;
 	dm.DecryptUpdate(c,ec);
 	dm.DecryptFinal(c);
 
@@ -299,39 +299,31 @@ bool initial_protocol(NetSocket &client_socket){
 	int key_length;
 
 	char *simmetric_key = dh.computeSimmetricKey(opponent_pub_key,opponent_pub_key_len,key_length);
-	//delete[] simmetric_key;
 	delete[] opponent_pub_key;
-	//BIO_dump_fp(stdout,(const char*)simmetric_key,key_length);
 
-
-	HMACManager keys(KEY_FIRST_HMAC);
+  	HMACManager keys(KEY_FIRST_HMAC);
 	keys.HMACUpdate(simmetric_key,key_length);
 	char* digest_keys = keys.HMACFinal(LOCAL_NONCE,true);
 
-	cout << "digest keys: " << digest_keys << endl;
-
 	char AES_symmetric_key[AES_KEY_SIZE];
-	memset(AES_symmetric_key,0,AES_KEY_SIZE);
-	memcpy(AES_symmetric_key,simmetric_key,AES_KEY_SIZE);
-
-	cout << "AES_symmetric_key: " << AES_symmetric_key << endl;
-
-	BIO_dump_fp(stdout,(const char*)AES_symmetric_key,HMAC_KEY_SIZE);
-
-
+	memcpy(AES_symmetric_key,digest_keys,AES_KEY_SIZE);
 
 	char HMAC_key[HMAC_KEY_SIZE];
-	memset(HMAC_key,0,HMAC_KEY_SIZE);
+	memcpy(HMAC_key,&digest_keys[HMAC_KEY_SIZE],HMAC_KEY_SIZE);
 
-	memcpy(HMAC_key,&simmetric_key[HMAC_KEY_SIZE],HMAC_KEY_SIZE);
 
-	cout << "HMAC_key: " << HMAC_key << endl;
-
-	BIO_dump_fp(stdout,(const char*)HMAC_key,HMAC_KEY_SIZE);
-
+	KeyManager::setAESKey(AES_symmetric_key);
+	KeyManager::setAESIV(AES_IV);
+	KeyManager::setHMACKey(HMAC_key);
 
 	HMACManager::setRemoteNonce(CLIENT_NONCE);
 	HMACManager::setLocalNonce(SERVER_NONCE);
+
+	memset(AES_symmetric_key,0,AES_KEY_SIZE);
+	memset(HMAC_key,0,HMAC_KEY_SIZE);
+
+	delete[] simmetric_key;
+	delete[] digest_keys;
 
 	return true;
 
@@ -422,7 +414,7 @@ int main(int argc,char **argv){
 
 				} else {
 
-					status = receive_command(cmd,KEY_AES/*,KEY_HMAC*/);
+					status = receive_command(cmd);
 					if(!status){
 						cout<<"Client Disconnesso"<<endl;
 						client_socket.closeConnection();
