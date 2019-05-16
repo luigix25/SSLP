@@ -310,9 +310,9 @@ bool initial_protocol(NetSocket &server_socket){
 
 	delete[] opponent_pub_key;
 
-	HMACManager keys(KEY_FIRST_HMAC);
-	keys.HMACUpdate(simmetric_key,key_length);
-	char* digest_keys = keys.HMACFinal(LOCAL_NONCE,true);
+	HashManager keys;
+	keys.HashUpdate(simmetric_key,key_length);
+	char* digest_keys = keys.HashFinal();
 
 	char AES_symmetric_key[AES_KEY_SIZE];
 	memcpy(AES_symmetric_key,digest_keys,AES_KEY_SIZE);
@@ -322,15 +322,80 @@ bool initial_protocol(NetSocket &server_socket){
 
 	X509_free(server_cert);
 
-	HMACManager::setLocalNonce(CLIENT_NONCE);
-	HMACManager::setRemoteNonce(SERVER_NONCE);
 
 	KeyManager::setAESKey(AES_symmetric_key);
-	KeyManager::setAESIV(AES_IV);
 	KeyManager::setHMACKey(HMAC_key);
 
 	memset(AES_symmetric_key,0,AES_KEY_SIZE);
 	memset(HMAC_key,0,HMAC_KEY_SIZE);
+
+	char *revc_IV = server_socket.recvData(AES_BLOCK);
+	if(revc_IV == NULL){
+		//delete robbba
+		return false;
+	}
+
+	KeyManager::setAESIV(revc_IV);
+	delete[] revc_IV;
+
+	RAND_poll();
+
+	uint32_t local_nonce = 0;
+	RAND_bytes((unsigned char*)&local_nonce,sizeof(uint32_t));
+
+	chunk c;
+	encryptedChunk ec;
+
+	int remote_nonce_size; 
+	if(!server_socket.recvInt(remote_nonce_size)) return false;
+
+	char *recv_data = server_socket.recvData(remote_nonce_size);
+
+	if(recv_data == NULL){
+		//delete robba
+		return false;
+	}
+
+	ec.ciphertext = recv_data;
+	ec.size = remote_nonce_size;
+
+	c.plaintext = new char[ec.size + AES_BLOCK];
+
+	DecryptManager dm;
+	if(!dm.DecryptUpdate(c,ec))			return false;
+	if(!dm.DecryptFinal(c))				return false;
+
+	int remote_nonce = *((int*)c.plaintext);
+
+	delete[] c.plaintext;
+	delete[] ec.ciphertext;
+
+ 	c.plaintext = (char*)&local_nonce;
+	c.size = sizeof(uint32_t);
+
+	ec.ciphertext = new char[c.size+AES_BLOCK];
+
+	EncryptManager em;
+	if(!em.EncryptUpdate(ec,c)){
+		return false;
+	}
+
+	if(!em.EncryptFinal(ec)) return false;
+
+	if(!server_socket.sendInt(ec.size)) return false;
+
+	if(!server_socket.sendData(ec.ciphertext,ec.size)){
+		//delete robba
+		return false;
+	}
+
+	delete[] ec.ciphertext;
+
+	
+
+	HMACManager::setLocalNonce(local_nonce);
+	HMACManager::setRemoteNonce(remote_nonce);
+
 
 	delete[] simmetric_key;
 	delete[] digest_keys;

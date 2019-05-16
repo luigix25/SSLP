@@ -17,6 +17,7 @@
 #include <openssl/hmac.h>
 #include <openssl/x509_vfy.h>
 #include <openssl/err.h>
+#include <openssl/rand.h>
 #include <openssl/dh.h>
 #include <openssl/crypto.h>
 
@@ -35,11 +36,7 @@
 #define AES_KEY_SIZE 16
 #define HMAC_KEY_SIZE 16
 
-#define KEY_AES "panuozzopanuozz"
-#define KEY_HMAC "bombabombabomba"
 #define AES_IV "cornettonebomba"
-#define KEY_FIRST_HMAC "bombabombabomba"
-
 
 #define SERVER_NONCE 	12345
 #define CLIENT_NONCE 	54321
@@ -110,11 +107,11 @@ class NetSocket{
 };
 
 
-bool sendIntHMAC(NetSocket&,int32_t,bool no_nonce = false);
-bool recvIntHMAC(NetSocket&,int32_t&,bool no_nonce = false);
+bool sendIntHMAC(NetSocket&,int32_t);
+bool recvIntHMAC(NetSocket&,int32_t&);
 
-bool sendDataHMAC(NetSocket&,const char *,int32_t,bool no_nonce = false);
-char* recvDataHMAC(NetSocket&,int32_t&,bool no_nonce = false);
+bool sendDataHMAC(NetSocket&,const char *,int32_t);
+char* recvDataHMAC(NetSocket&,int32_t&);
 
 vector<string> get_file_list(const char*);
 vector<string> split (string, string);

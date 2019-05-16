@@ -10,14 +10,17 @@ class EncryptManager : public KeyManager{
 		//unsigned char IV[16];
 		EVP_CIPHER_CTX *ctx;
 
-
 	public:
 		EncryptManager();				//KEY AND IV
 		EncryptManager(const char *, const char *);				//KEY AND IV
 
 		~EncryptManager();
+
 		bool EncryptUpdate(encryptedChunk&, chunk&);
+		bool EncryptUpdate(char *&,int32_t&,const char*,int32_t);
+
 		bool EncryptFinal(encryptedChunk&);
+		bool EncryptFinal(char*,int32_t&);
 
 
 

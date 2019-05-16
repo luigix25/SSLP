@@ -5,10 +5,10 @@ uint32_t HMACManager::nonce[] = {0,0};
 
 HMACManager::HMACManager(){
   this->mdctx = HMAC_CTX_new();
-  size_t key_hmac_size = sizeof(KEY_HMAC);
+ // size_t key_hmac_size = HMAC_KEY_SIZE;
 
 
-    if(!HMAC_Init_ex(mdctx, this->hmac_key, key_hmac_size, EVP_sha256(), NULL)){
+    if(!HMAC_Init_ex(mdctx, this->hmac_key, HMAC_KEY_SIZE, EVP_sha256(), NULL)){
       perror("Error In HMAC_Init_ex");
     }
 
@@ -52,24 +52,22 @@ bool HMACManager::HMACUpdate(const char *pt,int len){
 
 }
 
-char* HMACManager::HMACFinal(enum_nonce en,bool no_nonce){
+char* HMACManager::HMACFinal(enum_nonce en){
 	int hash_size = EVP_MD_size(EVP_sha256());
 	char *digest = new char [HASH_SIZE];
 
-  if(!no_nonce){
-    if(nonce != 0){
-      chunk c;
-      c.size = sizeof(uint32_t);
-      c.plaintext = (char*)&nonce[en];
-  
-      if(!HMACUpdate(c)){
-        return NULL;
-      }
-  
-      nonce[en]++;
-    }
-  }
+  if(nonce != 0){
+    chunk c;
+    c.size = sizeof(uint32_t);
+    c.plaintext = (char*)&nonce[en];
 
+    if(!HMACUpdate(c)){
+      return NULL;
+    }
+
+    nonce[en]++;
+  }
+  
 	if(!HMAC_Final(mdctx, (unsigned char*)digest, (unsigned int*)&hash_size)){
 		perror("Error in HMAC_Final");
 		return NULL;

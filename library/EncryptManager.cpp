@@ -16,9 +16,11 @@ EncryptManager::EncryptManager(const char *_key, const char *_IV) : EncryptManag
 	setAESIV(_IV);
 }				//KEY AND IV
 
-bool EncryptManager::EncryptUpdate(encryptedChunk& ec, chunk& c){
+bool EncryptManager::EncryptUpdate(char *& ciphertext ,int32_t& ciphertext_len, const char* plaintext ,int32_t plaintext_len){
 
-    if(!EVP_EncryptUpdate(this->ctx, (unsigned char*)ec.ciphertext, &ec.size, (unsigned char*)c.plaintext, c.size)){
+	ciphertext = new char[plaintext_len + AES_BLOCK];
+ 	
+ 	if(!EVP_EncryptUpdate(this->ctx, (unsigned char*)ciphertext, &ciphertext_len, (unsigned char*)plaintext, plaintext_len)){
     	perror("Error in EVP_EncryptUpdate");
     	return false;
     }
@@ -27,17 +29,32 @@ bool EncryptManager::EncryptUpdate(encryptedChunk& ec, chunk& c){
 
 }
 
+
+bool EncryptManager::EncryptUpdate(encryptedChunk& ec, chunk& c){
+
+	return EncryptUpdate(ec.ciphertext,ec.size,c.plaintext,c.size);
+
+}
+
 bool EncryptManager::EncryptFinal(encryptedChunk& ec){
-	int len;
+
+	return EncryptFinal(ec.ciphertext,ec.size);	
+}
+
+bool EncryptManager::EncryptFinal(char* ciphertext,int32_t &len){
+
+	int local_len;
 	
-	if(!EVP_EncryptFinal(ctx, (unsigned char*)ec.ciphertext + ec.size, &len)){
+	if(!EVP_EncryptFinal(ctx, (unsigned char*)ciphertext + len, &local_len)){
 		perror("Error in EVP_EncryptFinal");
 		return false;
 	}
-  	ec.size += len;
+  	len += local_len;
 	//EVP_CIPHER_CTX_free(ctx);
 	return true;
+
 }
+
 
 EncryptManager::~EncryptManager(){
 	EVP_CIPHER_CTX_free(ctx);

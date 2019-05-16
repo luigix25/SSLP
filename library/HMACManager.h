@@ -17,7 +17,7 @@ class HMACManager : public KeyManager{
 		bool HMACUpdate(chunk &);
 		bool HMACUpdate(const char *,int);
 
-		char* HMACFinal(enum_nonce,bool);
+		char* HMACFinal(enum_nonce);
 		//char* HMACFinal();
 
 		static bool setLocalNonce(uint32_t);
