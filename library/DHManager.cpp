@@ -44,7 +44,15 @@ char * DHManager::generatePublicKey(int &len){
 
 }
 
-char * DHManager::computeSimmetricKey(const char *received_data,uint32_t len){
+char * DHManager::computeSimmetricKey(const char *received_data,uint32_t len,int &key_len){
 
+	BIGNUM *opponent_pubkey = BN_bin2bn((const unsigned char*)received_data,len,NULL);
+	unsigned char* key = new unsigned char[DH_size(this->session)];
+	key_len = DH_compute_key(key,opponent_pubkey,this->session);
+
+	if(key_len <=0)
+		return NULL;
+
+	return (char*)key;
 
 }

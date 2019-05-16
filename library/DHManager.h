@@ -9,7 +9,7 @@ class DHManager{
 	public:
 		DHManager(const char *);							//DH Param Path
 		char * generatePublicKey(int &);
-		char * computeSimmetricKey(const char *);
+		char * computeSimmetricKey(const char *,uint32_t,int &);
 
 		//~DHManager();
 

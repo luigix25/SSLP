@@ -267,6 +267,7 @@ bool initial_protocol(NetSocket &server_socket){
 
 	CertificateManager cm(CERT_CA_PATH,CERT_CA_CRL_PATH);
 	if(!cm.verifyCertificate(server_cert)){
+		cout<<"errore verifica certificato"<<endl;
 		X509_free(server_cert);
 		return false;
 	}
@@ -274,10 +275,44 @@ bool initial_protocol(NetSocket &server_socket){
 	char *name = cm.extractCommonName(server_cert);
 	if(name == NULL){
 		X509_free(server_cert);
+		cout<<"errore extractCommonName"<<endl;
 		return false;
 	}
 
 	cout<<"Connessione stabilita con il server "<<name<<endl;
+
+	DHManager dh(DH_PARAMS_PATH);
+	int pub_key_len;
+	char *pub_key = dh.generatePublicKey(pub_key_len);
+	if(pub_key == NULL){
+		exit(-1);
+	}
+
+	cout<<pub_key_len<<endl;
+
+	char *opponent_pub_key;
+	int opponent_pub_key_len;
+
+
+	if(!server_socket.recvInt(opponent_pub_key_len)) 	return false;
+	//add check to int received
+	opponent_pub_key = server_socket.recvData(opponent_pub_key_len);
+	if(opponent_pub_key == NULL)
+		return false;
+
+
+	if(!server_socket.sendInt(pub_key_len)) 			return false;
+	if(!server_socket.sendData(pub_key,pub_key_len)) 	return false;
+
+
+	int key_length;
+	char *simmetric_key = dh.computeSimmetricKey(opponent_pub_key,opponent_pub_key_len,key_length);
+
+	BIO_dump_fp(stdout,(const char*)simmetric_key,key_length);
+
+
+
+
 
 	delete[] name;
 
@@ -331,6 +366,8 @@ int main(int argc,char **argv){
 	server_socket = NetSocket(socket_tcp);
 
 	if(!initial_protocol(server_socket)){
+		cout<<"error"<<endl;
+		exit(-1);
 		//handle error
 	}
 
