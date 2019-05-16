@@ -274,8 +274,8 @@ bool initial_protocol(NetSocket &server_socket){
 		return false;
 	}
 
-	char *name = cm.extractCommonName(server_cert);
-	if(name == NULL){
+	string name;
+	if(!cm.extractCommonName(server_cert,name)){
 		X509_free(server_cert);
 		cout<<"errore extractCommonName"<<endl;
 		return false;
@@ -289,8 +289,6 @@ bool initial_protocol(NetSocket &server_socket){
 	if(pub_key == NULL){
 		exit(-1);
 	}
-
-	cout<<pub_key_len<<endl;
 
 	char *opponent_pub_key;
 	int opponent_pub_key_len;
@@ -314,11 +312,6 @@ bool initial_protocol(NetSocket &server_socket){
 	delete[] opponent_pub_key;
 	//BIO_dump_fp(stdout,(const char*)simmetric_key,key_length);
 
-
-
-
-
-	delete[] name;
 
 	X509_free(server_cert);
 

@@ -4,17 +4,38 @@
 fd_set master;
 NetSocket client_socket;
 int server_socket;
-chunk test;
-encryptedChunk encryptedtest;
-
 
 void close_handler(int s){
 	cout<<endl<<"Terminating.."<<endl;
 	client_socket.closeConnection();
 	close(server_socket);
 	exit(s);
+}
+
+
+bool isClientAuthorized(string& clientName, const char* filePath){
+
+	ifstream file(filePath);
+	if(!file){
+		cerr<<"Error opening file"<<endl;
+		return false;
+	}
+
+	while(!file.eof()){
+		string name;
+		file>>name;
+		if(name == clientName){
+			file.close();
+			return true;
+		}
+
+	}
+
+	file.close();
+	return false;
 
 }
+
 
 void cmd_list(){
 	vector <string> files;
@@ -22,10 +43,6 @@ void cmd_list(){
 	int number;
 
 	number = (int)files.size();
-/*
-	if(!client_socket.sendInt(number))
-		return;
-*/
 
 	string concatenated = files[0];
 
@@ -220,13 +237,19 @@ bool initial_protocol(NetSocket &client_socket){
 		return false;
 	}
 
-	char *name = cm.extractCommonName(client_cert);
-	cout<<name<<endl;
+	string name;
 
+	if(!cm.extractCommonName(client_cert,name)){
+		X509_free(client_cert);
+		return false;
+	}
+
+	if(!isClientAuthorized(name,CLIENTS_LIST)){
+		cout<<"Client not authorized"<<endl;
+		return false;
+	}
 
 	cout<<"Connessione stabilita con il client "<<name<<endl;
-
-	delete[] name;
 
 	X509_free(client_cert);
 
@@ -257,8 +280,6 @@ bool initial_protocol(NetSocket &client_socket){
 	if(pub_key == NULL){
 		exit(-1);
 	}
-
-	cout<<len<<endl;
 
 	if(!client_socket.sendInt(len)) 			return false;
 	if(!client_socket.sendData(pub_key,len)) 	return false;

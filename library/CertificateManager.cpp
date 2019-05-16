@@ -63,26 +63,29 @@ bool CertificateManager::verifyCertificate(X509* certificate){
 
 }
 
-char* CertificateManager::extractCommonName(X509* certificate){
+bool CertificateManager::extractCommonName(X509* certificate,string &string_name){
 
 	if(!certificate)
-		return NULL;
+		return false;
 
 	X509_NAME* name = X509_get_subject_name(certificate);
 	int len;
 	
 	len = X509_NAME_get_text_by_NID(name,NID_commonName,NULL,0);				//i get the length of the commonname
 	if(len == -1)
-		return NULL;
+		return false;
 
 	len++;																		//terminator char
 
 	char *tmp = new char[len];
 
 	if(X509_NAME_get_text_by_NID(name,NID_commonName,tmp,len) == -1)
-		return NULL;
+		return false;
 
-	return tmp;
+	string_name = (string)tmp;
+	delete[] tmp;
+
+	return true;
 
 }
 

@@ -9,3 +9,4 @@
 
 
 #define CERT_SERVER_PATH 				"certificates/SSLPServer_cert.pem"
+#define CLIENTS_LIST					"server_files/clients.txt"

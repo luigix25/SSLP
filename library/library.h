@@ -54,10 +54,6 @@
 
 #define DH_PARAMS_PATH		"certificates/DH.pem"
 
-#define CLIENT_NAME			"SSLPClient"
-#define SERVER_NAME			"SSLPServer"
-
-
 using namespace std;
 
 #define MAX_CHUNK_SIZE 256 *1024

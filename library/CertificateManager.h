@@ -12,7 +12,7 @@ class CertificateManager{
 		~CertificateManager();
 
 		bool verifyCertificate(X509*);
-		char* extractCommonName(X509*);
+		bool extractCommonName(X509*,string &);
 		EVP_PKEY* extractPubKey(X509*);
 
 
