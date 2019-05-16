@@ -389,7 +389,10 @@ int main(int argc,char **argv){
 					client_socket.setSocket(new_sock);
 					alreadyConnected = true;
 
-					initial_protocol(client_socket);
+					if(!initial_protocol(client_socket)){
+						client_socket.closeConnection();
+						alreadyConnected = false;
+					}
 
 					continue;
 

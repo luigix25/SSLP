@@ -38,6 +38,10 @@
 #RSA keys
 #*.pem
 
+#Eccezione per file clients
+!clients.txt
+
+
 #Eseguibili dell'app 
 client
 server
