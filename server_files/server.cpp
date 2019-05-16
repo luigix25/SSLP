@@ -223,34 +223,6 @@ bool initial_protocol(NetSocket &client_socket){
 	char *name = cm.extractCommonName(client_cert);
 	cout<<name<<endl;
 
-	DHManager dh(DH_PARAMS_PATH);
-	int len;
-	char *pub_key = dh.generatePublicKey(len);
-	if(pub_key == NULL){
-		exit(-1);
-	}
-
-	cout<<len<<endl;
-
-	if(!client_socket.sendInt(len)) 			return false;
-	if(!client_socket.sendData(pub_key,len)) 	return false;
-
-	char *opponent_pub_key;
-	int opponent_pub_key_len;
-
-	if(!client_socket.recvInt(opponent_pub_key_len)) 	return false;
-	//add check to int received
-	opponent_pub_key = client_socket.recvData(opponent_pub_key_len);
-	if(opponent_pub_key == NULL)
-		return false;
-
-	int key_length;
-	char *simmetric_key = dh.computeSimmetricKey(opponent_pub_key,opponent_pub_key_len,key_length);
-
-	BIO_dump_fp(stdout,(const char*)simmetric_key,key_length);
-
-
-
 
 	cout<<"Connessione stabilita con il client "<<name<<endl;
 
@@ -278,6 +250,36 @@ bool initial_protocol(NetSocket &client_socket){
 
 	OPENSSL_free(cert_buf);
 	X509_free(server_cert);
+
+	DHManager dh(DH_PARAMS_PATH);
+	int len;
+	char *pub_key = dh.generatePublicKey(len);
+	if(pub_key == NULL){
+		exit(-1);
+	}
+
+	cout<<len<<endl;
+
+	if(!client_socket.sendInt(len)) 			return false;
+	if(!client_socket.sendData(pub_key,len)) 	return false;
+
+	char *opponent_pub_key;
+	int opponent_pub_key_len;
+
+
+	if(!client_socket.recvInt(opponent_pub_key_len)) 	return false;
+	//add check to int received
+	opponent_pub_key = client_socket.recvData(opponent_pub_key_len);
+	if(opponent_pub_key == NULL)
+		return false;
+
+	int key_length;
+
+	char *simmetric_key = dh.computeSimmetricKey(opponent_pub_key,opponent_pub_key_len,key_length);
+
+	//BIO_dump_fp(stdout,(const char*)simmetric_key,key_length);
+
+
 
 
 

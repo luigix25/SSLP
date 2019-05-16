@@ -262,8 +262,10 @@ bool initial_protocol(NetSocket &server_socket){
 	X509 *server_cert = d2i_X509(NULL,(const unsigned char **)&server_cert_data,cert_size);
 	delete[] old_ptr;
 
+
 	if(!server_cert)
 		return false;
+
 
 	CertificateManager cm(CERT_CA_PATH,CERT_CA_CRL_PATH);
 	if(!cm.verifyCertificate(server_cert)){
@@ -308,7 +310,7 @@ bool initial_protocol(NetSocket &server_socket){
 	int key_length;
 	char *simmetric_key = dh.computeSimmetricKey(opponent_pub_key,opponent_pub_key_len,key_length);
 
-	BIO_dump_fp(stdout,(const char*)simmetric_key,key_length);
+	//BIO_dump_fp(stdout,(const char*)simmetric_key,key_length);
 
 
 
