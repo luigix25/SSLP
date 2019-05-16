@@ -56,7 +56,7 @@ char* HMACManager::HMACFinal(enum_nonce en,bool no_nonce){
 	int hash_size = EVP_MD_size(EVP_sha256());
 	char *digest = new char [HASH_SIZE];
 
-  if(no_nonce){
+  if(!no_nonce){
     if(nonce != 0){
       chunk c;
       c.size = sizeof(uint32_t);

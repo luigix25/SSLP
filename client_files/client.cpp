@@ -308,19 +308,34 @@ bool initial_protocol(NetSocket &server_socket){
 	int key_length;
 	char *simmetric_key = dh.computeSimmetricKey(opponent_pub_key,opponent_pub_key_len,key_length);
 
-	delete[] simmetric_key;
 	delete[] opponent_pub_key;
-	//BIO_dump_fp(stdout,(const char*)simmetric_key,key_length);
 
+	HMACManager keys(KEY_FIRST_HMAC);
+	keys.HMACUpdate(simmetric_key,key_length);
+	char* digest_keys = keys.HMACFinal(LOCAL_NONCE,true);
+
+	char AES_symmetric_key[AES_KEY_SIZE];
+	memcpy(AES_symmetric_key,digest_keys,AES_KEY_SIZE);
+
+	char HMAC_key[HMAC_KEY_SIZE];
+	memcpy(HMAC_key,&digest_keys[HMAC_KEY_SIZE],HMAC_KEY_SIZE);
 
 	X509_free(server_cert);
 
 	HMACManager::setLocalNonce(CLIENT_NONCE);
 	HMACManager::setRemoteNonce(SERVER_NONCE);
 
-	KeyManager::setAESKey(KEY_AES);
+	KeyManager::setAESKey(AES_symmetric_key);
 	KeyManager::setAESIV(AES_IV);
-	KeyManager::setHMACKey(KEY_HMAC);
+	KeyManager::setHMACKey(HMAC_key);
+
+	memset(AES_symmetric_key,0,AES_KEY_SIZE);
+	memset(HMAC_key,0,HMAC_KEY_SIZE);
+
+	delete[] simmetric_key;
+	delete[] digest_keys;
+
+	//destroy "old" key?
 
 	return true;
 
