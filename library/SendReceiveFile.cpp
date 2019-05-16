@@ -33,7 +33,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 	file_status status;
 	bool last = false;
 
-	EncryptManager em(KEY_AES,AES_IV);
+	EncryptManager em;
 
  	char* digest;
  
@@ -135,7 +135,7 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,c
 
 	cout<<"File Size: "<<file_size<<endl;
 	WriteFileManager fm(path,file_size);
-	DecryptManager dm(KEY_AES,AES_IV);
+	DecryptManager dm;
 	RSAVerifyManager verify(key_path);
 
 

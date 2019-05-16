@@ -53,7 +53,7 @@ void cmd_list(){
 	const char *str = concatenated.c_str();
 	int len = concatenated.size()+1;
 
-	EncryptManager em(KEY_AES,AES_IV);
+	EncryptManager em;
 	chunk c;
 	c.plaintext = (char*)str;
 	c.size = len;
@@ -172,7 +172,7 @@ int initialize_server(int port){
 
 }
 
-bool receive_command(int &command,const char *key_aes/*, const char* key_hmac*/){
+bool receive_command(int &command){
 
 	int len;
 	char *raw_data = recvDataHMAC(client_socket,len);
@@ -192,7 +192,7 @@ bool receive_command(int &command,const char *key_aes/*, const char* key_hmac*/)
 	chunk c;
 	c.plaintext = new char[ec.size+AES_BLOCK];
 
-	DecryptManager dm(key_aes,AES_IV);
+	DecryptManager dm;
 	dm.DecryptUpdate(c,ec);
 	dm.DecryptFinal(c);
 
@@ -304,7 +304,11 @@ bool initial_protocol(NetSocket &client_socket){
 	//BIO_dump_fp(stdout,(const char*)simmetric_key,key_length);
 
 
-	HMACManager keys(KEY_FIRST_HMAC);
+	KeyManager::setAESKey(KEY_AES);
+	KeyManager::setAESIV(AES_IV);
+	KeyManager::setHMACKey(KEY_HMAC);
+
+  HMACManager keys(KEY_FIRST_HMAC);
 	keys.HMACUpdate(simmetric_key,key_length);
 	char* digest_keys = keys.HMACFinal(LOCAL_NONCE,true);
 
@@ -328,7 +332,6 @@ bool initial_protocol(NetSocket &client_socket){
 	cout << "HMAC_key: " << HMAC_key << endl;
 
 	BIO_dump_fp(stdout,(const char*)HMAC_key,HMAC_KEY_SIZE);
-
 
 	HMACManager::setRemoteNonce(CLIENT_NONCE);
 	HMACManager::setLocalNonce(SERVER_NONCE);
@@ -422,7 +425,7 @@ int main(int argc,char **argv){
 
 				} else {
 
-					status = receive_command(cmd,KEY_AES/*,KEY_HMAC*/);
+					status = receive_command(cmd);
 					if(!status){
 						cout<<"Client Disconnesso"<<endl;
 						client_socket.closeConnection();
