@@ -41,20 +41,33 @@ bool HMACManager::HMACUpdate(chunk &ec){
 
 }
 
-char* HMACManager::HMACFinal(enum_nonce en){
+bool HMACManager::HMACUpdate(const char *pt,int len){
+
+    if(!HMAC_Update(mdctx, (unsigned char*) pt,len)){
+      perror("Error in EVP_DecryptUpdate");
+      return false;
+    }
+
+    return true;
+
+}
+
+char* HMACManager::HMACFinal(enum_nonce en,bool no_nonce){
 	int hash_size = EVP_MD_size(EVP_sha256());
 	char *digest = new char [HASH_SIZE];
 
-  if(nonce != 0){
-    chunk c;
-    c.size = sizeof(uint32_t);
-    c.plaintext = (char*)&nonce[en];
-
-    if(!HMACUpdate(c)){
-      return NULL;
+  if(no_nonce){
+    if(nonce != 0){
+      chunk c;
+      c.size = sizeof(uint32_t);
+      c.plaintext = (char*)&nonce[en];
+  
+      if(!HMACUpdate(c)){
+        return NULL;
+      }
+  
+      nonce[en]++;
     }
-
-    nonce[en]++;
   }
 
 	if(!HMAC_Final(mdctx, (unsigned char*)digest, (unsigned int*)&hash_size)){

@@ -141,7 +141,6 @@ vector<string> get_file_list(const char* path){
 
 	closedir(folder);
 	return result;
-
 }
 
 vector<string> split (string s, string delimiter) {
@@ -159,7 +158,7 @@ vector<string> split (string s, string delimiter) {
     return res;
 }
 
-bool sendIntHMAC(NetSocket& sender_socket,int32_t value){
+bool sendIntHMAC(NetSocket& sender_socket,int32_t value,bool no_nonce){
 
 	if(!sender_socket.sendInt(value))
 		return false;
@@ -171,7 +170,7 @@ bool sendIntHMAC(NetSocket& sender_socket,int32_t value){
 	c.size = sizeof(uint32_t);
 	hm.HMACUpdate(c);
 
-	char *digest = hm.HMACFinal(LOCAL_NONCE);
+	char *digest = hm.HMACFinal(LOCAL_NONCE,no_nonce);
 
 	if(digest == NULL) return false;
 	bool return_value;
@@ -185,7 +184,7 @@ bool sendIntHMAC(NetSocket& sender_socket,int32_t value){
 }
 
 
-bool recvIntHMAC(NetSocket& receiver_socket,int32_t& value){
+bool recvIntHMAC(NetSocket& receiver_socket,int32_t& value,bool no_nonce){
 
 	if(!receiver_socket.recvInt(value))
 		return false;
@@ -201,7 +200,7 @@ bool recvIntHMAC(NetSocket& receiver_socket,int32_t& value){
 	c.plaintext = (char*)&value;
 
 	hm.HMACUpdate(c);
-	char *digest = hm.HMACFinal(REMOTE_NONCE);
+	char *digest = hm.HMACFinal(REMOTE_NONCE,no_nonce);
 
 	if(digest == NULL){
 		return false;
@@ -224,9 +223,9 @@ bool recvIntHMAC(NetSocket& receiver_socket,int32_t& value){
 
 }
 
-bool sendDataHMAC(NetSocket& sender_socket,const char *data,int32_t length){
+bool sendDataHMAC(NetSocket& sender_socket,const char *data,int32_t length,bool no_nonce){
 
-	if(!sendIntHMAC(sender_socket,length+HASH_SIZE))
+	if(!sendIntHMAC(sender_socket,length+HASH_SIZE,no_nonce))
 		return false;
 
 	if(!sender_socket.sendData(data,length)){
@@ -240,7 +239,7 @@ bool sendDataHMAC(NetSocket& sender_socket,const char *data,int32_t length){
 
 	if(!hmac.HMACUpdate(c)) return false;
 
-	char *digest = hmac.HMACFinal(LOCAL_NONCE);
+	char *digest = hmac.HMACFinal(LOCAL_NONCE, no_nonce);
 
 	bool ret = sender_socket.sendData(digest,HASH_SIZE);
 
@@ -249,9 +248,9 @@ bool sendDataHMAC(NetSocket& sender_socket,const char *data,int32_t length){
 
 }
 
-char* recvDataHMAC(NetSocket& receiver_socket,int32_t &length){
+char* recvDataHMAC(NetSocket& receiver_socket,int32_t &length,bool no_nonce){
 
-	if(!recvIntHMAC(receiver_socket,length))
+	if(!recvIntHMAC(receiver_socket,length,no_nonce))
 		return false;
 
 	length -= HASH_SIZE;
@@ -265,7 +264,7 @@ char* recvDataHMAC(NetSocket& receiver_socket,int32_t &length){
 	HMACManager hmac(KEY_HMAC);
 	if(!hmac.HMACUpdate(c)) return NULL;
 
-	char *digest = hmac.HMACFinal(REMOTE_NONCE);
+	char *digest = hmac.HMACFinal(REMOTE_NONCE, no_nonce);
 
 	if(digest == NULL) return NULL;
 

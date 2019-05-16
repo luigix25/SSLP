@@ -299,7 +299,7 @@ bool initial_protocol(NetSocket &client_socket){
 	int key_length;
 
 	char *simmetric_key = dh.computeSimmetricKey(opponent_pub_key,opponent_pub_key_len,key_length);
-	delete[] simmetric_key;
+	//delete[] simmetric_key;
 	delete[] opponent_pub_key;
 	//BIO_dump_fp(stdout,(const char*)simmetric_key,key_length);
 
@@ -307,6 +307,31 @@ bool initial_protocol(NetSocket &client_socket){
 	KeyManager::setAESKey(KEY_AES);
 	KeyManager::setAESIV(AES_IV);
 	KeyManager::setHMACKey(KEY_HMAC);
+
+  HMACManager keys(KEY_FIRST_HMAC);
+	keys.HMACUpdate(simmetric_key,key_length);
+	char* digest_keys = keys.HMACFinal(LOCAL_NONCE,true);
+
+	cout << "digest keys: " << digest_keys << endl;
+
+	char AES_symmetric_key[AES_KEY_SIZE];
+	memset(AES_symmetric_key,0,AES_KEY_SIZE);
+	memcpy(AES_symmetric_key,simmetric_key,AES_KEY_SIZE);
+
+	cout << "AES_symmetric_key: " << AES_symmetric_key << endl;
+
+	BIO_dump_fp(stdout,(const char*)AES_symmetric_key,HMAC_KEY_SIZE);
+
+
+
+	char HMAC_key[HMAC_KEY_SIZE];
+	memset(HMAC_key,0,HMAC_KEY_SIZE);
+
+	memcpy(HMAC_key,&simmetric_key[HMAC_KEY_SIZE],HMAC_KEY_SIZE);
+
+	cout << "HMAC_key: " << HMAC_key << endl;
+
+	BIO_dump_fp(stdout,(const char*)HMAC_key,HMAC_KEY_SIZE);
 
 	HMACManager::setRemoteNonce(CLIENT_NONCE);
 	HMACManager::setLocalNonce(SERVER_NONCE);
