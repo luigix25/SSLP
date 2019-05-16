@@ -14,7 +14,9 @@ class HMACManager{
 
 		bool HMACUpdate(encryptedChunk &);
 		bool HMACUpdate(chunk &);
-		char* HMACFinal(enum_nonce);
+		bool HMACUpdate(const char *,int);
+
+		char* HMACFinal(enum_nonce,bool);
 		//char* HMACFinal();
 
 		static bool setLocalNonce(uint32_t);
