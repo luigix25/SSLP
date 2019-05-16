@@ -6,6 +6,8 @@
 #include "../library/SendReceiveFile.h"
 #include "../library/RSAEncryptManager.h"
 #include "../library/DHManager.h"
+#include "../library/HashManager.h"
+
 
 
 #define CERT_SERVER_PATH 				"certificates/SSLPServer_cert.pem"
