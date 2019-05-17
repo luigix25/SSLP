@@ -109,7 +109,6 @@ void cmd_list(){
 	ec.size = len;
 
 	chunk c;
-	c.plaintext = new char[ec.size+AES_BLOCK];
 
 	DecryptManager dm;
 	dm.DecryptUpdate(c,ec);
@@ -357,8 +356,6 @@ bool initial_protocol(NetSocket &server_socket){
 
 	ec.ciphertext = recv_data;
 	ec.size = remote_nonce_size;
-
-	c.plaintext = new char[ec.size + AES_BLOCK];
 
 	DecryptManager dm;
 	if(!dm.DecryptUpdate(c,ec))			return false;

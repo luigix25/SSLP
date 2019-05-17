@@ -161,10 +161,7 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,c
 		ec.size  = len;
 		ec.ciphertext = recvd_data;
 
-		char *plaintext = new char[ec.size + AES_BLOCK];
-
 		chunk c;
-		c.plaintext = plaintext;
 
 		if(!dm.DecryptUpdate(c,ec)){
 			cout<<"DecryptUpdate error"<<endl;
