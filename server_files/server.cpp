@@ -189,7 +189,6 @@ bool receive_command(int &command){
 	//unserialization(raw_data,len,ec,recvd_hmac);
 
 	chunk c;
-	c.plaintext = new char[ec.size+AES_BLOCK];
 
 	DecryptManager dm;
 	dm.DecryptUpdate(c,ec);
@@ -271,7 +270,7 @@ bool initial_protocol(NetSocket &client_socket){
 		delete[] cert_buf;
 		return false;					//chiedere perazzo
 	}
-	
+
 	if(!client_socket.sendData((const char*)cert_buf,cert_size)){
 		delete[] cert_buf;
 		return false;
@@ -389,8 +388,6 @@ bool initial_protocol(NetSocket &client_socket){
 
 	ec.ciphertext = recv_data;
 	ec.size = nonce_cipher_size;
-
-	c.plaintext = new char[ec.size + AES_BLOCK];
 
 	DecryptManager dm;
 	if(!dm.DecryptUpdate(c,ec)){			
