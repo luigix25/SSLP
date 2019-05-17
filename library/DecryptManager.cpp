@@ -17,25 +17,41 @@ DecryptManager::DecryptManager(const char *_key, const char *_IV) : DecryptManag
 
 bool DecryptManager::DecryptUpdate(chunk &c, encryptedChunk& ec){
 
-    if(!EVP_DecryptUpdate(this->ctx, (unsigned char*)c.plaintext, &c.size, (unsigned char*)ec.ciphertext, ec.size)){
+	return DecryptUpdate(c.plaintext,c.size,ec.ciphertext,ec.size);
+
+}
+
+bool DecryptManager::DecryptUpdate(char *& plaintext,int32_t& plaintext_len,const char* ciphertext,int ciphertext_len){
+    plaintext = new char[ciphertext_len + AES_BLOCK];
+
+
+    if(!EVP_DecryptUpdate(this->ctx, (unsigned char*)plaintext, &plaintext_len, (unsigned char*)ciphertext, ciphertext_len)){
     	perror("Error in EVP_DecryptUpdate");
     	return false;
     }
 
     return true;
-
 }
 
-bool DecryptManager::DecryptFinal(chunk &c){
+
+bool DecryptManager::DecryptFinal(char* plaintext,int32_t &plaintext_len){
 	int len;
 	
-	if(!EVP_DecryptFinal(ctx, (unsigned char*)c.plaintext + c.size, &len)){
+	if(!EVP_DecryptFinal(ctx, (unsigned char*)plaintext + plaintext_len, &len)){
 		perror("Error in EVP_DecryptFinal");
 		return false;
 	}
-  	c.size += len;
+  	
+  	plaintext_len += len;
 	//EVP_CIPHER_CTX_free(ctx);
 	return true;
+}
+
+
+bool DecryptManager::DecryptFinal(chunk &c){
+
+
+	return DecryptFinal(c.plaintext,c.size);
 }
 
 DecryptManager::~DecryptManager(){

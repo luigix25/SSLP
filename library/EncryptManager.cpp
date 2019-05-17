@@ -16,7 +16,7 @@ EncryptManager::EncryptManager(const char *_key, const char *_IV) : EncryptManag
 	setAESIV(_IV);
 }				//KEY AND IV
 
-bool EncryptManager::EncryptUpdate(char *& ciphertext ,int32_t& ciphertext_len, const char* plaintext ,int32_t plaintext_len){
+bool EncryptManager::EncryptUpdate(char *& ciphertext, int32_t& ciphertext_len, const char* plaintext ,int32_t plaintext_len){
 
 	ciphertext = new char[plaintext_len + AES_BLOCK];
  	
