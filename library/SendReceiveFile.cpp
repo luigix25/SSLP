@@ -58,9 +58,6 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 			cout<<"HANDLE ERROR"<<endl;
 		}	
 
-		if(!sign.RSAUpdate(c)){						//hash on plaintext
-			cout<<"ERORR"<<endl;
-		}
 
 		delete[] c.plaintext;
 		c.size = 0;
@@ -72,6 +69,11 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 
 
 		}
+
+		if(!sign.RSAUpdate(ec)){						//hash on plaintext
+			cout<<"ERORR"<<endl;
+		}
+
 
 
 		if(!sendDataHMAC(receiverSocket,ec.ciphertext,ec.size)){			//aggiorno il nonce
@@ -200,7 +202,7 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,c
 			cout << endl;
 		}
 
-		if(!verify.RSAUpdate(c)){
+		if(!verify.RSAUpdate(ec)){
 			cout<<"ERROR"<<endl;
 			fm.finalize(true);
 			return false;
