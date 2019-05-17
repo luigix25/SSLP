@@ -185,9 +185,6 @@ bool receive_command(int &command){
 	ec.size = len;
 	ec.ciphertext = raw_data;
 
-	//char* recvd_hmac = new char[HASH_SIZE];
-	//unserialization(raw_data,len,ec,recvd_hmac);
-
 	chunk c;
 
 	DecryptManager dm;
@@ -242,6 +239,11 @@ bool initial_protocol(NetSocket &client_socket){
 		return false;
 	}
 
+	EVP_PKEY *public_key_rsa;
+
+
+	public_key_rsa = cm.extractPubKey(client_cert);
+
 	if(!isClientAuthorized(name,CLIENTS_LIST)){
 		cout<<"Client not authorized"<<endl;
 		return false;
@@ -279,6 +281,8 @@ bool initial_protocol(NetSocket &client_socket){
 	OPENSSL_free(cert_buf);
 	X509_free(server_cert);
 
+	RSAVerifyManager verify(public_key_rsa);
+
 	DHManager dh(DH_PARAMS_PATH);
 	int len;
 	char *pub_key = dh.generatePublicKey(len);
@@ -286,10 +290,14 @@ bool initial_protocol(NetSocket &client_socket){
 		exit(-1);
 	}
 
+	if(!verify.RSAUpdate((const char*)&len,sizeof(int32_t)))		return false; //check
+
 	if(!client_socket.sendInt(len)){
 		delete[] pub_key;
 		return false;
 	}
+
+	if(!verify.RSAUpdate(pub_key,len))		return false; //check
 
 	if(!client_socket.sendData(pub_key,len)){
 		delete[] pub_key; 	
@@ -303,9 +311,15 @@ bool initial_protocol(NetSocket &client_socket){
 
 
 	if(!client_socket.recvInt(opponent_pub_key_len))	return false;			//add check to int received
+	if(!verify.RSAUpdate((const char*)&opponent_pub_key_len,sizeof(int32_t)))		return false; //check
+
 	opponent_pub_key = client_socket.recvData(opponent_pub_key_len);
+	if(!verify.RSAUpdate(opponent_pub_key,opponent_pub_key_len))		return false; //check
+
+
 	if(opponent_pub_key == NULL)
 		return false;
+
 
 	int key_length;
 
@@ -349,11 +363,14 @@ bool initial_protocol(NetSocket &client_socket){
 	KeyManager::setAESIV(IV);
 	KeyManager::setHMACKey(HMAC_key);
 
+	if(!verify.RSAUpdate(IV,AES_BLOCK))		return false; //check
+
 	if(!client_socket.sendData(IV,AES_BLOCK))	return false;
 
 	chunk c;
  	c.plaintext = (char*)&local_nonce;
 	c.size = sizeof(uint32_t);
+
 
 	encryptedChunk ec;
 
@@ -368,10 +385,15 @@ bool initial_protocol(NetSocket &client_socket){
 		return false;
 	}
 
+	if(!verify.RSAUpdate((const char*)&ec.size,sizeof(int32_t)))		return false; //check
+
 	if(!client_socket.sendInt(ec.size)){
 		delete[] ec.ciphertext;
 		return false;
 	} 
+
+	if(!verify.RSAUpdate((const char*)&local_nonce,sizeof(int32_t)))		return false; //check
+
 
 	if(!client_socket.sendData(ec.ciphertext,ec.size)){
 		delete[] ec.ciphertext;
@@ -383,6 +405,8 @@ bool initial_protocol(NetSocket &client_socket){
 	int nonce_cipher_size;
 
 	if(!client_socket.recvInt(nonce_cipher_size)) return false;
+	if(!verify.RSAUpdate((const char*)&nonce_cipher_size,sizeof(int32_t)))		return false; //check
+
 	char *recv_data = client_socket.recvData(nonce_cipher_size);
 	if(recv_data == NULL)	return false;
 
@@ -401,6 +425,7 @@ bool initial_protocol(NetSocket &client_socket){
 	}
 
 	int remote_nonce = *((int*)c.plaintext);
+	if(!verify.RSAUpdate((const char*)&remote_nonce,sizeof(int32_t)))		return false; //check
 
 	delete[] recv_data;
 	delete[] c.plaintext;
@@ -412,8 +437,19 @@ bool initial_protocol(NetSocket &client_socket){
 	memset(HMAC_key,0,HMAC_KEY_SIZE);
 
 
-	return true;
+	int received_hmac_len;
+	char *received_hmac = recvDataHMAC(client_socket,received_hmac_len);
 
+	int value = verify.RSAFinal(received_hmac);
+
+
+	delete[] received_hmac;
+    //EVP_PKEY_free(public_key_rsa);
+
+    return value;
+
+
+	//mancano free
 }
 
 int main(int argc,char **argv){

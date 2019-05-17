@@ -14,6 +14,8 @@ class RSASignManager{
 		~RSASignManager();
 		bool RSAUpdate(encryptedChunk &);
 		bool RSAUpdate(chunk &);
+		bool RSAUpdate(const char*,int32_t);
+
 
 		char* RSAFinal(uint32_t&);
 

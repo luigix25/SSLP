@@ -90,7 +90,7 @@ bool CertificateManager::extractCommonName(X509* certificate,string &string_name
 }
 
 
-EVP_PKEY * extractPubKey(X509* certificate){
+EVP_PKEY * CertificateManager::extractPubKey(X509* certificate){
 
 	return X509_get_pubkey(certificate);										//doesn't need to be freed
 

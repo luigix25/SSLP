@@ -10,10 +10,13 @@ class RSAVerifyManager{
 
 	public:
 		RSAVerifyManager(const char *);							//KEY
+		RSAVerifyManager(EVP_PKEY*);
+
 		~RSAVerifyManager();
 
 		bool RSAUpdate(encryptedChunk &);
 		bool RSAUpdate(chunk &);
+		bool RSAUpdate(const char*,int32_t);
 
 		int RSAFinal(char *signature);
 

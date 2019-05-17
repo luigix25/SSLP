@@ -21,6 +21,20 @@ RSAVerifyManager::RSAVerifyManager(const char *pubkey_path){
 
 }
 
+RSAVerifyManager::RSAVerifyManager(EVP_PKEY* public_key){
+  
+  this->mdctx = EVP_MD_CTX_new();
+  if(!this->mdctx){
+    perror("ERRORE new");
+  }
+
+  this->pubkey = public_key;
+  if(!EVP_VerifyInit(this->mdctx,EVP_sha256())){
+      perror("Error In RSA_Init_ex");
+    }
+
+}
+
 bool RSAVerifyManager::RSAUpdate(encryptedChunk &ec){
 
     if(!EVP_VerifyUpdate(this->mdctx, (unsigned char*) ec.ciphertext,ec.size)){
@@ -31,6 +45,17 @@ bool RSAVerifyManager::RSAUpdate(encryptedChunk &ec){
     return true;
 
 }
+
+bool RSAVerifyManager::RSAUpdate(const char* data,int32_t len){
+   
+  if(!EVP_VerifyUpdate(this->mdctx, (unsigned char*) data,len)){
+    perror("Error in RSA_VerifyUpdate");
+    return false;
+  }
+
+  return true;
+}
+
 
 bool RSAVerifyManager::RSAUpdate(chunk &ec){
 

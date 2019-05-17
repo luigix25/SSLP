@@ -291,14 +291,25 @@ bool initial_protocol(NetSocket &server_socket){
 	char *opponent_pub_key;
 	int opponent_pub_key_len;
 
+	RSASignManager sign(CLIENT_PRIVKEY_PATH);
+
 
 	if(!server_socket.recvInt(opponent_pub_key_len)) 	return false;
+
+	if(!sign.RSAUpdate((const char*)&opponent_pub_key_len,sizeof(uint32_t)))			return false;
+
+
 	//add check to int received
 	opponent_pub_key = server_socket.recvData(opponent_pub_key_len);
 	if(opponent_pub_key == NULL)
 		return false;
 
+	if(!sign.RSAUpdate((const char*)opponent_pub_key,opponent_pub_key_len))			return false;
+
+	if(!sign.RSAUpdate((const char*)&pub_key_len,sizeof(uint32_t)))			return false;
 	if(!server_socket.sendInt(pub_key_len)) 			return false;
+
+	if(!sign.RSAUpdate((const char*)pub_key,pub_key_len))			return false;
 	if(!server_socket.sendData(pub_key,pub_key_len)) 	return false;
 
 	delete[] pub_key;
@@ -307,6 +318,8 @@ bool initial_protocol(NetSocket &server_socket){
 	char *simmetric_key = dh.computeSimmetricKey(opponent_pub_key,opponent_pub_key_len,key_length);
 
 	delete[] opponent_pub_key;
+
+
 
 	HashManager keys;
 	keys.HashUpdate(simmetric_key,key_length);
@@ -332,6 +345,9 @@ bool initial_protocol(NetSocket &server_socket){
 		//delete robbba
 		return false;
 	}
+	if(!sign.RSAUpdate((const char*)revc_IV,AES_BLOCK))			return false;
+
+
 
 	KeyManager::setAESIV(revc_IV);
 	delete[] revc_IV;
@@ -346,6 +362,9 @@ bool initial_protocol(NetSocket &server_socket){
 
 	int remote_nonce_size; 
 	if(!server_socket.recvInt(remote_nonce_size)) return false;
+
+	if(!sign.RSAUpdate((const char*)&remote_nonce_size,sizeof(uint32_t)))			return false;
+
 
 	char *recv_data = server_socket.recvData(remote_nonce_size);
 
@@ -362,6 +381,7 @@ bool initial_protocol(NetSocket &server_socket){
 	if(!dm.DecryptFinal(c))				return false;
 
 	int remote_nonce = *((int*)c.plaintext);
+	if(!sign.RSAUpdate((const char*)&remote_nonce,sizeof(uint32_t)))			return false;
 
 	delete[] c.plaintext;
 	delete[] ec.ciphertext;
@@ -377,6 +397,10 @@ bool initial_protocol(NetSocket &server_socket){
 	if(!em.EncryptFinal(ec)) return false;
 
 	if(!server_socket.sendInt(ec.size)) return false;
+	
+	if(!sign.RSAUpdate((const char*)&ec.size,sizeof(uint32_t)))			return false;
+	if(!sign.RSAUpdate((const char*)&local_nonce,sizeof(uint32_t)))			return false;
+
 
 	if(!server_socket.sendData(ec.ciphertext,ec.size)){
 		//delete robba
@@ -385,11 +409,16 @@ bool initial_protocol(NetSocket &server_socket){
 
 	delete[] ec.ciphertext;
 
-	
+	uint32_t sign_final_len;
+	char* sign_final = sign.RSAFinal(sign_final_len);
+	if(sign_final == NULL) return false;
 
 	HMACManager::setLocalNonce(local_nonce);
 	HMACManager::setRemoteNonce(remote_nonce);
 
+	if(!sendDataHMAC(server_socket,sign_final,sign_final_len))			return false;
+
+	delete[] sign_final;
 
 	delete[] simmetric_key;
 	delete[] digest_keys;

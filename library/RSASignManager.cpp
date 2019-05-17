@@ -15,31 +15,36 @@ RSASignManager::RSASignManager(const char *key_path){
 
 }
 
-bool RSASignManager::RSAUpdate(encryptedChunk &ec){
+bool RSASignManager::RSAUpdate(const char* data, int32_t len){
 
-    if(!EVP_SignUpdate(mdctx, (unsigned char*) ec.ciphertext,ec.size)){
-    	perror("Error in RSA_SignUpdate");
-    	return false;
+  if(!EVP_SignUpdate(mdctx, (unsigned char*) data,len)){
+      perror("Error in RSA_SignUpdate");
+      return false;
     }
 
-    return true;
+  return true;
+
+}
+
+
+bool RSASignManager::RSAUpdate(encryptedChunk &ec){
+
+  return RSAUpdate(ec.ciphertext,ec.size);
 
 }
 
 bool RSASignManager::RSAUpdate(chunk &ec){
 
-    if(!EVP_SignUpdate(mdctx, (unsigned char*) ec.plaintext,ec.size)){
-      perror("Error in RSA_SignUpdate");
-    	return false;
-    }
-
-    return true;
+  return RSAUpdate(ec.plaintext,ec.size);    
 
 }
 
 char* RSASignManager::RSAFinal(uint32_t& len){
 
   FILE* prvkey_file = fopen(this->privkeyPath.c_str(), "r");
+  cout<<this->privkeyPath.c_str()<<endl;
+
+
   if(!prvkey_file){ cerr << "Error: cannot open file '" << this->privkeyPath << "' (missing?)\n"; exit(1); }
   this->prvkey = PEM_read_PrivateKey(prvkey_file, NULL, NULL, NULL);
   fclose(prvkey_file);
