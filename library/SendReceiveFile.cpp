@@ -51,10 +51,8 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 			last = true;
 		}
 
-		char *ciphertext = new char[c.size + 16];
 
 		encryptedChunk ec;
-		ec.ciphertext = ciphertext;
 
 		if(!em.EncryptUpdate(ec,c)){
 			cout<<"HANDLE ERROR"<<endl;

@@ -59,7 +59,6 @@ void cmd_list(){
 	c.size = len;
 
 	encryptedChunk ec;
-	ec.ciphertext = new char[c.size+AES_BLOCK];
 
 	em.EncryptUpdate(ec,c);
 	em.EncryptFinal(ec);
@@ -290,8 +289,7 @@ bool initial_protocol(NetSocket &client_socket){
 	int opponent_pub_key_len;
 
 
-	if(!client_socket.recvInt(opponent_pub_key_len)) 	return false;
-	//add check to int received
+	if(!client_socket.recvInt(opponent_pub_key_len)) 	return false;			//add check to int received
 	opponent_pub_key = client_socket.recvData(opponent_pub_key_len);
 	if(opponent_pub_key == NULL)
 		return false;
@@ -343,7 +341,6 @@ bool initial_protocol(NetSocket &client_socket){
 	if(!em.EncryptFinal(ec)) return false;
 
 	if(!client_socket.sendInt(ec.size)) return false;
-
 	if(!client_socket.sendData(ec.ciphertext,ec.size)){
 		//delete robba
 		return false;
@@ -354,9 +351,7 @@ bool initial_protocol(NetSocket &client_socket){
 	int nonce_cipher_size;
 
 	if(!client_socket.recvInt(nonce_cipher_size)) return false;
-
 	char *recv_data = client_socket.recvData(nonce_cipher_size);
-
 	if(recv_data == NULL){
 		//delete robba
 		return false;
@@ -366,7 +361,6 @@ bool initial_protocol(NetSocket &client_socket){
 	ec.size = nonce_cipher_size;
 
 	c.plaintext = new char[ec.size + AES_BLOCK];
-
 
 	DecryptManager dm;
 	if(!dm.DecryptUpdate(c,ec))			return false;
@@ -379,7 +373,6 @@ bool initial_protocol(NetSocket &client_socket){
 
 	HMACManager::setRemoteNonce(remote_nonce);
 	HMACManager::setLocalNonce(local_nonce);
-
 
 	memset(AES_symmetric_key,0,AES_KEY_SIZE);
 	memset(HMAC_key,0,HMAC_KEY_SIZE);
@@ -401,7 +394,6 @@ int main(int argc,char **argv){
 
 	signal(SIGPIPE, SIG_IGN);					//ignoro sigpipe
 	signal (SIGINT,close_handler);				//gestisco i ctrl-c
-
 
 	struct sockaddr_in clientAddress;
 

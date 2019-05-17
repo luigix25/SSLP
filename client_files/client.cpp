@@ -77,7 +77,6 @@ bool send_command(uint32_t command){
 	c.size = 4;
 
 	encryptedChunk ec;
-	ec.ciphertext = new char[c.size + AES_BLOCK];
 
 	if(!em.EncryptUpdate(ec,c)) 	return false;
 	if(!em.EncryptFinal(ec))		return false;
@@ -372,8 +371,6 @@ bool initial_protocol(NetSocket &server_socket){
 
  	c.plaintext = (char*)&local_nonce;
 	c.size = sizeof(uint32_t);
-
-	ec.ciphertext = new char[c.size+AES_BLOCK];
 
 	EncryptManager em;
 	if(!em.EncryptUpdate(ec,c)){
