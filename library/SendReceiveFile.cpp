@@ -1,5 +1,16 @@
 #include "SendReceiveFile.h"
 
+
+bool checkValidityFilename(string filename){
+	if(filename.find('/') != string::npos){
+		cout << "filename not correct " << endl;
+		return false;
+	}
+	else{
+		cout << "filename correct " << endl;
+		return true;
+	}
+}
 bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const char *key_path){
 	cout<<"USO CHIAVE "<<key_path<<endl;
 
@@ -7,14 +18,23 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 	if(filename == NULL){
 		return false;
 	}
-	
+	uint32_t size;
+
+	bool return_value = checkValidityFilename((string)filename);
+	if(!return_value){
+		size = 0;
+		sendIntHMAC(receiverSocket,size);
+		return false;	
+	}
+
 	path+= filename;
 	ReadFileManager fm(path);
 	uint64_t size_64 = fm.size_file();			//32 bit ok
 	cout<<"File size: "<<size_64<<endl;	
 	
-	uint32_t size;
 	
+
+
 	if(size_64 > UINT32_MAX){					//check for overflow
 		//Bigger than 4GiBs
 		cout<<"File bigger than 4GiBs"<<endl;
