@@ -267,8 +267,15 @@ bool initial_protocol(NetSocket &client_socket){
 	
 	//send through the socket
 
-	if(!client_socket.sendInt(cert_size)) 			return false;					//chiedere perazzo
-	if(!client_socket.sendData((const char*)cert_buf,cert_size)) return false;
+	if(!client_socket.sendInt(cert_size)){
+		delete[] cert_buf;
+		return false;					//chiedere perazzo
+	}
+	
+	if(!client_socket.sendData((const char*)cert_buf,cert_size)){
+		delete[] cert_buf;
+		return false;
+	}
 
 	OPENSSL_free(cert_buf);
 	X509_free(server_cert);
@@ -280,8 +287,15 @@ bool initial_protocol(NetSocket &client_socket){
 		exit(-1);
 	}
 
-	if(!client_socket.sendInt(len)) 			return false;
-	if(!client_socket.sendData(pub_key,len)) 	return false;
+	if(!client_socket.sendInt(len)){
+		delete[] pub_key;
+		return false;
+	}
+
+	if(!client_socket.sendData(pub_key,len)){
+		delete[] pub_key; 	
+		return false;
+	}
 
 	delete[] pub_key;
 		
@@ -289,7 +303,7 @@ bool initial_protocol(NetSocket &client_socket){
 	int opponent_pub_key_len;
 
 
-	if(!client_socket.recvInt(opponent_pub_key_len)) 	return false;			//add check to int received
+	if(!client_socket.recvInt(opponent_pub_key_len))	return false;			//add check to int received
 	opponent_pub_key = client_socket.recvData(opponent_pub_key_len);
 	if(opponent_pub_key == NULL)
 		return false;
@@ -299,15 +313,29 @@ bool initial_protocol(NetSocket &client_socket){
 	char *simmetric_key = dh.computeSimmetricKey(opponent_pub_key,opponent_pub_key_len,key_length);
 	delete[] opponent_pub_key;
 
+	if(simmetric_key == NULL){
+		return false;
+	}
+
   	HashManager keys;
-	keys.HashUpdate(simmetric_key,key_length);
+  	if(!keys.HashUpdate(simmetric_key,key_length)){
+  		delete[] simmetric_key;
+  		return false;
+  	}
+
 	char* digest_keys = keys.HashFinal();
+	delete[] simmetric_key;
+
+	if(digest_keys == NULL)								return false;
+
 
 	char AES_symmetric_key[AES_KEY_SIZE];
 	memcpy(AES_symmetric_key,digest_keys,AES_KEY_SIZE);
 
 	char HMAC_key[HMAC_KEY_SIZE];
 	memcpy(HMAC_key,&digest_keys[HMAC_KEY_SIZE],HMAC_KEY_SIZE);
+
+	delete[] digest_keys;
 
 	char IV[AES_BLOCK];
 
@@ -322,10 +350,7 @@ bool initial_protocol(NetSocket &client_socket){
 	KeyManager::setAESIV(IV);
 	KeyManager::setHMACKey(HMAC_key);
 
-	if(!client_socket.sendData(IV,AES_BLOCK)){
-		//delete robba
-		return false;
-	}
+	if(!client_socket.sendData(IV,AES_BLOCK))	return false;
 
 	chunk c;
  	c.plaintext = (char*)&local_nonce;
@@ -335,14 +360,22 @@ bool initial_protocol(NetSocket &client_socket){
 
 	EncryptManager em;
 	if(!em.EncryptUpdate(ec.ciphertext,ec.size,c.plaintext,c.size)){
+		delete[] ec.ciphertext;
 		return false;
 	}
 
-	if(!em.EncryptFinal(ec)) return false;
+	if(!em.EncryptFinal(ec)){ 
+		delete[] ec.ciphertext;
+		return false;
+	}
 
-	if(!client_socket.sendInt(ec.size)) return false;
+	if(!client_socket.sendInt(ec.size)){
+		delete[] ec.ciphertext;
+		return false;
+	} 
+
 	if(!client_socket.sendData(ec.ciphertext,ec.size)){
-		//delete robba
+		delete[] ec.ciphertext;
 		return false;
 	}
 
@@ -352,10 +385,7 @@ bool initial_protocol(NetSocket &client_socket){
 
 	if(!client_socket.recvInt(nonce_cipher_size)) return false;
 	char *recv_data = client_socket.recvData(nonce_cipher_size);
-	if(recv_data == NULL){
-		//delete robba
-		return false;
-	}
+	if(recv_data == NULL)	return false;
 
 	ec.ciphertext = recv_data;
 	ec.size = nonce_cipher_size;
@@ -363,8 +393,15 @@ bool initial_protocol(NetSocket &client_socket){
 	c.plaintext = new char[ec.size + AES_BLOCK];
 
 	DecryptManager dm;
-	if(!dm.DecryptUpdate(c,ec))			return false;
-	if(!dm.DecryptFinal(c))				return false;
+	if(!dm.DecryptUpdate(c,ec)){			
+		delete[] c.plaintext;
+		return false;
+	}
+
+	if(!dm.DecryptFinal(c)){				
+		delete[] c.plaintext;
+		return false;
+	}
 
 	int remote_nonce = *((int*)c.plaintext);
 
@@ -377,8 +414,6 @@ bool initial_protocol(NetSocket &client_socket){
 	memset(AES_symmetric_key,0,AES_KEY_SIZE);
 	memset(HMAC_key,0,HMAC_KEY_SIZE);
 
-	delete[] simmetric_key;
-	delete[] digest_keys;
 
 	return true;
 
