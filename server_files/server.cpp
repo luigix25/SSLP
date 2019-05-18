@@ -244,6 +244,7 @@ bool initial_protocol(NetSocket &client_socket){
 
 	if(!isClientAuthorized(name,CLIENTS_LIST)){
 		cout<<"Client not authorized"<<endl;
+		X509_free(client_cert);
 		return false;
 	}
 
@@ -528,6 +529,7 @@ int main(int argc,char **argv){
 						public_key_rsa.destroyKey();
 						client_socket.closeConnection();
 						alreadyConnected = false;
+						FD_CLR(new_sock,&master);
 					}
 
 					continue;
