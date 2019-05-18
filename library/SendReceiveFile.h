@@ -8,9 +8,10 @@
 #include "DecryptManager.h"
 #include "RSASignManager.h"
 #include "RSAVerifyManager.h"
+#include "PublicKey.h"
 
 bool SendFile(string & ,NetSocket &,const char* ,const char *);
-bool ReceiveFile(string & ,const char *, NetSocket &,const char *);
+bool ReceiveFile(string & ,const char *, NetSocket &,PublicKey&);
 
 
 #endif

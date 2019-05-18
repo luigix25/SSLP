@@ -1,9 +1,9 @@
 #include "server.h"
 
-
 fd_set master;
 NetSocket client_socket;
 int server_socket;
+PublicKey public_key_rsa;
 
 void close_handler(int s){
 	cout<<endl<<"Terminating.."<<endl;
@@ -105,7 +105,7 @@ void cmd_upload(){
 
 	filename = recvDataHMAC(client_socket,len);
 	string path(SERVER_PATH);
-	if(!ReceiveFile(path,filename,client_socket,CLIENT_PUBKEY_PATH)){
+	if(!ReceiveFile(path,filename,client_socket,public_key_rsa)){
 		cout << "cmd_upload fallita" << endl;
 	}
 	else
@@ -239,10 +239,8 @@ bool initial_protocol(NetSocket &client_socket){
 		return false;
 	}
 
-	EVP_PKEY *public_key_rsa;
 
-
-	public_key_rsa = cm.extractPubKey(client_cert);
+	public_key_rsa.key = cm.extractPubKey(client_cert);
 
 	if(!isClientAuthorized(name,CLIENTS_LIST)){
 		cout<<"Client not authorized"<<endl;
@@ -527,6 +525,7 @@ int main(int argc,char **argv){
 					alreadyConnected = true;
 
 					if(!initial_protocol(client_socket)){
+						public_key_rsa.destroyKey();
 						client_socket.closeConnection();
 						alreadyConnected = false;
 					}
@@ -540,6 +539,7 @@ int main(int argc,char **argv){
 					if(!status){
 						cout<<"Client Disconnesso"<<endl;
 						client_socket.closeConnection();
+						public_key_rsa.destroyKey();
 						alreadyConnected = false;
 						FD_CLR(i,&master);							//remove socket from select
 

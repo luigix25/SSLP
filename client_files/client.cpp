@@ -3,6 +3,7 @@
 fd_set master;
 int socket_tcp;
 struct sockaddr_in opponent;
+PublicKey public_key_rsa;
 
 NetSocket server_socket;
 
@@ -171,7 +172,7 @@ void cmd_get(){
 	int32_t length = filename.length()+1;
 
 	if(!sendDataHMAC(server_socket,(const char*)filename.c_str(),length)) return;			//va cifrato
-	if(!ReceiveFile(path,( char*)filename.c_str(),server_socket,SERVER_PUBKEY_PATH))
+	if(!ReceiveFile(path,( char*)filename.c_str(),server_socket,public_key_rsa))
 		cout << "ReceiveFile ERRATA" << endl;
 	else
 		cout << "ReceiveFile CORRETTA" << endl;
@@ -278,6 +279,9 @@ bool initial_protocol(NetSocket &server_socket){
 		cout<<"errore extractCommonName"<<endl;
 		return false;
 	}
+
+	public_key_rsa.key = cm.extractPubKey(server_cert);
+
 
 	cout<<"Connessione stabilita con il server "<<name<<endl;
 

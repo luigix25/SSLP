@@ -15,23 +15,27 @@ RSAVerifyManager::RSAVerifyManager(const char *pubkey_path){
   if(!this->pubkey){ cerr << "Error: PEM_read_PUBKEY returned NULL\n"; exit(1); }
 
 
-  	if(!EVP_VerifyInit(this->mdctx,EVP_sha256())){
-  		perror("Error In RSA_Init_ex");
-  	}
+  if(!EVP_VerifyInit(this->mdctx,EVP_sha256())){
+  	perror("Error In RSA_Init_ex");
+  }
+
+  shouldFree = true;
 
 }
 
-RSAVerifyManager::RSAVerifyManager(EVP_PKEY* public_key){
+RSAVerifyManager::RSAVerifyManager(PublicKey &pubClass){
   
   this->mdctx = EVP_MD_CTX_new();
   if(!this->mdctx){
     perror("ERRORE new");
   }
 
-  this->pubkey = public_key;
+  this->pubkey = pubClass.key;
   if(!EVP_VerifyInit(this->mdctx,EVP_sha256())){
       perror("Error In RSA_Init_ex");
     }
+
+  shouldFree = false;
 
 }
 
@@ -79,14 +83,15 @@ int RSAVerifyManager::RSAFinal(char *signature){
 	ret = EVP_VerifyFinal(this->mdctx,(unsigned char*)signature, len, this->pubkey);
 
   //distruggere chiave pubblica
- // EVP_PKEY_free(this->pubkey);
 	//EVP_MD_CTX_free(mdctx);
 	return ret;
 }
 
 RSAVerifyManager::~RSAVerifyManager(){
-  EVP_PKEY_free(this->pubkey);
   EVP_MD_CTX_free(mdctx);
   CRYPTO_cleanup_all_ex_data();
+  if(shouldFree)
+    EVP_PKEY_free(this->pubkey);
+
 }
 

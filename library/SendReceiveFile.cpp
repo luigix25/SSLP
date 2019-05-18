@@ -130,9 +130,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 	return true;
 }
 
-bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,const char *key_path){
-
-	cout<<"USO CHIAVE "<<key_path<<endl;
+bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,PublicKey &key){
 
 	//handle get
 	path += filename;
@@ -156,7 +154,7 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,c
 	cout<<"File Size: "<<file_size<<endl;
 	WriteFileManager fm(path,file_size);
 	DecryptManager dm;
-	RSAVerifyManager verify(key_path);
+	RSAVerifyManager verify(key);
 
 
 	struct winsize w;
