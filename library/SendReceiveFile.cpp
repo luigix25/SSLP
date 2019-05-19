@@ -11,7 +11,7 @@ bool checkValidityFilename(string filename){
 		return true;
 	}
 }
-bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const char *key_path){
+bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const char *key_path,bool progressBar){
 	cout<<"USO CHIAVE "<<key_path<<endl;
 
 
@@ -31,8 +31,6 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 	ReadFileManager fm(path);
 	uint64_t size_64 = fm.size_file();			//32 bit ok
 	cout<<"File size: "<<size_64<<endl;	
-	
-	
 
 
 	if(size_64 > UINT32_MAX){					//check for overflow
@@ -48,6 +46,19 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 	if(size == 0){				//file non esistente
 		return false;
 	}
+
+	//For the progressbar
+	struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+
+    float currentPercentage = 0;
+    uint32_t sentBytes = 0;
+    float percentageStep = 100.0f / w.ws_col;
+    float lastPercentage = 0.0f;
+    uint32_t completeFileSize;
+
+	completeFileSize = size;
+
 
 	chunk c;
 	file_status status;
@@ -80,7 +91,6 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 
 
 		delete[] c.plaintext;
-		c.size = 0;
 
 		if(last){
 			if(!em.EncryptFinal(ec)){
@@ -95,12 +105,30 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 		}
 
 
-
 		if(!sendDataHMAC(receiverSocket,ec.ciphertext,ec.size)){			//aggiorno il nonce
 			cout<<"ERRORE SEND"<<endl;
 			delete[] ec.ciphertext;
 			return false;
-		} 
+		}
+
+		sentBytes += c.size;
+		c.size = 0;
+
+		currentPercentage = (double)sentBytes/(double)completeFileSize * 100;
+
+		if(progressBar){
+			while(lastPercentage + percentageStep < currentPercentage){
+				cout << "\u25A0"<<flush;
+				lastPercentage+=percentageStep;
+			}
+
+			/*int col,row;
+			cout << "\033[" << col << ";" << row << "H";*/
+
+			if(currentPercentage  >= 100){
+				cout << endl;
+			}
+		}
 		
 		delete[] ec.ciphertext;
 
@@ -130,7 +158,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 	return true;
 }
 
-bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,PublicKey &key){
+bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,PublicKey &key,bool progressBar){
 
 	//handle get
 	path += filename;
@@ -169,8 +197,6 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,P
 
 		recvd_data = recvDataHMAC(senderSocket,len);
 		
-		//cout<<"Ricevuti "<<len<<endl;
-
 		if(recvd_data == NULL){
 			cout << "recvd_data NULL" <<endl;
 			fm.finalize(true);
@@ -206,18 +232,19 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,P
 
 		currentPercentage = (double)receivedBytes/(double)completeFileSize * 100;
 
-		while(lastPercentage + percentageStep < currentPercentage){
-			cout << "\u25A0"<<flush;
-			lastPercentage+=percentageStep;
-		}
+		if(progressBar){
 
-		/*int col,row;
+			while(lastPercentage + percentageStep < currentPercentage){
+				cout << "\u25A0"<<flush;
+				lastPercentage+=percentageStep;
+			}
 
+			/*int col,row;
+			cout << "\033[" << col << ";" << row << "H";*/
 
-		cout << "\033[" << col << ";" << row << "H";*/
-
-		if(currentPercentage  >= 100){
-			cout << endl;
+			if(currentPercentage  >= 100){
+				cout << endl;
+			}
 		}
 
 		if(!verify.RSAUpdate(ec)){

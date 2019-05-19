@@ -154,7 +154,7 @@ void cmd_upload(){
 	if(!sendDataHMAC(server_socket,(const char*)filename.c_str(),filename.length()+1)) return;		//vanno cifrati
 
 	
-	if(!SendFile(path,server_socket,(char *)filename.c_str(),CLIENT_PRIVKEY_PATH))
+	if(!SendFile(path,server_socket,(char *)filename.c_str(),CLIENT_PRIVKEY_PATH,true))
 		cout << "sendFile fallita" << endl;
 	else
 		cout << "sendFile corretta" << endl;
@@ -172,7 +172,7 @@ void cmd_get(){
 	int32_t length = filename.length()+1;
 
 	if(!sendDataHMAC(server_socket,(const char*)filename.c_str(),length)) return;			//va cifrato
-	if(!ReceiveFile(path,( char*)filename.c_str(),server_socket,public_key_rsa))
+	if(!ReceiveFile(path,( char*)filename.c_str(),server_socket,public_key_rsa,true))
 		cout << "ReceiveFile ERRATA" << endl;
 	else
 		cout << "ReceiveFile CORRETTA" << endl;

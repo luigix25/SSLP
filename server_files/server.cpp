@@ -91,7 +91,7 @@ void cmd_get(){
 	filename = recvDataHMAC(client_socket,len);
 	string path(SERVER_PATH);
 	cout<<path<<endl;
-	if(!SendFile(path,client_socket,filename,SERVER_PRIVKEY_PATH))
+	if(!SendFile(path,client_socket,filename,SERVER_PRIVKEY_PATH,false))
 		cout << "sendFile fallita" << endl;
 	else
 		cout << "sendFile corretta" << endl;
@@ -105,7 +105,7 @@ void cmd_upload(){
 
 	filename = recvDataHMAC(client_socket,len);
 	string path(SERVER_PATH);
-	if(!ReceiveFile(path,filename,client_socket,public_key_rsa)){
+	if(!ReceiveFile(path,filename,client_socket,public_key_rsa,false)){
 		cout << "cmd_upload fallita" << endl;
 	}
 	else
