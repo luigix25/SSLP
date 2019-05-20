@@ -436,14 +436,32 @@ bool initial_protocol(NetSocket &client_socket){
 	memset(HMAC_key,0,HMAC_KEY_SIZE);
 
 
-	int received_hmac_len;
-	char *received_hmac = recvDataHMAC(client_socket,received_hmac_len);
+	int received_signature_len;
+	char *received_signature = recvDataHMAC(client_socket,received_signature_len);
 
-	int value = verify.RSAFinal(received_hmac);
+	int value = verify.RSAFinal(received_signature);
+
+	RSASignManager sign(SERVER_PRIVKEY_PATH);
+	if(!sign.RSAUpdate(received_signature,received_signature_len)){
+		delete[] received_signature;
+		return false;
+	}
+
+	delete[] received_signature;
 
 
-	delete[] received_hmac;
-    //EVP_PKEY_free(public_key_rsa);
+	uint32_t sign_final_len;
+	char* sign_final = sign.RSAFinal(sign_final_len);
+	if(sign_final == NULL){
+		return false;
+	}
+
+	if(!sendDataHMAC(client_socket,sign_final,sign_final_len)){
+		delete[] sign_final;
+		return false;
+	}
+
+	delete[] sign_final;
 
     return value;
 

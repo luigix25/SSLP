@@ -422,6 +422,21 @@ bool initial_protocol(NetSocket &server_socket){
 
 	if(!sendDataHMAC(server_socket,sign_final,sign_final_len))			return false;
 
+	int32_t received_sign_len;
+	char *received_sign = recvDataHMAC(server_socket,received_sign_len);
+	if(received_sign == NULL)
+		return false;
+
+	RSAVerifyManager verify(public_key_rsa);
+	if(!verify.RSAUpdate(sign_final,sign_final_len)){
+		delete[] sign_final;
+		return false;
+	}
+
+	int result = verify.RSAFinal(received_sign);
+
+	delete[] received_sign;
+
 	delete[] sign_final;
 
 	delete[] simmetric_key;
@@ -429,7 +444,7 @@ bool initial_protocol(NetSocket &server_socket){
 
 	//destroy "old" key?
 
-	return true;
+	return result;
 
 }
 
