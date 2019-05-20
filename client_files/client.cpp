@@ -280,6 +280,11 @@ bool initial_protocol(NetSocket &server_socket){
 		return false;
 	}
 
+	if(name != SERVER_NAME){
+		X509_free(server_cert);
+		return false;
+	}
+
 	public_key_rsa.setKey(cm.extractPubKey(server_cert));
 
 

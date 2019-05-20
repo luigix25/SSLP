@@ -12,3 +12,4 @@
 
 
 #define CERT_CLIENT_PATH 				"certificates/SSLPClient_cert.pem"
+#define SERVER_NAME						"SSLPServer"
