@@ -280,7 +280,7 @@ bool initial_protocol(NetSocket &server_socket){
 		return false;
 	}
 
-	public_key_rsa.key = cm.extractPubKey(server_cert);
+	public_key_rsa.setKey(cm.extractPubKey(server_cert));
 
 
 	cout<<"Connessione stabilita con il server "<<name<<endl;

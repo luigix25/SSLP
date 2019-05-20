@@ -30,7 +30,7 @@ RSAVerifyManager::RSAVerifyManager(PublicKey &pubClass){
     perror("ERRORE new");
   }
 
-  this->pubkey = pubClass.key;
+  this->pubkey = pubClass.getKey();
   if(!EVP_VerifyInit(this->mdctx,EVP_sha256())){
       perror("Error In RSA_Init_ex");
     }

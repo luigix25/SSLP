@@ -240,7 +240,7 @@ bool initial_protocol(NetSocket &client_socket){
 	}
 
 
-	public_key_rsa.key = cm.extractPubKey(client_cert);
+	public_key_rsa.setKey(cm.extractPubKey(client_cert));
 
 	if(!isClientAuthorized(name,CLIENTS_LIST)){
 		cout<<"Client not authorized"<<endl;
@@ -526,7 +526,6 @@ int main(int argc,char **argv){
 					alreadyConnected = true;
 
 					if(!initial_protocol(client_socket)){
-						public_key_rsa.destroyKey();
 						client_socket.closeConnection();
 						alreadyConnected = false;
 						FD_CLR(new_sock,&master);
@@ -541,7 +540,6 @@ int main(int argc,char **argv){
 					if(!status){
 						cout<<"Client Disconnesso"<<endl;
 						client_socket.closeConnection();
-						public_key_rsa.destroyKey();
 						alreadyConnected = false;
 						FD_CLR(i,&master);							//remove socket from select
 
