@@ -45,15 +45,15 @@ struct sockaddr_in setup_sockaddr(char *ip,int port){
 
 void cmd_help(){
 
-	const char *desc[5] = {"--> show available command",
-			"--> show file saved on server and client",
+	const char *desc[5] = {"--> show available commands",
+			"--> show files saved both on server and client",
 			"filename --> download from server filename",
 			"filename --> upload to server filename",
 			"--> disconnect from server\n"};
 
 	int i;
 	cout<<endl;
-	cout<<"Available command:"<<endl;
+	cout<<"Available commands:"<<endl;
 	for(i=0;i<5;i++){
 		cout<<commands_list[i]<<" "<<desc[i]<<endl;
 	}
