@@ -74,7 +74,7 @@ bool send_command(uint32_t command){
 	EncryptManager em;
 
 	Chunk c;
-	c.plaintext = (char*)&command;
+	c.setInt(command);
 	c.size = 4;
 
 	EncryptedChunk ec;
@@ -82,12 +82,10 @@ bool send_command(uint32_t command){
 	if(!em.EncryptUpdate(ec,c)) 	return false;
 	if(!em.EncryptFinal(ec))		return false;
 
-	if(!sendDataHMAC(server_socket,ec.ciphertext,ec.size)){			//aggiorno il nonce
+	if(!sendDataHMAC(server_socket,ec.getCipherText(),ec.size)){			//aggiorno il nonce
 		cout<<"ERRORE SEND"<<endl;
 		return false;
 	}
-
-	delete[] ec.ciphertext; 
 
 	return true;
 }
@@ -105,8 +103,7 @@ void cmd_list(){
 	if(recvd == NULL) return;
 
 	EncryptedChunk ec;
-	ec.ciphertext = recvd;
-	
+	ec.setCipherText(recvd);
 	ec.size = len;
 
 	Chunk c;
@@ -115,9 +112,7 @@ void cmd_list(){
 	dm.DecryptUpdate(c,ec);
 	dm.DecryptFinal(c);
 
-	string concatenated(c.plaintext);
-	delete[] recvd;
-	delete[] c.plaintext;
+	string concatenated(c.getPlainText());
 
 	vector<string> files_list = split(concatenated,string(" "));
 
@@ -382,20 +377,21 @@ bool initial_protocol(NetSocket &server_socket){
 		return false;
 	}
 
-	ec.ciphertext = recv_data;
+	ec.setCipherText(recv_data);
 	ec.size = remote_nonce_size;
 
 	DecryptManager dm;
 	if(!dm.DecryptUpdate(c,ec))			return false;
 	if(!dm.DecryptFinal(c))				return false;
 
-	int remote_nonce = *((int*)c.plaintext);
+	int remote_nonce = c.getInt();
+
 	if(!sign.RSAUpdate((const char*)&remote_nonce,sizeof(uint32_t)))			return false;
 
-	delete[] c.plaintext;
-	delete[] ec.ciphertext;
+	//delete[] c.plaintext;
+	//delete[] ec.ciphertext;
 
- 	c.plaintext = (char*)&local_nonce;
+ 	c.setInt(local_nonce);
 	c.size = sizeof(uint32_t);
 
 	EncryptManager em;
@@ -411,12 +407,10 @@ bool initial_protocol(NetSocket &server_socket){
 	if(!sign.RSAUpdate((const char*)&local_nonce,sizeof(uint32_t)))			return false;
 
 
-	if(!server_socket.sendData(ec.ciphertext,ec.size)){
+	if(!server_socket.sendData(ec.getCipherText(),ec.size)){
 		//delete robba
 		return false;
 	}
-
-	delete[] ec.ciphertext;
 
 	uint32_t sign_final_len;
 	char* sign_final = sign.RSAFinal(sign_final_len);

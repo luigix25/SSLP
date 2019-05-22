@@ -16,8 +16,17 @@ DecryptManager::DecryptManager(const char *_key, const char *_IV) : DecryptManag
 }
 
 bool DecryptManager::DecryptUpdate(Chunk &c, EncryptedChunk& ec){
+	
+	c.setPlainText(new char[ec.size + AES_BLOCK]);
 
-	return DecryptUpdate(c.plaintext,c.size,ec.ciphertext,ec.size);
+
+    if(!EVP_DecryptUpdate(this->ctx, (unsigned char*)c.getPlainText(), &c.size, (unsigned char*)ec.getCipherText(), ec.size)){
+    	perror("Error in EVP_DecryptUpdate");
+    	return false;
+    }
+
+    return true;
+
 
 }
 
@@ -51,7 +60,7 @@ bool DecryptManager::DecryptFinal(char* plaintext,int32_t &plaintext_len){
 bool DecryptManager::DecryptFinal(Chunk &c){
 
 
-	return DecryptFinal(c.plaintext,c.size);
+	return DecryptFinal(c.getPlainText(),c.size);
 }
 
 DecryptManager::~DecryptManager(){

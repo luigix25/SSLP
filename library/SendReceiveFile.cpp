@@ -90,7 +90,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 		}	
 
 
-		delete[] c.plaintext;
+		//delete[] c.plaintext;
 
 		if(last){
 			if(!em.EncryptFinal(ec)){
@@ -105,9 +105,8 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 		}
 
 
-		if(!sendDataHMAC(receiverSocket,ec.ciphertext,ec.size)){			//aggiorno il nonce
+		if(!sendDataHMAC(receiverSocket,ec.getCipherText(),ec.size)){			//aggiorno il nonce
 			cout<<"ERRORE SEND"<<endl;
-			delete[] ec.ciphertext;
 			return false;
 		}
 
@@ -130,7 +129,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 			}
 		}
 		
-		delete[] ec.ciphertext;
+		//delete[] ec.ciphertext;
 
 
 		if(last)
@@ -205,7 +204,7 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,P
 
 		EncryptedChunk ec;
 		ec.size  = len;
-		ec.ciphertext = recvd_data;
+		ec.setCipherText(recvd_data);
 
 		Chunk c;
 
@@ -251,16 +250,11 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,P
 			cout<<"ERROR"<<endl;
 			fm.finalize(true);
 
-			delete[] ec.ciphertext;
-			delete[] c.plaintext;
 
 			return false;
 		}	
 
 		status = fm.write(c);
-
-		delete[] c.plaintext;
-		delete[] ec.ciphertext;
 
 		if(status == END_OF_FILE){
 			cout<<"FINITO"<<endl;

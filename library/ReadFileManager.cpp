@@ -45,9 +45,9 @@ file_status ReadFileManager::read(Chunk &c){
 	}
 	c.size = size;
 	fs.seekg(chunk_address); // Set position on disk in input stream
-	c.plaintext = new char[size];
+	c.setPlainText(new char[size]);
 
-	fs.read(c.plaintext, size);
+	fs.read(c.getPlainText(), size);
 	if(!fs){
 		return FILE_ERROR;
 	}

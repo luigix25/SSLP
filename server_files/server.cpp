@@ -55,7 +55,7 @@ void cmd_list(){
 
 	EncryptManager em;
 	Chunk c;
-	c.plaintext = (char*)str;
+	c.setPlainText((char*)str,false);		//i don't need to free memory
 	c.size = len;
 
 	EncryptedChunk ec;
@@ -67,11 +67,9 @@ void cmd_list(){
 	//delete[] c.plaintext;
 
 	//cout << "lista che invio da server: \n" << ec.ciphertext<<endl;
-	if(!sendDataHMAC(client_socket,ec.ciphertext,ec.size))
+	if(!sendDataHMAC(client_socket,ec.getCipherText(),ec.size))
 		return;
 	
-	delete[] ec.ciphertext;
-
 
 }
 
@@ -183,7 +181,7 @@ bool receive_command(int &command){
 
 	EncryptedChunk ec;
 	ec.size = len;
-	ec.ciphertext = raw_data;
+	ec.setCipherText(raw_data);
 
 	Chunk c;
 
@@ -193,11 +191,10 @@ bool receive_command(int &command){
 
 	//il plaintext è un numero
 
-	int *p = (int*)c.plaintext;
-	command = *p;
+	command = c.getInt();
 
-	delete[] c.plaintext;			//non mi serve più
-	delete[] ec.ciphertext;
+	//delete[] c.plaintext;			//non mi serve più
+	//delete[] ec.ciphertext;
 
 	return true;
 
@@ -367,39 +364,34 @@ bool initial_protocol(NetSocket &client_socket){
 	if(!client_socket.sendData(IV,AES_BLOCK))	return false;
 
 	Chunk c;
- 	c.plaintext = (char*)&local_nonce;
+ 	c.setInt(local_nonce);
 	c.size = sizeof(uint32_t);
 
 
 	EncryptedChunk ec;
 
 	EncryptManager em;
-	if(!em.EncryptUpdate(ec.ciphertext,ec.size,c.plaintext,c.size)){
-		delete[] ec.ciphertext;
+	if(!em.EncryptUpdate(ec,c)){
 		return false;
 	}
 
 	if(!em.EncryptFinal(ec)){ 
-		delete[] ec.ciphertext;
 		return false;
 	}
 
 	if(!verify.RSAUpdate((const char*)&ec.size,sizeof(int32_t)))		return false; //check
 
 	if(!client_socket.sendInt(ec.size)){
-		delete[] ec.ciphertext;
 		return false;
 	} 
 
 	if(!verify.RSAUpdate((const char*)&local_nonce,sizeof(int32_t)))		return false; //check
 
 
-	if(!client_socket.sendData(ec.ciphertext,ec.size)){
-		delete[] ec.ciphertext;
+	if(!client_socket.sendData(ec.getCipherText(),ec.size)){
 		return false;
 	}
 
-	delete[] ec.ciphertext;
 
 	int nonce_cipher_size;
 
@@ -409,25 +401,20 @@ bool initial_protocol(NetSocket &client_socket){
 	char *recv_data = client_socket.recvData(nonce_cipher_size);
 	if(recv_data == NULL)	return false;
 
-	ec.ciphertext = recv_data;
+	ec.setCipherText(recv_data);
 	ec.size = nonce_cipher_size;
 
 	DecryptManager dm;
 	if(!dm.DecryptUpdate(c,ec)){			
-		delete[] c.plaintext;
 		return false;
 	}
 
 	if(!dm.DecryptFinal(c)){				
-		delete[] c.plaintext;
 		return false;
 	}
 
-	int remote_nonce = *((int*)c.plaintext);
+	int remote_nonce = c.getInt();
 	if(!verify.RSAUpdate((const char*)&remote_nonce,sizeof(int32_t)))		return false; //check
-
-	delete[] recv_data;
-	delete[] c.plaintext;
 
 	HMACManager::setRemoteNonce(remote_nonce);
 	HMACManager::setLocalNonce(local_nonce);

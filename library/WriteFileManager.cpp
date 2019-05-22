@@ -28,7 +28,7 @@ file_status WriteFileManager::write(Chunk& c){ //write in append
 	if(!openStream()){ // Check if stream its open
 		return FILE_ERROR;
 	}
-	fs.write(c.plaintext, c.size); // Write new block in to the file
+	fs.write(c.getPlainText(), c.size); // Write new block in to the file
 	if(!fs){
 		return FILE_ERROR;
 	}

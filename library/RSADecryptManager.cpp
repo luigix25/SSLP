@@ -32,7 +32,7 @@ RSADecryptManager::RSADecryptManager(const char *privkey_path,uint32_t key_len){
 
 bool RSADecryptManager::RSAUpdate(Chunk &c, EncryptedChunk &ec){
 
-    if(!EVP_OpenUpdate(this->mdctx, (unsigned char*)ec.ciphertext, &ec.size, (unsigned char*)c.plaintext, c.size)){
+    if(!EVP_OpenUpdate(this->mdctx, (unsigned char*)ec.getCipherText(), &ec.size, (unsigned char*)c.getPlainText(), c.size)){
       perror("Error in RSA_Update");
       return false;
     }
@@ -46,7 +46,7 @@ bool RSADecryptManager::RSAFinal(Chunk& c){
 
   int len;
 
-  if(!EVP_OpenFinal(this->mdctx, (unsigned char*)c.plaintext + c.size, &len)){
+  if(!EVP_OpenFinal(this->mdctx, (unsigned char*)c.getPlainText() + c.size, &len)){
     perror("Error in RSA_Final");
     return false;
   }
