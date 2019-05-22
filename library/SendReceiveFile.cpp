@@ -250,6 +250,10 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,P
 		if(!verify.RSAUpdate(ec)){
 			cout<<"ERROR"<<endl;
 			fm.finalize(true);
+
+			delete[] ec.ciphertext;
+			delete[] c.plaintext;
+
 			return false;
 		}	
 

@@ -49,6 +49,7 @@ file_status ReadFileManager::read(chunk *c){
 
 	fs.read(c->plaintext, size);
 	if(!fs){
+		delete[] c->plaintext;
 		return FILE_ERROR;
 	}
 
