@@ -15,7 +15,7 @@ DecryptManager::DecryptManager(const char *_key, const char *_IV) : DecryptManag
 
 }
 
-bool DecryptManager::DecryptUpdate(chunk &c, encryptedChunk& ec){
+bool DecryptManager::DecryptUpdate(Chunk &c, EncryptedChunk& ec){
 
 	return DecryptUpdate(c.plaintext,c.size,ec.ciphertext,ec.size);
 
@@ -48,7 +48,7 @@ bool DecryptManager::DecryptFinal(char* plaintext,int32_t &plaintext_len){
 }
 
 
-bool DecryptManager::DecryptFinal(chunk &c){
+bool DecryptManager::DecryptFinal(Chunk &c){
 
 
 	return DecryptFinal(c.plaintext,c.size);

@@ -20,7 +20,7 @@ RSAEncryptManager::RSAEncryptManager(EVP_PKEY *pubkey){
 
 }
 
-bool RSAEncryptManager::RSAUpdate(encryptedChunk &ec,chunk& c){
+bool RSAEncryptManager::RSAUpdate(EncryptedChunk &ec,Chunk& c){
 
     if(!EVP_SealUpdate(this->mdctx, (unsigned char*)ec.ciphertext, &ec.size, (unsigned char*)c.plaintext, c.size)){
       perror("Error in RSA_Update");
@@ -32,7 +32,7 @@ bool RSAEncryptManager::RSAUpdate(encryptedChunk &ec,chunk& c){
 }
 
 
-bool RSAEncryptManager::RSAFinal(encryptedChunk& ec){
+bool RSAEncryptManager::RSAFinal(EncryptedChunk& ec){
 
   int len;
 

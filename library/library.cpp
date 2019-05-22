@@ -165,7 +165,7 @@ bool sendIntHMAC(NetSocket& sender_socket,int32_t value){
 
 	HMACManager hm;
 
-	chunk c;
+	Chunk c;
 	c.plaintext = (char*)&value;
 	c.size = sizeof(uint32_t);
 	hm.HMACUpdate(c);
@@ -195,7 +195,7 @@ bool recvIntHMAC(NetSocket& receiver_socket,int32_t& value){
 
 
 	HMACManager hm;
-	chunk c;
+	Chunk c;
 	c.size = sizeof(uint32_t);
 	c.plaintext = (char*)&value;
 
@@ -233,7 +233,7 @@ bool sendDataHMAC(NetSocket& sender_socket,const char *data,int32_t length){
 	}
 
 	HMACManager hmac;
-	chunk c;
+	Chunk c;
 	c.size = length;
 	c.plaintext = (char*)data;
 
@@ -257,7 +257,7 @@ char* recvDataHMAC(NetSocket& receiver_socket,int32_t &length){
 
 	char *data = receiver_socket.recvData(length);
 
-	chunk c;
+	Chunk c;
 	c.size = length;
 	c.plaintext = data;
 

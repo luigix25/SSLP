@@ -73,11 +73,11 @@ bool send_command(uint32_t command){
 
 	EncryptManager em;
 
-	chunk c;
+	Chunk c;
 	c.plaintext = (char*)&command;
 	c.size = 4;
 
-	encryptedChunk ec;
+	EncryptedChunk ec;
 
 	if(!em.EncryptUpdate(ec,c)) 	return false;
 	if(!em.EncryptFinal(ec))		return false;
@@ -104,12 +104,12 @@ void cmd_list(){
 	recvd = recvDataHMAC(server_socket,len);
 	if(recvd == NULL) return;
 
-	encryptedChunk ec;
+	EncryptedChunk ec;
 	ec.ciphertext = recvd;
 	
 	ec.size = len;
 
-	chunk c;
+	Chunk c;
 
 	DecryptManager dm;
 	dm.DecryptUpdate(c,ec);
@@ -366,8 +366,8 @@ bool initial_protocol(NetSocket &server_socket){
 	uint32_t local_nonce = 0;
 	RAND_bytes((unsigned char*)&local_nonce,sizeof(uint32_t));
 
-	chunk c;
-	encryptedChunk ec;
+	Chunk c;
+	EncryptedChunk ec;
 
 	int remote_nonce_size; 
 	if(!server_socket.recvInt(remote_nonce_size)) return false;

@@ -29,6 +29,9 @@
 #include <stdint.h>
 #include <signal.h>
 
+#include "Chunk.h"
+
+
 #define true 1
 #define false 0
 #define HASH_SIZE 32
@@ -65,6 +68,7 @@ extern const char *commands_list[5];
 enum file_status{NO_ERRORS,OUT_OF_BOUND,FILE_ERROR,END_OF_FILE};
 enum commands {HELP_COMMAND,LIST_COMMAND,GET_COMMAND,UPLOAD_COMMAND};
 
+/*
 struct chunk{
 	int size;
 	char* plaintext;
@@ -73,7 +77,7 @@ struct chunk{
 struct encryptedChunk{
 	int size;
 	char* ciphertext;
-};
+};*/
 
 enum enum_nonce{LOCAL_NONCE, REMOTE_NONCE};
 

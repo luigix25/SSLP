@@ -54,11 +54,11 @@ void cmd_list(){
 	int len = concatenated.size()+1;
 
 	EncryptManager em;
-	chunk c;
+	Chunk c;
 	c.plaintext = (char*)str;
 	c.size = len;
 
-	encryptedChunk ec;
+	EncryptedChunk ec;
 
 	em.EncryptUpdate(ec,c);
 	em.EncryptFinal(ec);
@@ -181,11 +181,11 @@ bool receive_command(int &command){
 		return false;
 	}
 
-	encryptedChunk ec;
+	EncryptedChunk ec;
 	ec.size = len;
 	ec.ciphertext = raw_data;
 
-	chunk c;
+	Chunk c;
 
 	DecryptManager dm;
 	dm.DecryptUpdate(c,ec);
@@ -366,12 +366,12 @@ bool initial_protocol(NetSocket &client_socket){
 
 	if(!client_socket.sendData(IV,AES_BLOCK))	return false;
 
-	chunk c;
+	Chunk c;
  	c.plaintext = (char*)&local_nonce;
 	c.size = sizeof(uint32_t);
 
 
-	encryptedChunk ec;
+	EncryptedChunk ec;
 
 	EncryptManager em;
 	if(!em.EncryptUpdate(ec.ciphertext,ec.size,c.plaintext,c.size)){

@@ -13,8 +13,8 @@ class HMACManager : public KeyManager{
 		HMACManager(const char *);							//KEY
 		~HMACManager();
 
-		bool HMACUpdate(encryptedChunk &);
-		bool HMACUpdate(chunk &);
+		bool HMACUpdate(EncryptedChunk &);
+		bool HMACUpdate(Chunk &);
 		bool HMACUpdate(const char *,int);
 
 		char* HMACFinal(enum_nonce);

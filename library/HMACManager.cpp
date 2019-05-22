@@ -19,7 +19,7 @@ HMACManager::HMACManager(const char *_key) : HMACManager(){
 
 }
 
-bool HMACManager::HMACUpdate(encryptedChunk &ec){
+bool HMACManager::HMACUpdate(EncryptedChunk &ec){
 
     if(!HMAC_Update(mdctx, (unsigned char*) ec.ciphertext,ec.size)){
     	perror("Error in EVP_DecryptUpdate");
@@ -30,7 +30,7 @@ bool HMACManager::HMACUpdate(encryptedChunk &ec){
 
 }
 
-bool HMACManager::HMACUpdate(chunk &ec){
+bool HMACManager::HMACUpdate(Chunk &ec){
 
     if(!HMAC_Update(mdctx, (unsigned char*) ec.plaintext,ec.size)){
     	perror("Error in EVP_DecryptUpdate");
@@ -57,7 +57,7 @@ char* HMACManager::HMACFinal(enum_nonce en){
 	char *digest = new char [HASH_SIZE];
 
   if(nonce != 0){
-    chunk c;
+    Chunk c;
     c.size = sizeof(uint32_t);
     c.plaintext = (char*)&nonce[en];
 

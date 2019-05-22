@@ -60,7 +60,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 	completeFileSize = size;
 
 
-	chunk c;
+	Chunk c;
 	file_status status;
 	bool last = false;
 
@@ -72,7 +72,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 
 	while(true){
 	
-		status = fm.read(&c);
+		status = fm.read(c);
 
 		if(status == FILE_ERROR){
 			cout<<"FILE ERROR"<<endl;
@@ -83,7 +83,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 		}
 
 
-		encryptedChunk ec;
+		EncryptedChunk ec;
 
 		if(!em.EncryptUpdate(ec,c)){
 			cout<<"HANDLE ERROR"<<endl;
@@ -203,11 +203,11 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,P
 			return false;
 		} 
 
-		encryptedChunk ec;
+		EncryptedChunk ec;
 		ec.size  = len;
 		ec.ciphertext = recvd_data;
 
-		chunk c;
+		Chunk c;
 
 		if(!dm.DecryptUpdate(c,ec)){
 			cout<<"DecryptUpdate error"<<endl;
@@ -257,7 +257,7 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,P
 			return false;
 		}	
 
-		status = fm.write(&c);
+		status = fm.write(c);
 
 		delete[] c.plaintext;
 		delete[] ec.ciphertext;

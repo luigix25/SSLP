@@ -24,16 +24,16 @@ bool WriteFileManager::openStream(){
 	return true;
 } 
 
-file_status WriteFileManager::write(chunk* c){ //write in append
+file_status WriteFileManager::write(Chunk& c){ //write in append
 	if(!openStream()){ // Check if stream its open
 		return FILE_ERROR;
 	}
-	fs.write(c->plaintext, c->size); // Write new block in to the file
+	fs.write(c.plaintext, c.size); // Write new block in to the file
 	if(!fs){
 		return FILE_ERROR;
 	}
 
-	remaining_size -= c->size;
+	remaining_size -= c.size;
 	closeStream();
 	if(remaining_size <= 0){
 		return END_OF_FILE;

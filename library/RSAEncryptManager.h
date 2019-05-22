@@ -12,8 +12,8 @@ class RSAEncryptManager{
 	public:
 		RSAEncryptManager(EVP_PKEY *);							//KEY
 		~RSAEncryptManager();
-		bool RSAUpdate(encryptedChunk &,chunk&);
-		bool RSAFinal(encryptedChunk&);
+		bool RSAUpdate(EncryptedChunk &,Chunk&);
+		bool RSAFinal(EncryptedChunk&);
 
 };
 

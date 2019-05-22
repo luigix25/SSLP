@@ -30,13 +30,13 @@ bool EncryptManager::EncryptUpdate(char *& ciphertext, int32_t& ciphertext_len, 
 }
 
 
-bool EncryptManager::EncryptUpdate(encryptedChunk& ec, chunk& c){
+bool EncryptManager::EncryptUpdate(EncryptedChunk& ec, Chunk& c){
 
 	return EncryptUpdate(ec.ciphertext,ec.size,c.plaintext,c.size);
 
 }
 
-bool EncryptManager::EncryptFinal(encryptedChunk& ec){
+bool EncryptManager::EncryptFinal(EncryptedChunk& ec){
 
 	return EncryptFinal(ec.ciphertext,ec.size);	
 }
