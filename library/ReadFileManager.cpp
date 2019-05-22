@@ -48,6 +48,10 @@ file_status ReadFileManager::read(chunk *c){
 	c->plaintext = new char[size];
 
 	fs.read(c->plaintext, size);
+	if(!fs){
+		return FILE_ERROR;
+	}
+
 	remaining_size -= c->size;
 
 	closeStream();
