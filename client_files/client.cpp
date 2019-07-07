@@ -234,8 +234,18 @@ bool initial_protocol(NetSocket &server_socket){
 	
 	//send through the socket
 
-	if(!server_socket.sendInt(cert_size)) 			return false;					//chiedere perazzo
-	if(!server_socket.sendData((const char*)cert_buf,cert_size)) return false;
+	if(!server_socket.sendInt(cert_size)){
+		X509_free(client_cert);
+		OPENSSL_free(cert_buf);
+		return false;
+	} 								//chiedere perazzo
+
+
+	if(!server_socket.sendData((const char*)cert_buf,cert_size)){
+		OPENSSL_free(cert_buf);
+		X509_free(client_cert)
+		return false;
+	} 
 
 	OPENSSL_free(cert_buf);
 	X509_free(client_cert);
