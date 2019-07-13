@@ -41,7 +41,7 @@ struct sockaddr_in setup_sockaddr(char *ip,int port){
 }
 
 
-void cmd_help(){
+bool cmd_help(){
 
 	const char *desc[5] = {"--> show available commands",
 			"--> show files saved both on server and client",
@@ -55,6 +55,8 @@ void cmd_help(){
 	for(i=0;i<5;i++){
 		cout<<commands_list[i]<<" "<<desc[i]<<endl;
 	}
+
+	return true;
 
 }
 
@@ -89,17 +91,17 @@ bool send_command(uint32_t command){
 	return true;
 }
 
-void cmd_list(){
+bool cmd_list(){
 
 	if(!send_command(LIST_COMMAND)){
 		cout<<"Error in send command"<<endl;
-		return;
+		return false;
 	}
 	
 	char *recvd;
 	int len;
 	recvd = recvDataHMAC(server_socket,len);
-	if(recvd == NULL) return;
+	if(recvd == NULL) return false;
 
 	EncryptedChunk ec;
 	ec.setCipherText(recvd);
@@ -108,8 +110,11 @@ void cmd_list(){
 	Chunk c;
 
 	DecryptManager dm;
-	dm.DecryptUpdate(c,ec);
-	dm.DecryptFinal(c);
+	if(!dm.DecryptUpdate(c,ec))
+		return false;
+
+	if(!dm.DecryptFinal(c))
+		return false;
 
 	string concatenated(c.getPlainText());
 
@@ -130,9 +135,11 @@ void cmd_list(){
 	}
 	cout << endl;
 
+	return true;
+
 }
 
-void cmd_upload(){
+bool cmd_upload(){
 	string filename;
 	cin >> setw(MAX_FILENAME_LENGTH) >> filename;
 
@@ -143,26 +150,32 @@ void cmd_upload(){
 	fstream tmp(path + filename);
 	if(!tmp.good()){
 		cout << "il file non esiste" << endl;
-		return;
+		return true;								//not a protocol error
 	}
-	else
+	else {
 		cout << "il file esiste" << endl;
-	if(!send_command(UPLOAD_COMMAND)) return;
+	}
 
-	if(!sendDataHMAC(server_socket,(const char*)filename.c_str(),filename.length()+1)) return;		//vanno cifrati
+	if(!send_command(UPLOAD_COMMAND)) return false;
+
+	if(!sendDataHMAC(server_socket,(const char*)filename.c_str(),filename.length()+1)) return false;		//vanno cifrati
 
 	
-	if(!SendFile(path,server_socket,(char *)filename.c_str(),CLIENT_PRIVKEY_PATH,true))
+	if(!SendFile(path,server_socket,(char *)filename.c_str(),CLIENT_PRIVKEY_PATH,true)){
 		cout << "sendFile fallita" << endl;
-	else
+		return false;
+	}
+	else {
 		cout << "sendFile corretta" << endl;
+		return true;
+	}
 }
 
 
-void cmd_get(){
+bool cmd_get(){
 
 	//if(!server_socket.sendInt(GET_COMMAND)) return;
-	if(!send_command(GET_COMMAND)) return;
+	if(!send_command(GET_COMMAND)) return false;
 	string filename;
 	cin >> setw(MAX_FILENAME_LENGTH) >> filename;
 
@@ -173,43 +186,49 @@ void cmd_get(){
 
 	int32_t length = filename.length()+1;
 
-	if(!sendDataHMAC(server_socket,(const char*)filename.c_str(),length)) return;			//va cifrato
-	if(!ReceiveFile(path,( char*)filename.c_str(),server_socket,public_key_rsa,true))
+	if(!sendDataHMAC(server_socket,(const char*)filename.c_str(),length)) return false;			//va cifrato
+	if(!ReceiveFile(path,( char*)filename.c_str(),server_socket,public_key_rsa,true)){
 		cout << "ReceiveFile ERRATA" << endl;
-	else
+		return false;
+	}
+	else{
 		cout << "ReceiveFile CORRETTA" << endl;
+		return true;
+	}
 	
 }
 
-void select_command(string &buffer){
+bool select_command(string &buffer){
 
 
 	if(buffer.compare("!help") == 0){
-		cmd_help();
+		return cmd_help();
 	} else if(buffer.compare("!list") == 0){
-		cmd_list();
+		return cmd_list();
 	} else if(buffer.compare("!quit") == 0){
 		cmd_quit();
+		return true;							//will never reach here
 	} else if(buffer.compare("!get") == 0){
-		cmd_get();
+		return cmd_get();
 	} else if (buffer.compare("!upload") == 0){
-		cmd_upload();
+		return cmd_upload();
 	} else {
 		cout<<">"<<buffer<<"<"<<endl;
 		cout<<"Comando non riconosciuto"<<endl;
 	//	exit(-1);
 		pulisci_buff();
+		return true;
 	}
 
 
 }
 
-void read_input(){
+bool read_input(){
 
 	string buffer;
 	cin>>setw(MAX_CMD_LENGTH)>>buffer;
 
-	select_command(buffer);
+	return select_command(buffer);
 
 }
 
@@ -532,7 +551,11 @@ int main(int argc,char **argv){
 		for(i = 0; i <= fdmax; i++){
 			if(FD_ISSET(i,&read_fds)){
 				if(i == 0){						//stdin
-					read_input();				//keyboard			
+					if(!read_input()){
+						KeyManager::destroyKeys();
+						server_socket.closeConnection();
+						exit(-1);
+					}
 					//continue;
 				} else if(i == socket_tcp) {			//server tcp
 					//non dovrei mai arrivare qui	
