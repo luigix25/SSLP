@@ -15,10 +15,7 @@ void close_handler(int s){
 }
 
 void pulisci_buff(){
-	char c;
-	while((c = getchar()) != '\n' && c != EOF)
-		;
-
+	cin.ignore(numeric_limits<streamsize>::max(), '\n');
 }
 
 void print_hex(unsigned char* buff, unsigned int size)
@@ -135,7 +132,11 @@ void cmd_list(){
 
 void cmd_upload(){
 	string filename;
-	cin >> filename;
+	cin >> setw(MAX_FILENAME_LENGTH) >> filename;
+
+	//clears the overflow, if any
+	pulisci_buff();
+
 	string path(CLIENT_PATH);
 	fstream tmp(path + filename);
 	if(!tmp.good()){
@@ -161,7 +162,11 @@ void cmd_get(){
 	//if(!server_socket.sendInt(GET_COMMAND)) return;
 	if(!send_command(GET_COMMAND)) return;
 	string filename;
-	cin >> filename;
+	cin >> setw(MAX_FILENAME_LENGTH) >> filename;
+
+	//clears the overflow, if any
+	pulisci_buff();
+
 	string path(CLIENT_PATH);
 
 	int32_t length = filename.length()+1;
@@ -172,7 +177,6 @@ void cmd_get(){
 	else
 		cout << "ReceiveFile CORRETTA" << endl;
 	
-	//WARING SECURECODING
 }
 
 void select_command(string &buffer){
@@ -201,8 +205,7 @@ void select_command(string &buffer){
 void read_input(){
 
 	string buffer;
-	fflush(stdout);
-	cin>>buffer;
+	cin>>setw(MAX_CMD_LENGTH)>>buffer;
 
 	select_command(buffer);
 
@@ -243,7 +246,7 @@ bool initial_protocol(NetSocket &server_socket){
 
 	if(!server_socket.sendData((const char*)cert_buf,cert_size)){
 		OPENSSL_free(cert_buf);
-		X509_free(client_cert)
+		X509_free(client_cert);
 		return false;
 	} 
 

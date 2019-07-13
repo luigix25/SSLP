@@ -38,11 +38,9 @@
 #define AES_BLOCK 16
 #define AES_KEY_SIZE 16
 #define HMAC_KEY_SIZE 16
+#define MAX_FILENAME_LENGTH 100
+#define MAX_CMD_LENGTH 10
 
-#define AES_IV "cornettonebomba"
-
-#define SERVER_NONCE 	12345
-#define CLIENT_NONCE 	54321
 #define NONCE_SIZE 		4
 
 

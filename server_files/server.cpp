@@ -37,7 +37,7 @@ bool isClientAuthorized(string& clientName, const char* filePath){
 }
 
 
-void cmd_list(){
+bool cmd_list(){
 	vector <string> files;
 	files = get_file_list(SERVER_PATH);
 	int number;
@@ -68,7 +68,8 @@ void cmd_list(){
 
 	//cout << "lista che invio da server: \n" << ec.ciphertext<<endl;
 	if(!sendDataHMAC(client_socket,ec.getCipherText(),ec.size))
-		return;
+		return false;
+	return true;
 	
 
 }
@@ -81,53 +82,67 @@ void print_hex(unsigned char* buff, unsigned int size)
     printf("\n");
 }
 
-void cmd_get(){
+bool cmd_get(){
 
 	char *filename;
 	int len;
 
 	filename = recvDataHMAC(client_socket,len);
+	if(strlen(filename) >= MAX_FILENAME_LENGTH){
+		delete[] filename;
+		return false;
+	}
+
 	string path(SERVER_PATH);
 	cout<<path<<endl;
-	if(!SendFile(path,client_socket,filename,SERVER_PRIVKEY_PATH,false))
+	if(!SendFile(path,client_socket,filename,SERVER_PRIVKEY_PATH,false)){
 		cout << "sendFile fallita" << endl;
-	else
+		delete[] filename;
+		return false;
+	}
+	else{
 		cout << "sendFile corretta" << endl;
+		delete[] filename;
+		return true;
+	}
 
-	delete[] filename ;
 }
 
-void cmd_upload(){
+bool cmd_upload(){
 	char *filename;
 	int len;
 
 	filename = recvDataHMAC(client_socket,len);
+	if(filename == NULL)
+		return false;
+
 	string path(SERVER_PATH);
 	if(!ReceiveFile(path,filename,client_socket,public_key_rsa,false)){
 		cout << "cmd_upload fallita" << endl;
+		delete[] filename;
+		return false;
 	}
-	else
+	else{
 		cout << "cmd_upload corretta" << endl;
+		delete[] filename;
+		return true;
+	}
 
-	delete[] filename;
 }
 
 
 
-void select_command(int cmd){
+bool select_command(int cmd){
 
 	switch (cmd){
 		case LIST_COMMAND:
-			cmd_list();
-			break;
+			return cmd_list();
 		case GET_COMMAND:
-			cmd_get();
-			break;
+			return cmd_get();
 		case UPLOAD_COMMAND:
-			cmd_upload();
+			return cmd_upload();
 		default:
-			//handle error
-			break;
+			return false;
 		}
 
 
@@ -549,7 +564,11 @@ int main(int argc,char **argv){
 						FD_CLR(i,&master);							//remove socket from select
 
 					} else {
-						select_command(cmd);
+						if(!select_command(cmd)){
+							client_socket.closeConnection();
+							alreadyConnected = false;
+							FD_CLR(i,&master);
+						}
 					}
 
 				}
