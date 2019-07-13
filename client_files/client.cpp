@@ -10,6 +10,7 @@ NetSocket server_socket;
 void close_handler(int s){
 	cout<<endl<<"Terminating.."<<endl;
 	server_socket.closeConnection();
+	KeyManager::destroyKeys();
 	exit(s);
 
 }
