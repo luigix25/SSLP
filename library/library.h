@@ -118,4 +118,7 @@ char* recvDataHMAC(NetSocket&,int32_t&);
 
 vector<string> get_file_list(const char*);
 vector<string> split (string, string);
+
+void memset_s(void *,char,uint32_t);
+
 #endif

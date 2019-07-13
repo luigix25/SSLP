@@ -282,3 +282,10 @@ char* recvDataHMAC(NetSocket& receiver_socket,int32_t &length){
 
 }
 
+void memset_s(void *p ,char c, uint32_t len){
+
+	volatile uint8_t * _p = (uint8_t *)p;
+	
+	while (len--) *_p++ = c;
+
+}

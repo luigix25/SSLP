@@ -61,6 +61,7 @@ void cmd_help(){
 void cmd_quit(){
 
 	cout<<"Closing Connection"<<endl;
+	KeyManager::destroyKeys();
 	server_socket.closeConnection();
 	exit(0);
 
@@ -294,6 +295,7 @@ bool initial_protocol(NetSocket &server_socket){
 	}
 
 	public_key_rsa.setKey(cm.extractPubKey(server_cert));
+	X509_free(server_cert);
 
 
 	cout<<"Connessione stabilita con il server "<<name<<endl;
@@ -340,6 +342,10 @@ bool initial_protocol(NetSocket &server_socket){
 
 	HashManager keys;
 	keys.HashUpdate(simmetric_key,key_length);
+
+	memset_s(simmetric_key,0,key_length);
+	delete[] simmetric_key;
+
 	char* digest_keys = keys.HashFinal();
 
 	char AES_symmetric_key[AES_KEY_SIZE];
@@ -348,14 +354,14 @@ bool initial_protocol(NetSocket &server_socket){
 	char HMAC_key[HMAC_KEY_SIZE];
 	memcpy(HMAC_key,&digest_keys[HMAC_KEY_SIZE],HMAC_KEY_SIZE);
 
-	X509_free(server_cert);
-
+	memset_s(digest_keys,0,HASH_SIZE);
+	delete[] digest_keys;
 
 	KeyManager::setAESKey(AES_symmetric_key);
 	KeyManager::setHMACKey(HMAC_key);
 
-	memset(AES_symmetric_key,0,AES_KEY_SIZE);
-	memset(HMAC_key,0,HMAC_KEY_SIZE);
+	memset_s(AES_symmetric_key,0,AES_KEY_SIZE);
+	memset_s(HMAC_key,0,HMAC_KEY_SIZE);
 
 	char *revc_IV = server_socket.recvData(AES_BLOCK);
 	if(revc_IV == NULL){
@@ -451,11 +457,6 @@ bool initial_protocol(NetSocket &server_socket){
 
 	delete[] sign_final;
 
-	delete[] simmetric_key;
-	delete[] digest_keys;
-
-	//destroy "old" key?
-
 	return result;
 
 }
@@ -535,6 +536,7 @@ int main(int argc,char **argv){
 				} else if(i == socket_tcp) {			//server tcp
 					//non dovrei mai arrivare qui	
 					cout<<"ERRORE PROTOCOLLARE!"<<endl;
+					KeyManager::destroyKeys();
 					server_socket.closeConnection();
 					exit(-1);
 				} 

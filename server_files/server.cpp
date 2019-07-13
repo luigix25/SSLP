@@ -281,7 +281,7 @@ bool initial_protocol(NetSocket &client_socket){
 
 	if(!client_socket.sendInt(cert_size)){
 		delete[] cert_buf;
-		return false;					//chiedere perazzo
+		return false;					
 	}
 
 	if(!client_socket.sendData((const char*)cert_buf,cert_size)){
@@ -343,11 +343,14 @@ bool initial_protocol(NetSocket &client_socket){
 
   	HashManager keys;
   	if(!keys.HashUpdate(simmetric_key,key_length)){
+  		memset_s(simmetric_key,0,key_length);
   		delete[] simmetric_key;
   		return false;
   	}
 
 	char* digest_keys = keys.HashFinal();
+
+	memset_s(simmetric_key,0,key_length);
 	delete[] simmetric_key;
 
 	if(digest_keys == NULL)								return false;
@@ -358,6 +361,9 @@ bool initial_protocol(NetSocket &client_socket){
 
 	char HMAC_key[HMAC_KEY_SIZE];
 	memcpy(HMAC_key,&digest_keys[HMAC_KEY_SIZE],HMAC_KEY_SIZE);
+
+
+	memset_s(digest_keys,0,HASH_SIZE);
 
 	delete[] digest_keys;
 
@@ -434,8 +440,8 @@ bool initial_protocol(NetSocket &client_socket){
 	HMACManager::setRemoteNonce(remote_nonce);
 	HMACManager::setLocalNonce(local_nonce);
 
-	memset(AES_symmetric_key,0,AES_KEY_SIZE);
-	memset(HMAC_key,0,HMAC_KEY_SIZE);
+	memset_s(AES_symmetric_key,0,AES_KEY_SIZE);
+	memset_s(HMAC_key,0,HMAC_KEY_SIZE);
 
 
 	int received_signature_len;
@@ -547,6 +553,7 @@ int main(int argc,char **argv){
 
 					if(!initial_protocol(client_socket)){
 						client_socket.closeConnection();
+						KeyManager::destroyKeys();
 						alreadyConnected = false;
 						FD_CLR(new_sock,&master);
 					}
@@ -560,12 +567,14 @@ int main(int argc,char **argv){
 					if(!status){
 						cout<<"Client Disconnesso"<<endl;
 						client_socket.closeConnection();
+						KeyManager::destroyKeys();
 						alreadyConnected = false;
 						FD_CLR(i,&master);							//remove socket from select
 
 					} else {
 						if(!select_command(cmd)){
 							client_socket.closeConnection();
+							KeyManager::destroyKeys();
 							alreadyConnected = false;
 							FD_CLR(i,&master);
 						}

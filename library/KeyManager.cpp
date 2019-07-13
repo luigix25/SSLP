@@ -15,3 +15,9 @@ void KeyManager::setAESIV(const char* _iv){
 void KeyManager::setHMACKey(const char* _hmac){
 	memcpy(hmac_key,_hmac,16);
 }
+
+void KeyManager::destroyKeys(){
+	memset_s(key,0,16);
+	memset_s(hmac_key,0,16);
+
+}
