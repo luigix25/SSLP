@@ -7,7 +7,8 @@ PublicKey public_key_rsa;
 
 void close_handler(int s){
 	cout<<endl<<"Terminating.."<<endl;
-	client_socket.closeConnection();
+	client_socket.closeConnection();						
+	KeyManager::destroyKeys();
 	close(server_socket);
 	exit(s);
 }
