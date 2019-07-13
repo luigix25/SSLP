@@ -223,7 +223,7 @@ bool initial_protocol(NetSocket &client_socket){
 
 	if(!client_socket.recvInt(cert_size)) 		return false;
 
-	if(cert_size < 0)
+	if(cert_size < 0 || cert_size > MAX_CERT_LENGTH)
 		return false;
 
 	char *client_cert_data = client_socket.recvData(cert_size);

@@ -40,6 +40,7 @@
 #define HMAC_KEY_SIZE 16
 #define MAX_FILENAME_LENGTH 100
 #define MAX_CMD_LENGTH 10
+#define MAX_CERT_LENGTH 3000			//normal size 1500
 
 #define NONCE_SIZE 		4
 
