@@ -61,8 +61,8 @@ bool cmd_list(){
 
 	EncryptedChunk ec;
 
-	em.EncryptUpdate(ec,c);
-	em.EncryptFinal(ec);
+	if(!em.EncryptUpdate(ec,c)) return false;
+	if(!em.EncryptFinal(ec))	return false;
 
 
 	//delete[] c.plaintext;
@@ -85,12 +85,25 @@ void print_hex(unsigned char* buff, unsigned int size)
 
 bool cmd_get(){
 
-	char *filename;
 	int len;
 
-	filename = recvDataHMAC(client_socket,len);
-	if(strlen(filename) >= MAX_FILENAME_LENGTH){
-		delete[] filename;
+	char *encryptedData = recvDataHMAC(client_socket,len);
+	if(encryptedData == NULL)
+		return false;
+
+	EncryptedChunk ec;
+	ec.setCipherText(encryptedData);				//now in charge of memory management
+	ec.size = len;
+
+	Chunk c;
+
+	DecryptManager dm;
+	if(!dm.DecryptUpdate(c,ec))			return false;
+	if(!dm.DecryptFinal(c))				return false;
+
+	string filename(c.getPlainText());
+
+	if(filename.size() >= MAX_FILENAME_LENGTH){
 		return false;
 	}
 
@@ -98,12 +111,10 @@ bool cmd_get(){
 	cout<<path<<endl;
 	if(!SendFile(path,client_socket,filename,SERVER_PRIVKEY_PATH,false)){
 		cout << "sendFile fallita" << endl;
-		delete[] filename;
 		return false;
 	}
 	else{
 		cout << "sendFile corretta" << endl;
-		delete[] filename;
 		return true;
 	}
 

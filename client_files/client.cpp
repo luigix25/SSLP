@@ -161,7 +161,7 @@ bool cmd_upload(){
 	if(!sendDataHMAC(server_socket,(const char*)filename.c_str(),filename.length()+1)) return false;		//vanno cifrati
 
 	
-	if(!SendFile(path,server_socket,(char *)filename.c_str(),CLIENT_PRIVKEY_PATH,true)){
+	if(!SendFile(path,server_socket,filename,CLIENT_PRIVKEY_PATH,true)){
 		cout << "sendFile fallita" << endl;
 		return false;
 	}
@@ -186,7 +186,18 @@ bool cmd_get(){
 
 	int32_t length = filename.length()+1;
 
-	if(!sendDataHMAC(server_socket,(const char*)filename.c_str(),length)) return false;			//va cifrato
+	EncryptManager em;
+	Chunk c;
+	c.setPlainText((char*)filename.c_str(),false);		//i don't need to free memory
+	c.size = length;
+
+	EncryptedChunk ec;
+
+	if(!em.EncryptUpdate(ec,c)) return false;
+	if(!em.EncryptFinal(ec))	return false;
+
+
+	if(!sendDataHMAC(server_socket,ec.getCipherText(),ec.size)) return false;			//va cifrato
 	if(!ReceiveFile(path,( char*)filename.c_str(),server_socket,public_key_rsa,true)){
 		cout << "ReceiveFile ERRATA" << endl;
 		return false;

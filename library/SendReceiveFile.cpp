@@ -11,16 +11,17 @@ bool checkValidityFilename(string filename){
 		return true;
 	}
 }
-bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const char *key_path,bool progressBar){
+bool SendFile(string& path,NetSocket& receiverSocket,string &filename,const char *key_path,bool progressBar){
 	cout<<"USO CHIAVE "<<key_path<<endl;
 
 
-	if(filename == NULL){
+	if(filename.size() == 0){
 		return false;
 	}
+	
 	uint32_t size;
 
-	bool return_value = checkValidityFilename((string)filename);
+	bool return_value = checkValidityFilename(filename);
 	if(!return_value){
 		size = 0;
 		sendIntHMAC(receiverSocket,size);
