@@ -121,22 +121,32 @@ bool cmd_get(){
 }
 
 bool cmd_upload(){
-	char *filename;
 	int len;
 
-	filename = recvDataHMAC(client_socket,len);
-	if(filename == NULL)
+	char* encryted_data = recvDataHMAC(client_socket,len);
+	if(encryted_data == NULL)
 		return false;
+
+
+	EncryptedChunk ec;
+	ec.setCipherText(encryted_data);				//now in charge of memory management
+	ec.size = len;
+
+	Chunk c;
+
+	DecryptManager dm;
+	if(!dm.DecryptUpdate(c,ec))			return false;
+	if(!dm.DecryptFinal(c))				return false;
+
+	string filename(c.getPlainText());
 
 	string path(SERVER_PATH);
 	if(!ReceiveFile(path,filename,client_socket,public_key_rsa,false)){
 		cout << "cmd_upload fallita" << endl;
-		delete[] filename;
 		return false;
 	}
 	else{
 		cout << "cmd_upload corretta" << endl;
-		delete[] filename;
 		return true;
 	}
 

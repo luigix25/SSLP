@@ -158,8 +158,18 @@ bool cmd_upload(){
 
 	if(!send_command(UPLOAD_COMMAND)) return false;
 
-	if(!sendDataHMAC(server_socket,(const char*)filename.c_str(),filename.length()+1)) return false;		//vanno cifrati
+	EncryptManager em;
+	Chunk c;
+	c.setPlainText((char*)filename.c_str(),false);		//i don't need to free memory
+	c.size = filename.size()+1;							//fine stringa
 
+	EncryptedChunk ec;
+
+	if(!em.EncryptUpdate(ec,c)) return false;
+	if(!em.EncryptFinal(ec))	return false;
+
+
+	if(!sendDataHMAC(server_socket,ec.getCipherText(),ec.size)) return false;
 	
 	if(!SendFile(path,server_socket,filename,CLIENT_PRIVKEY_PATH,true)){
 		cout << "sendFile fallita" << endl;
@@ -184,12 +194,10 @@ bool cmd_get(){
 
 	string path(CLIENT_PATH);
 
-	int32_t length = filename.length()+1;
-
 	EncryptManager em;
 	Chunk c;
 	c.setPlainText((char*)filename.c_str(),false);		//i don't need to free memory
-	c.size = length;
+	c.size = filename.size()+1;
 
 	EncryptedChunk ec;
 
@@ -197,8 +205,8 @@ bool cmd_get(){
 	if(!em.EncryptFinal(ec))	return false;
 
 
-	if(!sendDataHMAC(server_socket,ec.getCipherText(),ec.size)) return false;			//va cifrato
-	if(!ReceiveFile(path,( char*)filename.c_str(),server_socket,public_key_rsa,true)){
+	if(!sendDataHMAC(server_socket,ec.getCipherText(),ec.size)) return false;			
+	if(!ReceiveFile(path,filename,server_socket,public_key_rsa,true)){
 		cout << "ReceiveFile ERRATA" << endl;
 		return false;
 	}

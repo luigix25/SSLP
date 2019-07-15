@@ -11,7 +11,7 @@
 #include "PublicKey.h"
 
 bool SendFile(string & ,NetSocket &,string &,const char *,bool);
-bool ReceiveFile(string & ,const char *, NetSocket &,PublicKey&,bool);
+bool ReceiveFile(string & ,string&, NetSocket &,PublicKey&,bool);
 
 
 #endif

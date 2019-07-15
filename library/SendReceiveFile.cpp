@@ -18,7 +18,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,string &filename,const char
 	if(filename.size() == 0){
 		return false;
 	}
-	
+
 	uint32_t size;
 
 	bool return_value = checkValidityFilename(filename);
@@ -158,9 +158,13 @@ bool SendFile(string& path,NetSocket& receiverSocket,string &filename,const char
 	return true;
 }
 
-bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,PublicKey &key,bool progressBar){
+bool ReceiveFile(string & path, string& filename, NetSocket & senderSocket,PublicKey &key,bool progressBar){
 
 	//handle get
+	if(filename.size() == 0)
+		return false;
+
+
 	path += filename;
 	cout<<"Scrivo: "<<path<<endl;
 
