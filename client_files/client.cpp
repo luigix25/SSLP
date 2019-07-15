@@ -10,15 +10,13 @@ NetSocket server_socket;
 void close_handler(int s){
 	cout<<endl<<"Terminating.."<<endl;
 	server_socket.closeConnection();
+	KeyManager::destroyKeys();
 	exit(s);
 
 }
 
 void pulisci_buff(){
-	char c;
-	while((c = getchar()) != '\n' && c != EOF)
-		;
-
+	cin.ignore(numeric_limits<streamsize>::max(), '\n');
 }
 
 void print_hex(unsigned char* buff, unsigned int size)
@@ -43,7 +41,7 @@ struct sockaddr_in setup_sockaddr(char *ip,int port){
 }
 
 
-void cmd_help(){
+bool cmd_help(){
 
 	const char *desc[5] = {"--> show available commands",
 			"--> show files saved both on server and client",
@@ -58,12 +56,15 @@ void cmd_help(){
 		cout<<commands_list[i]<<" "<<desc[i]<<endl;
 	}
 
+	return true;
+
 }
 
 
 void cmd_quit(){
 
 	cout<<"Closing Connection"<<endl;
+	KeyManager::destroyKeys();
 	server_socket.closeConnection();
 	exit(0);
 
@@ -73,51 +74,49 @@ bool send_command(uint32_t command){
 
 	EncryptManager em;
 
-	chunk c;
-	c.plaintext = (char*)&command;
+	Chunk c;
+	c.setInt(command);
 	c.size = 4;
 
-	encryptedChunk ec;
+	EncryptedChunk ec;
 
 	if(!em.EncryptUpdate(ec,c)) 	return false;
 	if(!em.EncryptFinal(ec))		return false;
 
-	if(!sendDataHMAC(server_socket,ec.ciphertext,ec.size)){			//aggiorno il nonce
+	if(!sendDataHMAC(server_socket,ec.getCipherText(),ec.size)){			//aggiorno il nonce
 		cout<<"ERRORE SEND"<<endl;
 		return false;
 	}
 
-	delete[] ec.ciphertext; 
-
 	return true;
 }
 
-void cmd_list(){
+bool cmd_list(){
 
 	if(!send_command(LIST_COMMAND)){
 		cout<<"Error in send command"<<endl;
-		return;
+		return false;
 	}
 	
 	char *recvd;
 	int len;
 	recvd = recvDataHMAC(server_socket,len);
-	if(recvd == NULL) return;
+	if(recvd == NULL) return false;
 
-	encryptedChunk ec;
-	ec.ciphertext = recvd;
-	
+	EncryptedChunk ec;
+	ec.setCipherText(recvd);
 	ec.size = len;
 
-	chunk c;
+	Chunk c;
 
 	DecryptManager dm;
-	dm.DecryptUpdate(c,ec);
-	dm.DecryptFinal(c);
+	if(!dm.DecryptUpdate(c,ec))
+		return false;
 
-	string concatenated(c.plaintext);
-	delete[] recvd;
-	delete[] c.plaintext;
+	if(!dm.DecryptFinal(c))
+		return false;
+
+	string concatenated(c.getPlainText());
 
 	vector<string> files_list = split(concatenated,string(" "));
 
@@ -136,80 +135,119 @@ void cmd_list(){
 	}
 	cout << endl;
 
+	return true;
+
 }
 
-void cmd_upload(){
+bool cmd_upload(){
 	string filename;
-	cin >> filename;
+	cin >> setw(MAX_FILENAME_LENGTH) >> filename;
+
+	//clears the overflow, if any
+	pulisci_buff();
+
 	string path(CLIENT_PATH);
 	fstream tmp(path + filename);
 	if(!tmp.good()){
 		cout << "il file non esiste" << endl;
-		return;
+		return true;								//not a protocol error
 	}
-	else
+	else {
 		cout << "il file esiste" << endl;
-	if(!send_command(UPLOAD_COMMAND)) return;
+	}
 
-	if(!sendDataHMAC(server_socket,(const char*)filename.c_str(),filename.length()+1)) return;		//vanno cifrati
+	if(!send_command(UPLOAD_COMMAND)) return false;
 
+	EncryptManager em;
+	Chunk c;
+	c.setPlainText((char*)filename.c_str(),false);		//i don't need to free memory
+	c.size = filename.size()+1;							//fine stringa
+
+	EncryptedChunk ec;
+
+	if(!em.EncryptUpdate(ec,c)) return false;
+	if(!em.EncryptFinal(ec))	return false;
+
+
+	if(!sendDataHMAC(server_socket,ec.getCipherText(),ec.size)) return false;
 	
-	if(!SendFile(path,server_socket,(char *)filename.c_str(),CLIENT_PRIVKEY_PATH,true))
+	if(!SendFile(path,server_socket,filename,CLIENT_PRIVKEY_PATH,true)){
 		cout << "sendFile fallita" << endl;
-	else
+		return false;
+	}
+	else {
 		cout << "sendFile corretta" << endl;
+		return true;
+	}
 }
 
 
-void cmd_get(){
+bool cmd_get(){
 
 	//if(!server_socket.sendInt(GET_COMMAND)) return;
-	if(!send_command(GET_COMMAND)) return;
+	if(!send_command(GET_COMMAND)) return false;
 	string filename;
-	cin >> filename;
+	cin >> setw(MAX_FILENAME_LENGTH) >> filename;
+
+	//clears the overflow, if any
+	pulisci_buff();
+
 	string path(CLIENT_PATH);
 
-	int32_t length = filename.length()+1;
+	EncryptManager em;
+	Chunk c;
+	c.setPlainText((char*)filename.c_str(),false);		//i don't need to free memory
+	c.size = filename.size()+1;
 
-	if(!sendDataHMAC(server_socket,(const char*)filename.c_str(),length)) return;			//va cifrato
-	if(!ReceiveFile(path,( char*)filename.c_str(),server_socket,public_key_rsa,true))
+	EncryptedChunk ec;
+
+	if(!em.EncryptUpdate(ec,c)) return false;
+	if(!em.EncryptFinal(ec))	return false;
+
+
+	if(!sendDataHMAC(server_socket,ec.getCipherText(),ec.size)) return false;			
+	if(!ReceiveFile(path,filename,server_socket,public_key_rsa,true)){
 		cout << "ReceiveFile ERRATA" << endl;
-	else
+		return false;
+	}
+	else{
 		cout << "ReceiveFile CORRETTA" << endl;
+		return true;
+	}
 	
-	//WARING SECURECODING
 }
 
-void select_command(string &buffer){
+bool select_command(string &buffer){
 
 
 	if(buffer.compare("!help") == 0){
-		cmd_help();
+		return cmd_help();
 	} else if(buffer.compare("!list") == 0){
-		cmd_list();
+		return cmd_list();
 	} else if(buffer.compare("!quit") == 0){
 		cmd_quit();
+		return true;							//will never reach here
 	} else if(buffer.compare("!get") == 0){
-		cmd_get();
+		return cmd_get();
 	} else if (buffer.compare("!upload") == 0){
-		cmd_upload();
+		return cmd_upload();
 	} else {
 		cout<<">"<<buffer<<"<"<<endl;
 		cout<<"Comando non riconosciuto"<<endl;
 	//	exit(-1);
 		pulisci_buff();
+		return true;
 	}
 
 
 }
 
-void read_input(){
+bool read_input(){
 
 	string buffer;
-	fflush(stdout);
-	cin>>buffer;
+	cin>>setw(MAX_CMD_LENGTH)>>buffer;
 
-	select_command(buffer);
+	return select_command(buffer);
 
 }
 
@@ -239,8 +277,18 @@ bool initial_protocol(NetSocket &server_socket){
 	
 	//send through the socket
 
-	if(!server_socket.sendInt(cert_size)) 			return false;					//chiedere perazzo
-	if(!server_socket.sendData((const char*)cert_buf,cert_size)) return false;
+	if(!server_socket.sendInt(cert_size)){
+		X509_free(client_cert);
+		OPENSSL_free(cert_buf);
+		return false;
+	} 								//chiedere perazzo
+
+
+	if(!server_socket.sendData((const char*)cert_buf,cert_size)){
+		OPENSSL_free(cert_buf);
+		X509_free(client_cert);
+		return false;
+	} 
 
 	OPENSSL_free(cert_buf);
 	X509_free(client_cert);
@@ -249,7 +297,7 @@ bool initial_protocol(NetSocket &server_socket){
 
 	if(!server_socket.recvInt(cert_size)) 		return false;
 
-	if(cert_size < 0)
+	if(cert_size < 0 || cert_size > MAX_CERT_LENGTH)
 		return false;
 
 	char *server_cert_data = server_socket.recvData(cert_size);
@@ -286,6 +334,7 @@ bool initial_protocol(NetSocket &server_socket){
 	}
 
 	public_key_rsa.setKey(cm.extractPubKey(server_cert));
+	X509_free(server_cert);
 
 
 	cout<<"Connessione stabilita con il server "<<name<<endl;
@@ -332,6 +381,10 @@ bool initial_protocol(NetSocket &server_socket){
 
 	HashManager keys;
 	keys.HashUpdate(simmetric_key,key_length);
+
+	memset_s(simmetric_key,0,key_length);
+	delete[] simmetric_key;
+
 	char* digest_keys = keys.HashFinal();
 
 	char AES_symmetric_key[AES_KEY_SIZE];
@@ -340,14 +393,14 @@ bool initial_protocol(NetSocket &server_socket){
 	char HMAC_key[HMAC_KEY_SIZE];
 	memcpy(HMAC_key,&digest_keys[HMAC_KEY_SIZE],HMAC_KEY_SIZE);
 
-	X509_free(server_cert);
-
+	memset_s(digest_keys,0,HASH_SIZE);
+	delete[] digest_keys;
 
 	KeyManager::setAESKey(AES_symmetric_key);
 	KeyManager::setHMACKey(HMAC_key);
 
-	memset(AES_symmetric_key,0,AES_KEY_SIZE);
-	memset(HMAC_key,0,HMAC_KEY_SIZE);
+	memset_s(AES_symmetric_key,0,AES_KEY_SIZE);
+	memset_s(HMAC_key,0,HMAC_KEY_SIZE);
 
 	char *revc_IV = server_socket.recvData(AES_BLOCK);
 	if(revc_IV == NULL){
@@ -366,8 +419,8 @@ bool initial_protocol(NetSocket &server_socket){
 	uint32_t local_nonce = 0;
 	RAND_bytes((unsigned char*)&local_nonce,sizeof(uint32_t));
 
-	chunk c;
-	encryptedChunk ec;
+	Chunk c;
+	EncryptedChunk ec;
 
 	int remote_nonce_size; 
 	if(!server_socket.recvInt(remote_nonce_size)) return false;
@@ -382,20 +435,21 @@ bool initial_protocol(NetSocket &server_socket){
 		return false;
 	}
 
-	ec.ciphertext = recv_data;
+	ec.setCipherText(recv_data);
 	ec.size = remote_nonce_size;
 
 	DecryptManager dm;
 	if(!dm.DecryptUpdate(c,ec))			return false;
 	if(!dm.DecryptFinal(c))				return false;
 
-	int remote_nonce = *((int*)c.plaintext);
+	int remote_nonce = c.getInt();
+
 	if(!sign.RSAUpdate((const char*)&remote_nonce,sizeof(uint32_t)))			return false;
 
-	delete[] c.plaintext;
-	delete[] ec.ciphertext;
+	//delete[] c.plaintext;
+	//delete[] ec.ciphertext;
 
- 	c.plaintext = (char*)&local_nonce;
+ 	c.setInt(local_nonce);
 	c.size = sizeof(uint32_t);
 
 	EncryptManager em;
@@ -411,12 +465,10 @@ bool initial_protocol(NetSocket &server_socket){
 	if(!sign.RSAUpdate((const char*)&local_nonce,sizeof(uint32_t)))			return false;
 
 
-	if(!server_socket.sendData(ec.ciphertext,ec.size)){
+	if(!server_socket.sendData(ec.getCipherText(),ec.size)){
 		//delete robba
 		return false;
 	}
-
-	delete[] ec.ciphertext;
 
 	uint32_t sign_final_len;
 	char* sign_final = sign.RSAFinal(sign_final_len);
@@ -443,11 +495,6 @@ bool initial_protocol(NetSocket &server_socket){
 	delete[] received_sign;
 
 	delete[] sign_final;
-
-	delete[] simmetric_key;
-	delete[] digest_keys;
-
-	//destroy "old" key?
 
 	return result;
 
@@ -523,11 +570,16 @@ int main(int argc,char **argv){
 		for(i = 0; i <= fdmax; i++){
 			if(FD_ISSET(i,&read_fds)){
 				if(i == 0){						//stdin
-					read_input();				//keyboard			
+					if(!read_input()){
+						KeyManager::destroyKeys();
+						server_socket.closeConnection();
+						exit(-1);
+					}
 					//continue;
 				} else if(i == socket_tcp) {			//server tcp
 					//non dovrei mai arrivare qui	
 					cout<<"ERRORE PROTOCOLLARE!"<<endl;
+					KeyManager::destroyKeys();
 					server_socket.closeConnection();
 					exit(-1);
 				} 

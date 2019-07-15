@@ -29,17 +29,19 @@
 #include <stdint.h>
 #include <signal.h>
 
+#include "Chunk.h"
+
+
 #define true 1
 #define false 0
 #define HASH_SIZE 32
 #define AES_BLOCK 16
 #define AES_KEY_SIZE 16
 #define HMAC_KEY_SIZE 16
+#define MAX_FILENAME_LENGTH 100
+#define MAX_CMD_LENGTH 10
+#define MAX_CERT_LENGTH 3000			//normal size 1500
 
-#define AES_IV "cornettonebomba"
-
-#define SERVER_NONCE 	12345
-#define CLIENT_NONCE 	54321
 #define NONCE_SIZE 		4
 
 
@@ -65,6 +67,7 @@ extern const char *commands_list[5];
 enum file_status{NO_ERRORS,OUT_OF_BOUND,FILE_ERROR,END_OF_FILE};
 enum commands {HELP_COMMAND,LIST_COMMAND,GET_COMMAND,UPLOAD_COMMAND};
 
+/*
 struct chunk{
 	int size;
 	char* plaintext;
@@ -73,7 +76,7 @@ struct chunk{
 struct encryptedChunk{
 	int size;
 	char* ciphertext;
-};
+};*/
 
 enum enum_nonce{LOCAL_NONCE, REMOTE_NONCE};
 
@@ -115,4 +118,7 @@ char* recvDataHMAC(NetSocket&,int32_t&);
 
 vector<string> get_file_list(const char*);
 vector<string> split (string, string);
+
+void memset_s(void *,char,uint32_t);
+
 #endif

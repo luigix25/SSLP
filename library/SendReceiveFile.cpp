@@ -11,16 +11,17 @@ bool checkValidityFilename(string filename){
 		return true;
 	}
 }
-bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const char *key_path,bool progressBar){
+bool SendFile(string& path,NetSocket& receiverSocket,string &filename,const char *key_path,bool progressBar){
 	cout<<"USO CHIAVE "<<key_path<<endl;
 
 
-	if(filename == NULL){
+	if(filename.size() == 0){
 		return false;
 	}
+
 	uint32_t size;
 
-	bool return_value = checkValidityFilename((string)filename);
+	bool return_value = checkValidityFilename(filename);
 	if(!return_value){
 		size = 0;
 		sendIntHMAC(receiverSocket,size);
@@ -60,7 +61,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 	completeFileSize = size;
 
 
-	chunk c;
+	Chunk c;
 	file_status status;
 	bool last = false;
 
@@ -72,7 +73,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 
 	while(true){
 	
-		status = fm.read(&c);
+		status = fm.read(c);
 
 		if(status == FILE_ERROR){
 			cout<<"FILE ERROR"<<endl;
@@ -83,14 +84,14 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 		}
 
 
-		encryptedChunk ec;
+		EncryptedChunk ec;
 
 		if(!em.EncryptUpdate(ec,c)){
 			cout<<"HANDLE ERROR"<<endl;
 		}	
 
 
-		delete[] c.plaintext;
+		//delete[] c.plaintext;
 
 		if(last){
 			if(!em.EncryptFinal(ec)){
@@ -105,9 +106,8 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 		}
 
 
-		if(!sendDataHMAC(receiverSocket,ec.ciphertext,ec.size)){			//aggiorno il nonce
+		if(!sendDataHMAC(receiverSocket,ec.getCipherText(),ec.size)){			//aggiorno il nonce
 			cout<<"ERRORE SEND"<<endl;
-			delete[] ec.ciphertext;
 			return false;
 		}
 
@@ -130,7 +130,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 			}
 		}
 		
-		delete[] ec.ciphertext;
+		//delete[] ec.ciphertext;
 
 
 		if(last)
@@ -158,9 +158,13 @@ bool SendFile(string& path,NetSocket& receiverSocket,const char* filename,const 
 	return true;
 }
 
-bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,PublicKey &key,bool progressBar){
+bool ReceiveFile(string & path, string& filename, NetSocket & senderSocket,PublicKey &key,bool progressBar){
 
 	//handle get
+	if(filename.size() == 0)
+		return false;
+
+
 	path += filename;
 	cout<<"Scrivo: "<<path<<endl;
 
@@ -203,11 +207,11 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,P
 			return false;
 		} 
 
-		encryptedChunk ec;
+		EncryptedChunk ec;
 		ec.size  = len;
-		ec.ciphertext = recvd_data;
+		ec.setCipherText(recvd_data);
 
-		chunk c;
+		Chunk c;
 
 		if(!dm.DecryptUpdate(c,ec)){
 			cout<<"DecryptUpdate error"<<endl;
@@ -251,16 +255,11 @@ bool ReceiveFile(string & path, const char* filename, NetSocket & senderSocket,P
 			cout<<"ERROR"<<endl;
 			fm.finalize(true);
 
-			delete[] ec.ciphertext;
-			delete[] c.plaintext;
 
 			return false;
 		}	
 
-		status = fm.write(&c);
-
-		delete[] c.plaintext;
-		delete[] ec.ciphertext;
+		status = fm.write(c);
 
 		if(status == END_OF_FILE){
 			cout<<"FINITO"<<endl;

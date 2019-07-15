@@ -16,8 +16,8 @@ class RSAVerifyManager{
 
 		~RSAVerifyManager();
 
-		bool RSAUpdate(encryptedChunk &);
-		bool RSAUpdate(chunk &);
+		bool RSAUpdate(EncryptedChunk &);
+		bool RSAUpdate(Chunk &);
 		bool RSAUpdate(const char*,int32_t);
 
 		int RSAFinal(char *signature);

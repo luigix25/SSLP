@@ -7,7 +7,8 @@ PublicKey public_key_rsa;
 
 void close_handler(int s){
 	cout<<endl<<"Terminating.."<<endl;
-	client_socket.closeConnection();
+	client_socket.closeConnection();						
+	KeyManager::destroyKeys();
 	close(server_socket);
 	exit(s);
 }
@@ -37,7 +38,7 @@ bool isClientAuthorized(string& clientName, const char* filePath){
 }
 
 
-void cmd_list(){
+bool cmd_list(){
 	vector <string> files;
 	files = get_file_list(SERVER_PATH);
 	int number;
@@ -54,24 +55,23 @@ void cmd_list(){
 	int len = concatenated.size()+1;
 
 	EncryptManager em;
-	chunk c;
-	c.plaintext = (char*)str;
+	Chunk c;
+	c.setPlainText((char*)str,false);		//i don't need to free memory
 	c.size = len;
 
-	encryptedChunk ec;
+	EncryptedChunk ec;
 
-	em.EncryptUpdate(ec,c);
-	em.EncryptFinal(ec);
+	if(!em.EncryptUpdate(ec,c)) return false;
+	if(!em.EncryptFinal(ec))	return false;
 
 
 	//delete[] c.plaintext;
 
 	//cout << "lista che invio da server: \n" << ec.ciphertext<<endl;
-	if(!sendDataHMAC(client_socket,ec.ciphertext,ec.size))
-		return;
+	if(!sendDataHMAC(client_socket,ec.getCipherText(),ec.size))
+		return false;
+	return true;
 	
-	delete[] ec.ciphertext;
-
 
 }
 
@@ -83,53 +83,88 @@ void print_hex(unsigned char* buff, unsigned int size)
     printf("\n");
 }
 
-void cmd_get(){
+bool cmd_get(){
 
-	char *filename;
 	int len;
 
-	filename = recvDataHMAC(client_socket,len);
+	char *encryptedData = recvDataHMAC(client_socket,len);
+	if(encryptedData == NULL)
+		return false;
+
+	EncryptedChunk ec;
+	ec.setCipherText(encryptedData);				//now in charge of memory management
+	ec.size = len;
+
+	Chunk c;
+
+	DecryptManager dm;
+	if(!dm.DecryptUpdate(c,ec))			return false;
+	if(!dm.DecryptFinal(c))				return false;
+
+	string filename(c.getPlainText());
+
+	if(filename.size() >= MAX_FILENAME_LENGTH){
+		return false;
+	}
+
 	string path(SERVER_PATH);
 	cout<<path<<endl;
-	if(!SendFile(path,client_socket,filename,SERVER_PRIVKEY_PATH,false))
+	if(!SendFile(path,client_socket,filename,SERVER_PRIVKEY_PATH,false)){
 		cout << "sendFile fallita" << endl;
-	else
+		return false;
+	}
+	else{
 		cout << "sendFile corretta" << endl;
+		return true;
+	}
 
-	delete[] filename ;
 }
 
-void cmd_upload(){
-	char *filename;
+bool cmd_upload(){
 	int len;
 
-	filename = recvDataHMAC(client_socket,len);
+	char* encryted_data = recvDataHMAC(client_socket,len);
+	if(encryted_data == NULL)
+		return false;
+
+
+	EncryptedChunk ec;
+	ec.setCipherText(encryted_data);				//now in charge of memory management
+	ec.size = len;
+
+	Chunk c;
+
+	DecryptManager dm;
+	if(!dm.DecryptUpdate(c,ec))			return false;
+	if(!dm.DecryptFinal(c))				return false;
+
+	string filename(c.getPlainText());
+
 	string path(SERVER_PATH);
 	if(!ReceiveFile(path,filename,client_socket,public_key_rsa,false)){
 		cout << "cmd_upload fallita" << endl;
+		return false;
 	}
-	else
+	else{
 		cout << "cmd_upload corretta" << endl;
+		return true;
+	}
 
-	delete[] filename;
 }
 
 
 
-void select_command(int cmd){
+bool select_command(int cmd){
 
 	switch (cmd){
 		case LIST_COMMAND:
-			cmd_list();
-			break;
+			return cmd_list();
 		case GET_COMMAND:
-			cmd_get();
-			break;
+			return cmd_get();
 		case UPLOAD_COMMAND:
-			cmd_upload();
+			return cmd_upload();
 		default:
-			//handle error
-			break;
+			return false;
 		}
 
 
@@ -181,11 +216,11 @@ bool receive_command(int &command){
 		return false;
 	}
 
-	encryptedChunk ec;
+	EncryptedChunk ec;
 	ec.size = len;
-	ec.ciphertext = raw_data;
+	ec.setCipherText(raw_data);
 
-	chunk c;
+	Chunk c;
 
 	DecryptManager dm;
 	dm.DecryptUpdate(c,ec);
@@ -193,11 +228,10 @@ bool receive_command(int &command){
 
 	//il plaintext è un numero
 
-	int *p = (int*)c.plaintext;
-	command = *p;
+	command = c.getInt();
 
-	delete[] c.plaintext;			//non mi serve più
-	delete[] ec.ciphertext;
+	//delete[] c.plaintext;			//non mi serve più
+	//delete[] ec.ciphertext;
 
 	return true;
 
@@ -211,7 +245,7 @@ bool initial_protocol(NetSocket &client_socket){
 
 	if(!client_socket.recvInt(cert_size)) 		return false;
 
-	if(cert_size < 0)
+	if(cert_size < 0 || cert_size > MAX_CERT_LENGTH)
 		return false;
 
 	char *client_cert_data = client_socket.recvData(cert_size);
@@ -269,7 +303,7 @@ bool initial_protocol(NetSocket &client_socket){
 
 	if(!client_socket.sendInt(cert_size)){
 		delete[] cert_buf;
-		return false;					//chiedere perazzo
+		return false;					
 	}
 
 	if(!client_socket.sendData((const char*)cert_buf,cert_size)){
@@ -331,11 +365,14 @@ bool initial_protocol(NetSocket &client_socket){
 
   	HashManager keys;
   	if(!keys.HashUpdate(simmetric_key,key_length)){
+  		memset_s(simmetric_key,0,key_length);
   		delete[] simmetric_key;
   		return false;
   	}
 
 	char* digest_keys = keys.HashFinal();
+
+	memset_s(simmetric_key,0,key_length);
 	delete[] simmetric_key;
 
 	if(digest_keys == NULL)								return false;
@@ -346,6 +383,9 @@ bool initial_protocol(NetSocket &client_socket){
 
 	char HMAC_key[HMAC_KEY_SIZE];
 	memcpy(HMAC_key,&digest_keys[HMAC_KEY_SIZE],HMAC_KEY_SIZE);
+
+
+	memset_s(digest_keys,0,HASH_SIZE);
 
 	delete[] digest_keys;
 
@@ -366,40 +406,35 @@ bool initial_protocol(NetSocket &client_socket){
 
 	if(!client_socket.sendData(IV,AES_BLOCK))	return false;
 
-	chunk c;
- 	c.plaintext = (char*)&local_nonce;
+	Chunk c;
+ 	c.setInt(local_nonce);
 	c.size = sizeof(uint32_t);
 
 
-	encryptedChunk ec;
+	EncryptedChunk ec;
 
 	EncryptManager em;
-	if(!em.EncryptUpdate(ec.ciphertext,ec.size,c.plaintext,c.size)){
-		delete[] ec.ciphertext;
+	if(!em.EncryptUpdate(ec,c)){
 		return false;
 	}
 
 	if(!em.EncryptFinal(ec)){ 
-		delete[] ec.ciphertext;
 		return false;
 	}
 
 	if(!verify.RSAUpdate((const char*)&ec.size,sizeof(int32_t)))		return false; //check
 
 	if(!client_socket.sendInt(ec.size)){
-		delete[] ec.ciphertext;
 		return false;
 	} 
 
 	if(!verify.RSAUpdate((const char*)&local_nonce,sizeof(int32_t)))		return false; //check
 
 
-	if(!client_socket.sendData(ec.ciphertext,ec.size)){
-		delete[] ec.ciphertext;
+	if(!client_socket.sendData(ec.getCipherText(),ec.size)){
 		return false;
 	}
 
-	delete[] ec.ciphertext;
 
 	int nonce_cipher_size;
 
@@ -409,31 +444,26 @@ bool initial_protocol(NetSocket &client_socket){
 	char *recv_data = client_socket.recvData(nonce_cipher_size);
 	if(recv_data == NULL)	return false;
 
-	ec.ciphertext = recv_data;
+	ec.setCipherText(recv_data);
 	ec.size = nonce_cipher_size;
 
 	DecryptManager dm;
 	if(!dm.DecryptUpdate(c,ec)){			
-		delete[] c.plaintext;
 		return false;
 	}
 
 	if(!dm.DecryptFinal(c)){				
-		delete[] c.plaintext;
 		return false;
 	}
 
-	int remote_nonce = *((int*)c.plaintext);
+	int remote_nonce = c.getInt();
 	if(!verify.RSAUpdate((const char*)&remote_nonce,sizeof(int32_t)))		return false; //check
-
-	delete[] recv_data;
-	delete[] c.plaintext;
 
 	HMACManager::setRemoteNonce(remote_nonce);
 	HMACManager::setLocalNonce(local_nonce);
 
-	memset(AES_symmetric_key,0,AES_KEY_SIZE);
-	memset(HMAC_key,0,HMAC_KEY_SIZE);
+	memset_s(AES_symmetric_key,0,AES_KEY_SIZE);
+	memset_s(HMAC_key,0,HMAC_KEY_SIZE);
 
 
 	int received_signature_len;
@@ -545,6 +575,7 @@ int main(int argc,char **argv){
 
 					if(!initial_protocol(client_socket)){
 						client_socket.closeConnection();
+						KeyManager::destroyKeys();
 						alreadyConnected = false;
 						FD_CLR(new_sock,&master);
 					}
@@ -558,11 +589,17 @@ int main(int argc,char **argv){
 					if(!status){
 						cout<<"Client Disconnesso"<<endl;
 						client_socket.closeConnection();
+						KeyManager::destroyKeys();
 						alreadyConnected = false;
 						FD_CLR(i,&master);							//remove socket from select
 
 					} else {
-						select_command(cmd);
+						if(!select_command(cmd)){
+							client_socket.closeConnection();
+							KeyManager::destroyKeys();
+							alreadyConnected = false;
+							FD_CLR(i,&master);
+						}
 					}
 
 				}

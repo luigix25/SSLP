@@ -16,10 +16,10 @@ class EncryptManager : public KeyManager{
 
 		~EncryptManager();
 
-		bool EncryptUpdate(encryptedChunk&, chunk&);
+		bool EncryptUpdate(EncryptedChunk&, Chunk&);
 		bool EncryptUpdate(char *&,int32_t&,const char*,int32_t);
 
-		bool EncryptFinal(encryptedChunk&);
+		bool EncryptFinal(EncryptedChunk&);
 		bool EncryptFinal(char*,int32_t&);
 
 

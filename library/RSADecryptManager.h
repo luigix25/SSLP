@@ -13,8 +13,8 @@ class RSADecryptManager{
 	public:
 		RSADecryptManager(const char *,uint32_t);							//KEY
 		~RSADecryptManager();
-		bool RSAUpdate(chunk&,encryptedChunk&);
-		bool RSAFinal(chunk&);
+		bool RSAUpdate(Chunk&,EncryptedChunk&);
+		bool RSAFinal(Chunk&);
 
 };
 

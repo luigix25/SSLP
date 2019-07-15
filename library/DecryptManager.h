@@ -12,10 +12,10 @@ class DecryptManager : public KeyManager{
 		DecryptManager();
 		DecryptManager(const char *, const char *);				//KEY AND IV
 		~DecryptManager();
-		bool DecryptUpdate(chunk &,encryptedChunk&);
+		bool DecryptUpdate(Chunk &,EncryptedChunk&);
 		bool DecryptUpdate(char *&, int32_t&, const char*, int32_t);
 
-		bool DecryptFinal(chunk &);
+		bool DecryptFinal(Chunk &);
 		bool DecryptFinal(char*, int32_t &);
 
 };

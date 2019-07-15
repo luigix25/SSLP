@@ -9,7 +9,8 @@
 #include "../library/CertificateManager.h"
 #include "../library/DHManager.h"
 #include "../library/HashManager.h"
-
+#include <iomanip>      // std::setw
+#include <limits>
 
 #define CERT_CLIENT_PATH 				"certificates/SSLPClient_cert.pem"
 #define SERVER_NAME						"SSLPServer"

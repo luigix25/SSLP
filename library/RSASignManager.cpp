@@ -27,15 +27,15 @@ bool RSASignManager::RSAUpdate(const char* data, int32_t len){
 }
 
 
-bool RSASignManager::RSAUpdate(encryptedChunk &ec){
+bool RSASignManager::RSAUpdate(EncryptedChunk &ec){
 
-  return RSAUpdate(ec.ciphertext,ec.size);
+  return RSAUpdate(ec.getCipherText(),ec.size);
 
 }
 
-bool RSASignManager::RSAUpdate(chunk &ec){
+bool RSASignManager::RSAUpdate(Chunk &ec){
 
-  return RSAUpdate(ec.plaintext,ec.size);    
+  return RSAUpdate(ec.getPlainText(),ec.size);    
 
 }
 

@@ -30,15 +30,24 @@ bool EncryptManager::EncryptUpdate(char *& ciphertext, int32_t& ciphertext_len, 
 }
 
 
-bool EncryptManager::EncryptUpdate(encryptedChunk& ec, chunk& c){
+bool EncryptManager::EncryptUpdate(EncryptedChunk& ec, Chunk& c){
 
-	return EncryptUpdate(ec.ciphertext,ec.size,c.plaintext,c.size);
+	ec.setCipherText(new char[c.size + AES_BLOCK]);
+ 	
+ 	if(!EVP_EncryptUpdate(this->ctx, (unsigned char*)ec.getCipherText(), &ec.size, (unsigned char*)c.getPlainText(), c.size)){
+    	perror("Error in EVP_EncryptUpdate");
+    	return false;
+    }
+
+    return true;
+
+	//return EncryptUpdate(ec.ciphertext,ec.size,c.plaintext,c.size);
 
 }
 
-bool EncryptManager::EncryptFinal(encryptedChunk& ec){
+bool EncryptManager::EncryptFinal(EncryptedChunk& ec){
 
-	return EncryptFinal(ec.ciphertext,ec.size);	
+	return EncryptFinal(ec.getCipherText(),ec.size);	
 }
 
 bool EncryptManager::EncryptFinal(char* ciphertext,int32_t &len){

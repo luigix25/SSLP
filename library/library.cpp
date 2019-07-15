@@ -165,8 +165,8 @@ bool sendIntHMAC(NetSocket& sender_socket,int32_t value){
 
 	HMACManager hm;
 
-	chunk c;
-	c.plaintext = (char*)&value;
+	Chunk c;
+	c.setPlainText((char*)&value,false);
 	c.size = sizeof(uint32_t);
 	hm.HMACUpdate(c);
 
@@ -195,9 +195,9 @@ bool recvIntHMAC(NetSocket& receiver_socket,int32_t& value){
 
 
 	HMACManager hm;
-	chunk c;
+	Chunk c;
 	c.size = sizeof(uint32_t);
-	c.plaintext = (char*)&value;
+	c.setPlainText((char*)&value,false);
 
 	hm.HMACUpdate(c);
 	char *digest = hm.HMACFinal(REMOTE_NONCE);
@@ -233,11 +233,8 @@ bool sendDataHMAC(NetSocket& sender_socket,const char *data,int32_t length){
 	}
 
 	HMACManager hmac;
-	chunk c;
-	c.size = length;
-	c.plaintext = (char*)data;
 
-	if(!hmac.HMACUpdate(c)) return false;
+	if(!hmac.HMACUpdate(data,length)) return false;
 
 	char *digest = hmac.HMACFinal(LOCAL_NONCE);
 
@@ -257,12 +254,8 @@ char* recvDataHMAC(NetSocket& receiver_socket,int32_t &length){
 
 	char *data = receiver_socket.recvData(length);
 
-	chunk c;
-	c.size = length;
-	c.plaintext = data;
-
 	HMACManager hmac;
-	if(!hmac.HMACUpdate(c)) return NULL;
+	if(!hmac.HMACUpdate(data,length)) return NULL;
 
 	char *digest = hmac.HMACFinal(REMOTE_NONCE);
 
@@ -286,5 +279,13 @@ char* recvDataHMAC(NetSocket& receiver_socket,int32_t &length){
 	delete[] received_digest;
 	return data;
 
+
+}
+
+void memset_s(void *p ,char c, uint32_t len){
+
+	volatile uint8_t * _p = (uint8_t *)p;
+	
+	while (len--) *_p++ = c;
 
 }

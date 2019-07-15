@@ -39,9 +39,9 @@ RSAVerifyManager::RSAVerifyManager(PublicKey &pubClass){
 
 }
 
-bool RSAVerifyManager::RSAUpdate(encryptedChunk &ec){
+bool RSAVerifyManager::RSAUpdate(EncryptedChunk &ec){
 
-    if(!EVP_VerifyUpdate(this->mdctx, (unsigned char*) ec.ciphertext,ec.size)){
+    if(!EVP_VerifyUpdate(this->mdctx, (unsigned char*) ec.getCipherText(),ec.size)){
     	perror("Error in RSA_VerifyUpdate");
     	return false;
     }
@@ -61,9 +61,9 @@ bool RSAVerifyManager::RSAUpdate(const char* data,int32_t len){
 }
 
 
-bool RSAVerifyManager::RSAUpdate(chunk &ec){
+bool RSAVerifyManager::RSAUpdate(Chunk &ec){
 
-    if(!EVP_VerifyUpdate(this->mdctx, (unsigned char*) ec.plaintext,ec.size)){
+    if(!EVP_VerifyUpdate(this->mdctx, (unsigned char*) ec.getPlainText(),ec.size)){
       perror("Error in RSA_VerifyUpdate");
     	return false;
     }

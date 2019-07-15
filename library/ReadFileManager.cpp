@@ -31,7 +31,7 @@ bool ReadFileManager::openStream(){
 } 
 
 // Read at sector index in file and copy it into buffer
-file_status ReadFileManager::read(chunk *c){ 	
+file_status ReadFileManager::read(Chunk &c){ 	
 
 	if(!openStream()){
 		return FILE_ERROR;
@@ -43,17 +43,16 @@ file_status ReadFileManager::read(chunk *c){
 	} else{
 		size = remaining_size; //if last chunk have lower size
 	}
-	c->size = size;
+	c.size = size;
 	fs.seekg(chunk_address); // Set position on disk in input stream
-	c->plaintext = new char[size];
+	c.setPlainText(new char[size]);
 
-	fs.read(c->plaintext, size);
+	fs.read(c.getPlainText(), size);
 	if(!fs){
-		delete[] c->plaintext;
 		return FILE_ERROR;
 	}
 
-	remaining_size -= c->size;
+	remaining_size -= c.size;
 
 	closeStream();
 	

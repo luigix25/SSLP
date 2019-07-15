@@ -4,6 +4,7 @@
 
 #include "FileManager.h"
 #include <fstream>
+
 using namespace std;
 class ReadFileManager : public FileManager {
 	protected:
@@ -13,7 +14,7 @@ class ReadFileManager : public FileManager {
 	public:
 		ReadFileManager(string &name); //Constructor for read operation
 		ReadFileManager(const char *name);
-		file_status read(chunk *c); //Read chunk by chunk sequentially after invocation
+		file_status read(Chunk &c); //Read chunk by chunk sequentially after invocation
 };
 
 #endif

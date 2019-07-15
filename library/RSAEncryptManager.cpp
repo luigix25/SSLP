@@ -20,9 +20,9 @@ RSAEncryptManager::RSAEncryptManager(EVP_PKEY *pubkey){
 
 }
 
-bool RSAEncryptManager::RSAUpdate(encryptedChunk &ec,chunk& c){
+bool RSAEncryptManager::RSAUpdate(EncryptedChunk &ec,Chunk& c){
 
-    if(!EVP_SealUpdate(this->mdctx, (unsigned char*)ec.ciphertext, &ec.size, (unsigned char*)c.plaintext, c.size)){
+    if(!EVP_SealUpdate(this->mdctx, (unsigned char*)ec.getCipherText(), &ec.size, (unsigned char*)c.getPlainText(), c.size)){
       perror("Error in RSA_Update");
       return false;
     }
@@ -32,11 +32,11 @@ bool RSAEncryptManager::RSAUpdate(encryptedChunk &ec,chunk& c){
 }
 
 
-bool RSAEncryptManager::RSAFinal(encryptedChunk& ec){
+bool RSAEncryptManager::RSAFinal(EncryptedChunk& ec){
 
   int len;
 
-  if(!EVP_SealFinal(this->mdctx, (unsigned char*)ec.ciphertext + ec.size, &len)){
+  if(!EVP_SealFinal(this->mdctx, (unsigned char*)ec.getCipherText() + ec.size, &len)){
     perror("Error in RSA_Final");
     return false;
   }
