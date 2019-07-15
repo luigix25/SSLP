@@ -13,6 +13,8 @@ class KeyManager {
 		static void setAESKey(const char*);
 		static void setAESIV(const char*);
 		static void setHMACKey(const char*);
+		static void getIV(char*);
+		static void incrementIV();
 		static void destroyKeys();
 
 };

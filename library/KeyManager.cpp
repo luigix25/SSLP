@@ -19,5 +19,13 @@ void KeyManager::setHMACKey(const char* _hmac){
 void KeyManager::destroyKeys(){
 	memset_s(key,0,16);
 	memset_s(hmac_key,0,16);
+}
 
+void KeyManager::incrementIV(){
+	(*(uint64_t*) IV)++;
+}
+
+
+void KeyManager::getIV(char* res){
+	memcpy(res,IV,16);
 }

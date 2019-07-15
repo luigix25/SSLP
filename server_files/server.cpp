@@ -117,7 +117,6 @@ bool cmd_get(){
 		cout << "sendFile corretta" << endl;
 		return true;
 	}
-
 }
 
 bool cmd_upload(){
@@ -400,6 +399,7 @@ bool initial_protocol(NetSocket &client_socket){
 
 	KeyManager::setAESKey(AES_symmetric_key);
 	KeyManager::setAESIV(IV);
+
 	KeyManager::setHMACKey(HMAC_key);
 
 	if(!verify.RSAUpdate(IV,AES_BLOCK))		return false; //check
