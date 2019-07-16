@@ -7,6 +7,8 @@ DecryptManager::DecryptManager(){
   		perror("Error In EVP_DecryptInit");
   	}
 
+	incrementIV();
+
 }
 
 DecryptManager::DecryptManager(const char *_key, const char *_IV) : DecryptManager(){

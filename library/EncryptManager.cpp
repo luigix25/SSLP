@@ -8,12 +8,15 @@ EncryptManager::EncryptManager(){
   		perror("Error In EVP_EncryptInit");
   	}
 
+	incrementIV();
+
 }
 
 
 EncryptManager::EncryptManager(const char *_key, const char *_IV) : EncryptManager() {
 	setAESKey(_key);
 	setAESIV(_IV);
+
 }				//KEY AND IV
 
 bool EncryptManager::EncryptUpdate(char *& ciphertext, int32_t& ciphertext_len, const char* plaintext ,int32_t plaintext_len){

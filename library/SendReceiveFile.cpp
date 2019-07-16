@@ -88,21 +88,20 @@ bool SendFile(string& path,NetSocket& receiverSocket,string &filename,const char
 
 		if(!em.EncryptUpdate(ec,c)){
 			cout<<"HANDLE ERROR"<<endl;
+			return false;
 		}	
 
 
-		//delete[] c.plaintext;
-
 		if(last){
 			if(!em.EncryptFinal(ec)){
-				//handle
+				return false;
 			}
 
 
 		}
 
 		if(!sign.RSAUpdate(ec)){						//hash on plaintext
-			cout<<"ERORR"<<endl;
+			return false;
 		}
 
 
