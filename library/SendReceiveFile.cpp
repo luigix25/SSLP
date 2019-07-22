@@ -12,8 +12,6 @@ bool checkValidityFilename(string filename){
 	}
 }
 bool SendFile(string& path,NetSocket& receiverSocket,string &filename,const char *key_path,bool progressBar){
-	cout<<"USO CHIAVE "<<key_path<<endl;
-
 
 	if(filename.size() == 0){
 		return false;
@@ -76,7 +74,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,string &filename,const char
 		status = fm.read(c);
 
 		if(status == FILE_ERROR){
-			cout<<"FILE ERROR"<<endl;
+			cout<<"[ERROR]File"<<endl;
 			return false;
 		} else if(status == END_OF_FILE){
 			cout<<"EOF"<<endl;
@@ -87,7 +85,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,string &filename,const char
 		EncryptedChunk ec;
 
 		if(!em.EncryptUpdate(ec,c)){
-			cout<<"HANDLE ERROR"<<endl;
+			//cout<<"HANDLE ERROR"<<endl;
 			return false;
 		}	
 
@@ -106,7 +104,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,string &filename,const char
 
 
 		if(!sendDataHMAC(receiverSocket,ec.getCipherText(),ec.size)){			//aggiorno il nonce
-			cout<<"ERRORE SEND"<<endl;
+			cout<<"[ERROR]"<<endl;
 			return false;
 		}
 
@@ -142,12 +140,12 @@ bool SendFile(string& path,NetSocket& receiverSocket,string &filename,const char
 	digest = sign.RSAFinal(sign_len);
 
 	if(digest == NULL){
-		cout<<"ERRORE SignFinal"<<endl;
+		cout<<"[ERROR] SignFinal"<<endl;
 		return false;
 	}	
 
 	if(!sendDataHMAC(receiverSocket,digest,sign_len)){		
-		cout<<"ERRORE SEND"<<endl;
+		cout<<"[ERROR]"<<endl;
 		delete[] digest;
 		return false;
 	}
@@ -165,14 +163,14 @@ bool ReceiveFile(string & path, string& filename, NetSocket & senderSocket,Publi
 
 
 	path += filename;
-	cout<<"Scrivo: "<<path<<endl;
+	cout<<"[LOG] File Path: "<<path<<endl;
 
 	uint32_t file_size;
 	uint32_t completeFileSize;
 	if(!recvIntHMAC(senderSocket,(int32_t&)file_size)) return false;
 
 	if(file_size == 0){				//file non esistente
-		cout<<"File does not exist or too big"<<endl;
+		cout<<"[LOG] File does not exist or too big"<<endl;
 		return false;
 	}
 
@@ -182,7 +180,7 @@ bool ReceiveFile(string & path, string& filename, NetSocket & senderSocket,Publi
 	int len = 0;
 	file_status status;
 
-	cout<<"File Size: "<<file_size<<endl;
+	cout<<"[LOG] File Size: "<<file_size<<endl;
 	WriteFileManager fm(path,file_size);
 	DecryptManager dm;
 	RSAVerifyManager verify(key);
@@ -251,7 +249,7 @@ bool ReceiveFile(string & path, string& filename, NetSocket & senderSocket,Publi
 		}
 
 		if(!verify.RSAUpdate(ec)){
-			cout<<"ERROR"<<endl;
+			cout<<"[ERROR]"<<endl;
 			fm.finalize(true);
 
 
@@ -261,7 +259,7 @@ bool ReceiveFile(string & path, string& filename, NetSocket & senderSocket,Publi
 		status = fm.write(c);
 
 		if(status == END_OF_FILE){
-			cout<<"FINITO"<<endl;
+			cout<<"[LOG] Transfer Completed"<<endl;
 			break;
 		} else if(status == FILE_ERROR){
 			cout << "FILE_ERROR" << endl;
@@ -278,11 +276,11 @@ bool ReceiveFile(string & path, string& filename, NetSocket & senderSocket,Publi
 
 	if(result != 1){
 		fm.finalize(true);						//error
-		cout<<"ERRORE verifyFinal"<<endl;
+		cout<<"[ERROR] File Verification"<<endl;
 		delete[] recvd_digest;
 		return false;
 	} else {
-		cout<<"verify OK"<<endl;
+		cout<<"[LOG] File Verification OK"<<endl;
 		fm.finalize(false);
 	}
 	

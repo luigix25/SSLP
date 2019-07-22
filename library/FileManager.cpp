@@ -36,7 +36,7 @@ void FileManager::close_stream(){
 
 void FileManager::changeName(string& name){
 	file_name = name;
-	cout << "NAME " << file_name << endl;
+	//cout << "NAME " << file_name << endl;
 }
 
 FileManager::~FileManager(){

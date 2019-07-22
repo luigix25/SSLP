@@ -17,7 +17,7 @@ bool WriteFileManager::openStream(){
 	if(!fs.is_open()){
 		fs.open(file_name, fstream::out | fstream::app | fstream::binary);
 		if(fs.fail()){ 
-			cout << "LOG: file can't open" << endl;
+			cout << "[LOG] file can't open" << endl;
 			return false;
 		}
 	}

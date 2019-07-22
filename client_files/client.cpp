@@ -84,7 +84,7 @@ bool send_command(uint32_t command){
 	if(!em.EncryptFinal(ec))		return false;
 
 	if(!sendDataHMAC(server_socket,ec.getCipherText(),ec.size)){			//aggiorno il nonce
-		cout<<"ERRORE SEND"<<endl;
+		cout<<"[Error] send"<<endl;
 		return false;
 	}
 
@@ -94,7 +94,7 @@ bool send_command(uint32_t command){
 bool cmd_list(){
 
 	if(!send_command(LIST_COMMAND)){
-		cout<<"Error in send command"<<endl;
+		cout<<"[Error] send command"<<endl;
 		return false;
 	}
 	
@@ -149,12 +149,12 @@ bool cmd_upload(){
 	string path(CLIENT_PATH);
 	fstream tmp(path + filename);
 	if(!tmp.good()){
-		cout << "il file non esiste" << endl;
+		cout << "File Does not exists!" << endl;
 		return true;								//not a protocol error
 	}
-	else {
-		cout << "il file esiste" << endl;
-	}
+	/*else {
+		//cout << "il file esiste" << endl;
+	}*/
 
 	if(!send_command(UPLOAD_COMMAND)) return false;
 
@@ -172,11 +172,11 @@ bool cmd_upload(){
 	if(!sendDataHMAC(server_socket,ec.getCipherText(),ec.size)) return false;
 	
 	if(!SendFile(path,server_socket,filename,CLIENT_PRIVKEY_PATH,true)){
-		cout << "sendFile fallita" << endl;
+		cout << "[ERROR] sendFile failed" << endl;
 		return false;
 	}
 	else {
-		cout << "sendFile corretta" << endl;
+		cout << "[LOG] sendFile correct" << endl;
 		return true;
 	}
 }
@@ -207,11 +207,11 @@ bool cmd_get(){
 
 	if(!sendDataHMAC(server_socket,ec.getCipherText(),ec.size)) return false;			
 	if(!ReceiveFile(path,filename,server_socket,public_key_rsa,true)){
-		cout << "ReceiveFile ERRATA" << endl;
+		cout << "[Error] ReceiveFile" << endl;
 		return false;
 	}
 	else{
-		cout << "ReceiveFile CORRETTA" << endl;
+		cout << "[LOG] ReceiveFile Correct" << endl;
 		return true;
 	}
 	
@@ -233,7 +233,7 @@ bool select_command(string &buffer){
 		return cmd_upload();
 	} else {
 		cout<<">"<<buffer<<"<"<<endl;
-		cout<<"Comando non riconosciuto"<<endl;
+		cout<<"Invalid Command"<<endl;
 	//	exit(-1);
 		pulisci_buff();
 		return true;
@@ -316,7 +316,7 @@ bool initial_protocol(NetSocket &server_socket){
 
 	CertificateManager cm(CERT_CA_PATH,CERT_CA_CRL_PATH);
 	if(!cm.verifyCertificate(server_cert)){
-		cout<<"errore verifica certificato"<<endl;
+		cout<<"[Error] verifying certificate"<<endl;
 		X509_free(server_cert);
 		return false;
 	}
@@ -324,7 +324,7 @@ bool initial_protocol(NetSocket &server_socket){
 	string name;
 	if(!cm.extractCommonName(server_cert,name)){
 		X509_free(server_cert);
-		cout<<"errore extractCommonName"<<endl;
+		cout<<"[Error] extractCommonName"<<endl;
 		return false;
 	}
 
@@ -337,7 +337,7 @@ bool initial_protocol(NetSocket &server_socket){
 	X509_free(server_cert);
 
 
-	cout<<"Connessione stabilita con il server "<<name<<endl;
+	cout<<"Connection established with: "<<name<<endl;
 
 	DHManager dh(DH_PARAMS_PATH);
 	int pub_key_len;
@@ -503,7 +503,7 @@ bool initial_protocol(NetSocket &server_socket){
 int main(int argc,char **argv){
 
 	if(argc < 3){
-		cout<<"[Errore] ip e porta necessari"<<endl;
+		cout<<"[Error] IP and Port are mandatory!"<<endl;
 		exit(-1);
 	}
 
@@ -518,9 +518,15 @@ int main(int argc,char **argv){
 
 	portServer = atoi(argv[2]);
 
+	if(portServer <= 0 || portServer >= USHRT_MAX){
+		cout<<"[Error] Invalid Port"<<endl;
+		exit(-1);
+	}
+
+
 	socket_tcp = socket(AF_INET,SOCK_STREAM,0);
 	if(socket_tcp < 0){
-		perror("[Errore] socket\n");
+		perror("[Error] socket\n");
 		return -1;
 	}
 
@@ -529,22 +535,22 @@ int main(int argc,char **argv){
 	serverAddress.sin_family = AF_INET;
 	serverAddress.sin_port = htons(portServer);
 	if(inet_pton(AF_INET,argv[1],&serverAddress.sin_addr) <=0){
-		cout<<"invalid IP"<<endl;
+		cout<<"[Error] invalid IP"<<endl;
 		exit(-1);
 	}
 	
 
 	status = connect(socket_tcp, (struct sockaddr*)&serverAddress,sizeof(serverAddress));
 	if(status < 0){
-		perror("[Errore] connect\n");
+		perror("[Error] connect\n");
 		return -1;
 	}
 	
-	cout<<endl<<"Connessione al server "<<argv[1]<<" (port "<<portServer<<" effettuata con successo"<<endl;
+	cout<<endl<<"Successfully connected to the server "<<argv[1]<<" : "<<portServer<<endl;
 	server_socket = NetSocket(socket_tcp);
 
 	if(!initial_protocol(server_socket)){
-		cout<<"error"<<endl;
+		cout<<"Something Strange Occurred"<<endl;
 		exit(-1);
 		//handle error
 	}
@@ -565,7 +571,7 @@ int main(int argc,char **argv){
 	
 		read_fds = master;
 		if(select(fdmax+1,&read_fds,NULL,NULL,NULL) <=0){
-			perror("Errore select");
+			perror("[Error] select");
 			exit(-1);
 		}
 
@@ -581,7 +587,7 @@ int main(int argc,char **argv){
 					//continue;
 				} else if(i == socket_tcp) {			//server tcp
 					//non dovrei mai arrivare qui	
-					cout<<"ERRORE PROTOCOLLARE!"<<endl;
+					cout<<"Protocolar Error!"<<endl;
 					KeyManager::destroyKeys();
 					server_socket.closeConnection();
 					exit(-1);

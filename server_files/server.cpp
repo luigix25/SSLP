@@ -110,11 +110,11 @@ bool cmd_get(){
 	string path(SERVER_PATH);
 	cout<<path<<endl;
 	if(!SendFile(path,client_socket,filename,SERVER_PRIVKEY_PATH,false)){
-		cout << "sendFile fallita" << endl;
+		cout << "[ERROR] sendFile failed" << endl;
 		return false;
 	}
 	else{
-		cout << "sendFile corretta" << endl;
+		cout << "[LOG] sendFile correct" << endl;
 		return true;
 	}
 }
@@ -141,13 +141,11 @@ bool cmd_upload(){
 
 	string path(SERVER_PATH);
 	if(!ReceiveFile(path,filename,client_socket,public_key_rsa,false)){
-		cout << "cmd_upload fallita" << endl;
+		cout << "[ERROR]" << endl;
 		return false;
 	}
-	else{
-		cout << "cmd_upload corretta" << endl;
-		return true;
-	}
+
+	return true;
 
 }
 
@@ -181,7 +179,7 @@ int initialize_server(int port){
 
 	listener = socket(AF_INET, SOCK_STREAM, 0);
 	if(listener < 0){
-		cout<<"[Errore] socket"<<endl;
+		cout<<"[Error] socket"<<endl;
 		exit(-1);
 	}
 
@@ -195,13 +193,13 @@ int initialize_server(int port){
 
 	status = bind(listener, (struct sockaddr*)& listenerAddress, sizeof(listenerAddress));
 	if(status < 0){
-		perror("[Errore] bind\n");
+		perror("[Error] bind\n");
 		exit(-1);
 	}
 
 	status = listen(listener,10);
 	if(status < 0){
-		perror("[Errore] listen\n");
+		perror("[Error] listen\n");
 		exit(-1);
 	}
 
@@ -216,7 +214,7 @@ bool receive_command(int &command){
 	char *raw_data = recvDataHMAC(client_socket,len);
 
 	if(raw_data == NULL){
-		cout<<"Errore receive command"<<endl;
+		cout<<"[Error] receive command"<<endl;
 		return false;
 	}
 
@@ -286,7 +284,7 @@ bool initial_protocol(NetSocket &client_socket){
 		return false;
 	}
 
-	cout<<"Connessione stabilita con il client "<<name<<endl;
+	cout<<"Connection established with: "<<name<<endl;
 
 	X509_free(client_cert);
 
@@ -508,7 +506,7 @@ int main(int argc,char **argv){
 
 
 	if(argc != 2){
-		cout<<"[Errore] parametri errati"<<endl;
+		cout<<"[Error] missing port!"<<endl;
 		exit(-1);
 	}
 
@@ -524,17 +522,17 @@ int main(int argc,char **argv){
 	int cmd;
 	fd_set read_fds;
 		
-	/*if(porta < 0){
-		pritnf("[Errore] porta errata");
+	if(port <= 0 || port >= USHRT_MAX){
+		cout<<"[Error] Invalid Port"<<endl;
 		exit(-1);
-	}*/
+	}
 
 
 	memset(&clientAddress,0,sizeof(clientAddress));
 
 	server_socket = initialize_server(port);
 
-	cout<<"[LOG] Attendo connessioni sulla porta "<<port<<endl;
+	cout<<"[LOG] Waiting connections on port "<<port<<endl;
 
 	
 	FD_ZERO(&master);	
@@ -550,7 +548,7 @@ int main(int argc,char **argv){
 	while(true){
 		read_fds = master;
 		if(select(fdmax+1,&read_fds,NULL,NULL,NULL) <=0){
-			perror("[Errore] Select");
+			perror("[Error] Select");
 			exit(-1);
 		}
 
@@ -562,7 +560,7 @@ int main(int argc,char **argv){
 					new_sock = accept(server_socket,(struct sockaddr*)&clientAddress,&addrlen);
 					
 					if(new_sock < 0){
-						perror("[Errore] accept\n");
+						perror("[Error] accept\n");
 						continue;
 					}
 
@@ -592,7 +590,7 @@ int main(int argc,char **argv){
 
 					status = receive_command(cmd);
 					if(!status){
-						cout<<"Client Disconnesso"<<endl;
+						cout<<"[LOG] Client Disconnected"<<endl;
 						client_socket.closeConnection();
 						KeyManager::destroyKeys();
 						alreadyConnected = false;
