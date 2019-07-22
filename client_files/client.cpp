@@ -528,7 +528,10 @@ int main(int argc,char **argv){
 	
 	serverAddress.sin_family = AF_INET;
 	serverAddress.sin_port = htons(portServer);
-	inet_pton(AF_INET,argv[1],&serverAddress.sin_addr);
+	if(inet_pton(AF_INET,argv[1],&serverAddress.sin_addr) <=0){
+		cout<<"invalid IP"<<endl;
+		exit(-1);
+	}
 	
 
 	status = connect(socket_tcp, (struct sockaddr*)&serverAddress,sizeof(serverAddress));
