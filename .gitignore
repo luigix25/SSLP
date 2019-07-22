@@ -34,9 +34,11 @@
 *.txt
 *.pdf
 *.tmp
+*.bin
 
 #RSA keys
 #*.pem
+
 
 #Eccezione per file clients
 !clients.txt
