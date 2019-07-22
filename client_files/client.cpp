@@ -207,11 +207,11 @@ bool cmd_get(){
 
 	if(!sendDataHMAC(server_socket,ec.getCipherText(),ec.size)) return false;			
 	if(!ReceiveFile(path,filename,server_socket,public_key_rsa,true)){
-		cout << "[Error] ReceiveFile" << endl;
+		//cout << "[Error] ReceiveFile" << endl;
 		return false;
 	}
 	else{
-		cout << "[LOG] ReceiveFile Correct" << endl;
+		//cout << "[LOG] ReceiveFile Correct" << endl;
 		return true;
 	}
 	

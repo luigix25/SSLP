@@ -43,7 +43,7 @@ bool SendFile(string& path,NetSocket& receiverSocket,string &filename,const char
 	if(!sendIntHMAC(receiverSocket,size)) return false;		//32 bit ok
 
 	if(size == 0){				//file non esistente
-		return false;
+		return true;
 	}
 
 	//For the progressbar
@@ -171,7 +171,7 @@ bool ReceiveFile(string & path, string& filename, NetSocket & senderSocket,Publi
 
 	if(file_size == 0){				//file non esistente
 		cout<<"[LOG] File does not exist or too big"<<endl;
-		return false;
+		return true;
 	}
 
 	completeFileSize = file_size;
