@@ -174,6 +174,11 @@ int initialize_server(int port){
 	int listener;
 	int status;
 
+	if(port <= 0){
+		cout<<"Port error"<<endl;
+		exit(-1);
+	}
+
 	listener = socket(AF_INET, SOCK_STREAM, 0);
 	if(listener < 0){
 		cout<<"[Errore] socket"<<endl;
