@@ -4,6 +4,8 @@
 <b>L</b>ucifer<br />
 <b>P</b>rotocol<br />
 
+### Notes ###
+SSLP is a protocol developed by L. Leonardi, M. Suffredini and F. Storniolo as part of the Cybersecurity Course for MsC in Computer Engineering
 
 ### Build ###
 ```shell
@@ -31,3 +33,4 @@ Client
 ./client ip port
 ```
 (If local use 127.0.0.1)
+
